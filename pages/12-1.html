@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>12-1 CSS 变量</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  /* ===== CSS 变量定义（自定义属性）===== */
+  :root {
+    --chen-primary: #6c5ce7;
+    --chen-primary-light: #a29bfe;
+    --chen-accent: #00b894;
+    --chen-bg: #f8f9ff;
+    --chen-card-bg: #ffffff;
+    --chen-text: #2d3436;
+    --chen-text-light: #636e72;
+    --chen-radius: 14px;
+    --chen-shadow: 0 8px 30px rgba(108, 92, 231, 0.12);
+    --chen-transition: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* 暗色主题变量覆盖 */
+  html[data-chen_theme="dark"] {
+    --chen-primary: #a29bfe;
+    --chen-primary-light: #6c5ce7;
+    --chen-accent: #55efc4;
+    --chen-bg: #1a1a2e;
+    --chen-card-bg: #16213e;
+    --chen-text: #eaeaea;
+    --chen-text-light: #b2b2b2;
+    --chen-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+  }
+
+  body {
+    font-family: "Microsoft YaHei", "Segoe UI", sans-serif;
+    background: var(--chen-bg);
+    color: var(--chen-text);
+    line-height: 1.7;
+    padding: 24px;
+    transition: background var(--chen_transition), color var(--chen_transition);
+    min-height: 100vh;
+  }
+
+  .chen_container { max-width: 960px; margin: 0 auto; }
+
+  .chen_back-home {
+    display: inline-block;
+    margin-bottom: 16px;
+    color: var(--chen-primary);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: bold;
+    transition: color 0.2s;
+  }
+  .chen_back-home:hover { color: var(--chen-accent); text-decoration: underline; }
+
+  h1 {
+    text-align: center;
+    font-size: 1.8rem;
+    margin-bottom: 4px;
+    background: linear-gradient(90deg, var(--chen-primary), var(--chen-accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .chen_subtitle {
+    text-align: center;
+    color: var(--chen-text-light);
+    margin-bottom: 24px;
+    font-size: 0.9rem;
+  }
+
+  .chen_card {
+    background: var(--chen-card-bg);
+    border-radius: var(--chen-radius);
+    padding: 22px 26px;
+    margin-bottom: 22px;
+    box-shadow: var(--chen-shadow);
+    border: 1px solid rgba(108, 92, 231, 0.1);
+    transition: background var(--chen_transition), box-shadow var(--chen_transition);
+  }
+
+  .chen_card h2 {
+    font-size: 1.1rem;
+    color: var(--chen-primary);
+    border-left: 4px solid var(--chen-primary);
+    padding-left: 10px;
+    margin-bottom: 8px;
+  }
+
+  .chen_desc {
+    color: var(--chen-text-light);
+    font-size: 0.85rem;
+    margin-bottom: 16px;
+  }
+
+  code, .chen_code {
+    font-family: Consolas, "Courier New", monospace;
+    background: rgba(108, 92, 231, 0.1);
+    padding: 2px 7px;
+    border-radius: 4px;
+    color: var(--chen-primary);
+    font-size: 0.85em;
+  }
+
+  /* ===== 演示 1：主题切换 ===== */
+  .chen_theme-demo {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    align-items: stretch;
+  }
+
+  .chen_theme-box {
+    flex: 1;
+    min-width: 260px;
+    border-radius: var(--chen-radius);
+    padding: 20px;
+    background: var(--chen_card-bg);
+    border: 2px solid var(--chen-primary);
+    transition: all var(--chen_transition);
+  }
+
+  .chen_theme-box h3 {
+    color: var(--chen-primary);
+    margin-bottom: 8px;
+    font-size: 1rem;
+  }
+
+  .chen_theme-box p {
+    color: var(--chen-text-light);
+    font-size: 0.85rem;
+  }
+
+  .chen_btn {
+    display: inline-block;
+    margin-top: 14px;
+    padding: 9px 20px;
+    border: none;
+    border-radius: 8px;
+    background: var(--chen-primary);
+    color: #fff;
+    font-size: 0.88rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all var(--chen_transition);
+    font-family: inherit;
+  }
+  .chen_btn:hover {
+    background: var(--chen-accent);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0, 184, 148, 0.35);
+  }
+
+  /* ===== 演示 2：颜色变量面板 ===== */
+  .chen_color-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 14px;
+  }
+
+  .chen_color-swatch {
+    border-radius: 10px;
+    padding: 16px;
+    min-height: 90px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    color: #fff;
+    font-weight: bold;
+    font-size: 0.82rem;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    transition: transform 0.25s ease;
+  }
+  .chen_color-swatch:hover { transform: scale(1.05); }
+  .chen_color-swatch .chen_hex {
+    font-weight: normal;
+    font-size: 0.72rem;
+    opacity: 0.9;
+    font-family: Consolas, monospace;
+  }
+
+  /* ===== 演示 3：尺寸变量滑块 ===== */
+  .chen_size-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    max-width: 480px;
+  }
+
+  .chen_ctrl-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.88rem;
+  }
+
+  .chen_ctrl-row label { width: 90px; color: var(--chen-text-light); flex-shrink: 0; }
+
+  .chen_ctrl-row input[type="range"] { flex: 1; accent-color: var(--chen-primary); }
+
+  .chen_val {
+    width: 58px;
+    text-align: right;
+    font-family: Consolas, monospace;
+    color: var(--chen-primary);
+    font-weight: bold;
+  }
+
+  .chen_size-preview {
+    margin-top: 16px;
+    padding: 22px;
+    border-radius: var(--chen_radius, 14px);
+    background: linear-gradient(135deg, var(--chen-primary), var(--chen-primary-light));
+    color: #fff;
+    text-align: center;
+    font-weight: bold;
+    transition: border-radius 0.3s ease;
+  }
+
+  /* ===== 演示 4：变量层级 ===== */
+  .chen_scope-box {
+    border-radius: var(--chen-radius);
+    padding: 18px;
+    background: var(--chen_card-bg);
+    border: 1px dashed var(--chen-primary-light);
+    margin-bottom: 12px;
+  }
+  .chen_scope-box h3 { color: var(--chen-primary); font-size: 0.95rem; margin-bottom: 6px; }
+  .chen_scope-box p { color: var(--chen-text-light); font-size: 0.82rem; }
+
+  .chen_scope-inner {
+    --chen_local: #e17055;
+    margin-top: 10px;
+    padding: 14px;
+    border-radius: 10px;
+    background: var(--chen_local, var(--chen-primary));
+    color: #fff;
+    font-size: 0.85rem;
+  }
+
+  /* ===== 作者信息 ===== */
+  .chen_author {
+    text-align: center;
+    margin-top: 8px;
+    padding: 18px;
+    border-radius: var(--chen-radius);
+    background: linear-gradient(135deg, var(--chen-primary), var(--chen-accent));
+    color: #fff;
+    font-size: 1.05rem;
+    font-weight: bold;
+    letter-spacing: 1px;
+  }
+  .chen_author span {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: normal;
+    opacity: 0.85;
+    margin-top: 4px;
+  }
+
+  /* ===== 速查表 ===== */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.86rem;
+    margin-top: 6px;
+  }
+  th, td { border: 1px solid rgba(108, 92, 231, 0.15); padding: 8px 12px; text-align: left; }
+  th { background: var(--chen-primary); color: #fff; }
+  tr:nth-child(even) td { background: rgba(108, 92, 231, 0.04); }
+
+  .chen_tip { color: var(--chen-accent); font-size: 0.82rem; margin-top: 8px; }
+
+  footer { text-align: center; color: var(--chen-text-light); font-size: 0.78rem; margin-top: 20px; }
+</style>
+</head>
+<body>
+<div class="chen_container">
+
+  <a href="index.html" class="chen_back-home">← 返回首页</a>
+
+  <h1>CSS 变量（自定义属性）</h1>
+  <p class="chen_subtitle">CSS Variables / Custom Properties 交互演示</p>
+
+  <!-- 1. 主题切换 -->
+  <div class="chen_card">
+    <h2>① 主题切换（变量覆盖）</h2>
+    <p class="chen_desc">
+      在 <code>:root</code> 定义变量，通过切换 <code>data-chen_theme</code> 覆盖整组变量，实现一键换肤。
+    </p>
+    <div class="chen_theme-demo">
+      <div class="chen_theme-box">
+        <h3>🎨 当前主题</h3>
+        <p id="chen_themeLabel">浅色模式（light）</p>
+        <button class="chen_btn" id="chen_themeBtn">切换到暗色模式</button>
+      </div>
+      <div class="chen_theme-box">
+        <h3>🔧 实现原理</h3>
+        <p>
+          <code>:root</code> 中定义变量 →
+          <code>html[data-chen_theme="dark"]</code> 覆盖变量 →
+          所有引用 <code>var(--chen_xxx)</code> 的元素自动更新
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. 颜色变量面板 -->
+  <div class="chen_card">
+    <h2>② 颜色变量面板</h2>
+    <p class="chen_desc">
+      定义一次，全站复用。修改 <code>--chen-primary</code> 一处，所有引用处同步更新。
+    </p>
+    <div class="chen_color-grid">
+      <div class="chen_color-swatch" style="background:#6c5ce7;">primary<span class="chen_hex">#6c5ce7</span></div>
+      <div class="chen_color-swatch" style="background:#a29bfe;">primary-light<span class="chen_hex">#a29bfe</span></div>
+      <div class="chen_color-swatch" style="background:#00b894;">accent<span class="chen_hex">#00b894</span></div>
+      <div class="chen_color-swatch" style="background:#2d3436;">text<span class="chen_hex">#2d3436</span></div>
+      <div class="chen_color-swatch" style="background:#636e72;">text-light<span class="chen_hex">#636e72</span></div>
+      <div class="chen_color-swatch" style="background:#f8f9ff;">bg<span class="chen_hex">#f8f9ff</span></div>
+    </div>
+  </div>
+
+  <!-- 3. 尺寸变量滑块 -->
+  <div class="chen_card">
+    <h2>③ 尺寸变量（动态计算）</h2>
+    <p class="chen_desc">
+      用 <code>var()</code> 配合 <code>calc()</code> 动态计算尺寸，滑块实时调整 CSS 变量。
+    </p>
+    <div class="chen_size-controls">
+      <div class="chen_ctrl-row">
+        <label>圆角半径</label>
+        <input type="range" id="chen_radius" min="0" max="30" value="14">
+        <span class="chen_val" id="chen_radiusVal">14px</span>
+      </div>
+      <div class="chen_ctrl-row">
+        <label>内边距</label>
+        <input type="range" id="chen_padding" min="10" max="40" value="22">
+        <span class="chen_val" id="chen_paddingVal">22px</span>
+      </div>
+      <div class="chen_ctrl-row">
+        <label>阴影强度</label>
+        <input type="range" id="chen_shadow" min="0" max="50" value="30">
+        <span class="chen_val" id="chen_shadowVal">30px</span>
+      </div>
+    </div>
+    <div class="chen_size-preview" id="chen_preview">预览盒子</div>
+  </div>
+
+  <!-- 4. 变量作用域 -->
+  <div class="chen_card">
+    <h2>④ 变量作用域（Scope）</h2>
+    <p class="chen_desc">
+      变量遵循 CSS 级联规则：子元素可覆盖父元素变量，且只影响其后代。内层盒子用局部变量 <code>--chen_local</code> 覆盖了外层同名变量。
+    </p>
+    <div class="chen_scope-box">
+      <h3>外层（使用 --chen-primary）</h3>
+      <p>背景色来自 <code>var(--chen-primary)</code> = #6c5ce7</p>
+      <div class="chen_scope-inner">
+        内层（覆盖 --chen_local = #e17055）→ 只影响此元素及其子元素
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. 作者信息 -->
+  <div class="chen_author">
+    陈依然
+    <span>CSS 变量演示页面 · 2026</span>
+  </div>
+
+  <!-- 6. 速查表 -->
+  <div class="chen_card">
+    <h2>⑤ CSS 变量核心语法速查</h2>
+    <table>
+      <tr><th>语法</th><th>说明</th><th>示例</th></tr>
+      <tr><td><code>--name: value;</code></td><td>在 :root 或元素上定义变量</td><td><code>--chen_color: #6c5ce7;</code></td></tr>
+      <tr><td><code>var(--name)</code></td><td>引用变量值</td><td><code>color: var(--chen_color);</code></td></tr>
+      <tr><td><code>var(--name, 默认值)</code></td><td>变量不存在时使用默认值</td><td><code>color: var(--chen_x, #333);</code></td></tr>
+      <tr><td><code>calc()</code></td><td>变量参与计算</td><td><code>padding: calc(var(--chen_gap) * 2);</code></td></tr>
+      <tr><td>选择器覆盖</td><td>在特定选择器中重新赋值</td><td><code>html[dark] { --chen_bg: #111; }</code></td></tr>
+    </table>
+    <p class="chen_tip">提示：CSS 变量是运行时计算的（不是编译期），支持级联、继承和 JS 动态修改（<code>setProperty</code>）。</p>
+  </div>
+
+  <footer>12-1 · CSS 变量演示</footer>
+</div>
+
+<script>
+  /* ===== 1. 主题切换 ===== */
+  const chen_html = document.documentElement;
+  const chen_themeBtn = document.getElementById('chen_themeBtn');
+  const chen_themeLabel = document.getElementById('chen_themeLabel');
+
+  chen_themeBtn.addEventListener('click', () => {
+    const chen_isDark = chen_html.getAttribute('data-chen_theme') === 'dark';
+    if (chen_isDark) {
+      chen_html.removeAttribute('data-chen_theme');
+      chen_themeBtn.textContent = '切换到暗色模式';
+      chen_themeLabel.textContent = '浅色模式（light）';
+    } else {
+      chen_html.setAttribute('data-chen_theme', 'dark');
+      chen_themeBtn.textContent = '切换到浅色模式';
+      chen_themeLabel.textContent = '暗色模式（dark）';
+    }
+  });
+
+  /* ===== 2. 尺寸变量滑块 ===== */
+  const chen_preview = document.getElementById('chen_preview');
+
+  function chen_applySize() {
+    const chen_r = document.getElementById('chen_radius').value;
+    const chen_p = document.getElementById('chen_padding').value;
+    const chen_s = document.getElementById('chen_shadow').value;
+    chen_preview.style.borderRadius = chen_r + 'px';
+    chen_preview.style.padding = chen_p + 'px';
+    chen_preview.style.boxShadow = '0 8px ' + chen_s + 'px rgba(108, 92, 231, 0.25)';
+    document.getElementById('chen_radiusVal').textContent = chen_r + 'px';
+    document.getElementById('chen_paddingVal').textContent = chen_p + 'px';
+    document.getElementById('chen_shadowVal').textContent = chen_s + 'px';
+  }
+
+  ['chen_radius', 'chen_padding', 'chen_shadow'].forEach(id => {
+    document.getElementById(id).addEventListener('input', chen_applySize);
+  });
+
+  /* ===== 3. JS 修改变量（额外演示） ===== */
+  chen_preview.addEventListener('click', () => {
+    const chen_colors = ['#6c5ce7', '#00b894', '#e17055', '#0984e3', '#e84393'];
+    const chen_current = getComputedStyle(document.documentElement).getPropertyValue('--chen-primary').trim();
+    const chen_idx = chen_colors.indexOf(chen_current);
+    const chen_next = chen_colors[(chen_idx + 1) % chen_colors.length];
+    document.documentElement.style.setProperty('--chen-primary', chen_next);
+    chen_preview.textContent = '点击切换主色 → ' + chen_next;
+  });
+</script>
+</body>
+</html>
