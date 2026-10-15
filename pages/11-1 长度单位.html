@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>11-1 Web 前端长度单位</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --root-fs: 16px;   /* 根元素字体大小，演示 em / rem 时可调 */
+  }
+
+  html { font-size: var(--root-fs); }
+
+  body {
+    font-family: "Microsoft YaHei", "Segoe UI", sans-serif;
+    background: #f4f6fa;
+    color: #333;
+    line-height: 1.6;
+    padding: 24px;
+  }
+
+  .chen_container { max-width: 960px; margin: 0 auto; }
+
+  h1 {
+    text-align: center;
+    font-size: 1.8rem;
+    margin-bottom: 8px;
+    color: #2c3e50;
+  }
+
+  .chen_subtitle {
+    text-align: center;
+    color: #7f8c8d;
+    margin-bottom: 24px;
+    font-size: 0.95rem;
+  }
+
+  .chen_card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+
+  .chen_card h2 {
+    font-size: 1.15rem;
+    color: #2c3e50;
+    border-left: 4px solid #3498db;
+    padding-left: 10px;
+    margin-bottom: 6px;
+  }
+
+  .chen_card .chen_desc {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 14px;
+  }
+
+  .chen_demo-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin: 10px 0;
+  }
+
+  .chen_demo-stage {
+    background: #eef2f7;
+    border: 1px dashed #b0bec5;
+    border-radius: 6px;
+    padding: 14px;
+    flex: 1;
+    min-width: 260px;
+    min-height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .chen_box {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: #fff;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    text-align: center;
+    padding: 4px;
+    transition: all 0.2s ease;
+    max-width: 100%;
+    overflow: hidden;
+    word-break: break-all;
+  }
+
+  .chen_box.chen_alt { background: linear-gradient(135deg, #2ecc71, #27ae60); }
+  .chen_box.chen_alt2 { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+  .chen_box.chen_alt3 { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+
+  .chen_controls {
+    background: #f8f9fb;
+    border-radius: 6px;
+    padding: 12px 14px;
+    font-size: 0.85rem;
+    min-width: 220px;
+  }
+
+  .chen_controls label { display: block; margin-bottom: 4px; color: #555; }
+
+  .chen_controls input[type="range"] { width: 100%; accent-color: #3498db; }
+
+  .chen_val { color: #2980b9; font-weight: bold; font-family: Consolas, monospace; }
+
+  code, .chen_code {
+    font-family: Consolas, "Courier New", monospace;
+    background: #eef2f7;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #c0392b;
+    font-size: 0.9em;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    margin-top: 6px;
+  }
+
+  th, td {
+    border: 1px solid #dde3ea;
+    padding: 8px 10px;
+    text-align: left;
+  }
+
+  th { background: #3498db; color: #fff; }
+  tr:nth-child(even) td { background: #f7f9fc; }
+
+  .chen_tag { display: inline-block; font-size: 0.75rem; padding: 1px 8px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+  .chen_tag-abs { background: #fdecea; color: #c0392b; }
+  .chen_tag-rel { background: #e8f8f5; color: #16a085; }
+  .chen_tag-vp  { background: #fef5e7; color: #d68910; }
+
+  .chen_note { color: #e67e22; font-size: 0.85rem; margin-top: 8px; }
+
+  footer { text-align: center; color: #95a5a6; font-size: 0.8rem; margin-top: 24px; }
+
+  .chen_back-home {
+    display: inline-block;
+    margin-bottom: 16px;
+    color: #3498db;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: bold;
+    transition: color 0.2s;
+  }
+  .chen_back-home:hover { color: #2980b9; text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="chen_container">
+
+  <a href="index.html" class="chen_back-home">← 返回首页</a>
+
+  <h1>Web 前端长度单位</h1>
+  <p class="chen_subtitle">CSS 常用长度单位交互演示 · 拖动滑块或调整参数查看效果</p>
+
+  <!-- px -->
+  <div class="chen_card">
+    <h2>px（像素）<span class="chen_tag chen_tag-abs">绝对单位</span></h2>
+    <p class="chen_desc">1px 是屏幕上的一个物理像素点（CSS 逻辑像素），大小固定，不随父元素或视口变化。</p>
+    <div class="chen_demo-row">
+      <div class="chen_demo-stage">
+        <div class="chen_box" id="chen_boxPx">宽度：<span class="chen_val" id="chen_valPx">200</span>px</div>
+      </div>
+      <div class="chen_controls">
+        <label>宽度：<span class="chen_val" id="chen_valPx2">200</span> px</label>
+        <input type="range" id="chen_rngPx" min="50" max="360" value="200">
+      </div>
+    </div>
+  </div>
+
+  <!-- em -->
+  <div class="chen_card">
+    <h2>em（相对父元素字体大小）<span class="chen_tag chen_tag-rel">相对单位</span></h2>
+    <p class="chen_desc">相对<strong>父元素</strong>字体大小的倍数。父元素字体为 20px 时，2em = 40px。下面两个盒子父元素字体不同，2em 结果也不同。</p>
+    <div class="chen_demo-row">
+      <div class="chen_demo-stage" style="font-size:16px;">
+        <div class="chen_box" style="width:10em;" id="chen_boxEm1">10em（父 16px → 160px）</div>
+      </div>
+      <div class="chen_demo-stage" style="font-size:24px;">
+        <div class="chen_box chen_alt" style="width:10em;" id="chen_boxEm2">10em（父 24px → 240px）</div>
+      </div>
+    </div>
+    <p class="chen_note">提示：em 常用于 padding / margin / 行高等场景，便于整体缩放。</p>
+  </div>
+
+  <!-- rem -->
+  <div class="chen_card">
+    <h2>rem（相对根元素字体大小）<span class="chen_tag chen_tag-rel">相对单位</span></h2>
+    <p class="chen_desc">始终相对 <code>&lt;html&gt;</code>（根元素）的字体大小。拖动滑块改变根字体，观察盒子变化：</p>
+    <div class="chen_demo-row">
+      <div class="chen_demo-stage">
+        <div class="chen_box chen_alt2" id="chen_boxRem">宽度：10rem</div>
+      </div>
+      <div class="chen_controls">
+        <label>根字体大小：<span class="chen_val" id="chen_valRoot">16</span> px</label>
+        <input type="range" id="chen_rngRoot" min="10" max="30" value="16">
+        <p style="margin-top:6px;">当前 10rem = <span class="chen_val" id="chen_valRemCalc">160</span>px</p>
+      </div>
+    </div>
+    <p class="chen_note">提示：移动端适配常用 rem + 动态修改 html 字体大小实现整体等比缩放。</p>
+  </div>
+
+  <!-- % -->
+  <div class="chen_card">
+    <h2>%（百分比）<span class="chen_tag chen_tag-rel">相对单位</span></h2>
+    <p class="chen_desc">相对<strong>父元素</strong>对应属性的百分比。宽度相对父宽，字体大小相对父字体大小。</p>
+    <div class="chen_demo-row">
+      <div class="chen_demo-stage">
+        <div class="chen_box chen_alt3" style="width:60%;" id="chen_boxPct">宽：父容器的 60%</div>
+      </div>
+      <div class="chen_controls">
+        <label>宽度百分比：<span class="chen_val" id="chen_valPct">60</span>%</label>
+        <input type="range" id="chen_rngPct" min="10" max="100" value="60">
+      </div>
+    </div>
+  </div>
+
+  <!-- vw / vh -->
+  <div class="chen_card">
+    <h2>vw / vh（视口宽 / 高）<span class="chen_tag chen_tag-vp">相对视口</span></h2>
+    <p class="chen_desc">1vw = 视口宽度的 1%，1vh = 视口高度的 1%。<strong>缩放浏览器窗口</strong>即可看到效果。</p>
+    <div class="chen_demo-row">
+      <div class="chen_demo-stage" style="flex-direction:column; gap:10px;">
+        <div class="chen_box" style="width:30vw; height:30px;">30vw × 30px</div>
+        <div class="chen_box chen_alt" style="width:200px; height:15vh;">200px × 15vh</div>
+      </div>
+      <div class="chen_controls">
+        <p>当前视口：</p>
+        <p>宽：<span class="chen_val" id="chen_valVw">-</span> px</p>
+        <p>高：<span class="chen_val" id="chen_valVh">-</span> px</p>
+        <p style="margin-top:6px;">30vw = <span class="chen_val" id="chen_valVwCalc">-</span>px<br>15vh = <span class="chen_val" id="chen_valVhCalc">-</span>px</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- vmin / vmax -->
+  <div class="chen_card">
+    <h2>vmin / vmax<span class="chen_tag chen_tag-vp">相对视口</span></h2>
+    <p class="chen_desc">vmin = vw、vh 中较小者的 1%；vmax = 较大者的 1%。适合做正方形自适应。</p>
+    <div class="chen_demo-row">
+      <div class="chen_demo-stage">
+        <div class="chen_box chen_alt2" style="width:25vmin; height:25vmin;">25vmin 正方形</div>
+        <div class="chen_box chen_alt3" style="width:15vmax; height:15vmax;">15vmax 正方形</div>
+      </div>
+      <div class="chen_controls">
+        <p>视口 <span class="chen_val" id="chen_valVw2">-</span> × <span class="chen_val" id="chen_valVh2">-</span></p>
+        <p style="margin-top:6px;">25vmin = <span class="chen_val" id="chen_valVmin">-</span>px<br>15vmax = <span class="chen_val" id="chen_valVmax">-</span>px</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ch -->
+  <div class="chen_card">
+    <h2>ch（字符宽度）<span class="chen_tag chen_tag-rel">相对单位</span></h2>
+    <p class="chen_desc">相对数字 "0" 字符的宽度，常用于限制文本行宽（如 60ch ≈ 每行 60 个字符）。</p>
+    <div class="chen_demo-row">
+      <div class="chen_demo-stage" style="display:block;">
+        <div class="chen_box" style="width:40ch; height:auto; min-height:44px; text-align:left; padding:6px 10px;">40ch：一段示例文本，观察宽度与字符数的关系。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 单位速查表 -->
+  <div class="chen_card">
+    <h2>单位速查表</h2>
+    <table>
+      <tr><th>单位</th><th>名称</th><th>相对对象</th><th>类型</th><th>常见用途</th></tr>
+      <tr><td><span class="chen_code">px</span></td><td>像素</td><td>—（固定）</td><td>绝对</td><td>边框、阴影、固定尺寸</td></tr>
+      <tr><td><span class="chen_code">em</span></td><td>父字体倍数</td><td>父元素 font-size</td><td>相对</td><td>padding、margin、行高</td></tr>
+      <tr><td><span class="chen_code">rem</span></td><td>根字体倍数</td><td>html font-size</td><td>相对</td><td>字体、间距、整体布局缩放</td></tr>
+      <tr><td><span class="chen_code">%</span></td><td>百分比</td><td>父元素</td><td>相对</td><td>宽度、高度、定位</td></tr>
+      <tr><td><span class="chen_code">vw</span></td><td>视口宽 1%</td><td>视口宽度</td><td>相对视口</td><td>全屏布局、大标题</td></tr>
+      <tr><td><span class="chen_code">vh</span></td><td>视口高 1%</td><td>视口高度</td><td>相对视口</td><td>整屏区块</td></tr>
+      <tr><td><span class="chen_code">vmin / vmax</span></td><td>视口较小/较大边</td><td>视口</td><td>相对视口</td><td>自适应正方形</td></tr>
+      <tr><td><span class="chen_code">ch</span></td><td>字符 "0" 宽</td><td>当前字体</td><td>相对</td><td>限制文本行宽</td></tr>
+    </table>
+  </div>
+
+  <footer>11-1 · Web 前端长度单位演示</footer>
+</div>
+
+<script>
+  // px 滑块
+  const chen_rngPx = document.getElementById('chen_rngPx');
+  const chen_boxPx = document.getElementById('chen_boxPx');
+  chen_rngPx.addEventListener('input', e => {
+    const chen_v = e.target.value;
+    chen_boxPx.style.width = chen_v + 'px';
+    chen_boxPx.innerHTML = '宽度：<span class="chen_val">' + chen_v + '</span>px';
+    document.getElementById('chen_valPx').textContent = chen_v;
+    document.getElementById('chen_valPx2').textContent = chen_v;
+  });
+
+  // rem：调整根字体
+  const chen_rngRoot = document.getElementById('chen_rngRoot');
+  chen_rngRoot.addEventListener('input', e => {
+    const chen_v = e.target.value;
+    document.documentElement.style.fontSize = chen_v + 'px';
+    document.getElementById('chen_valRoot').textContent = chen_v;
+    document.getElementById('chen_valRemCalc').textContent = chen_v * 10;
+  });
+
+  // % 滑块
+  const chen_rngPct = document.getElementById('chen_rngPct');
+  const chen_boxPct = document.getElementById('chen_boxPct');
+  chen_rngPct.addEventListener('input', e => {
+    const chen_v = e.target.value;
+    chen_boxPct.style.width = chen_v + '%';
+    chen_boxPct.textContent = '宽：父容器的 ' + chen_v + '%';
+    document.getElementById('chen_valPct').textContent = chen_v;
+  });
+
+  // 视口尺寸实时显示
+  function chen_updateViewport() {
+    const chen_w = window.innerWidth, chen_h = window.innerHeight;
+    document.getElementById('chen_valVw').textContent = chen_w;
+    document.getElementById('chen_valVh').textContent = chen_h;
+    document.getElementById('chen_valVwCalc').textContent = (chen_w * 0.3).toFixed(0);
+    document.getElementById('chen_valVhCalc').textContent = (chen_h * 0.15).toFixed(0);
+    document.getElementById('chen_valVw2').textContent = chen_w;
+    document.getElementById('chen_valVh2').textContent = chen_h;
+    document.getElementById('chen_valVmin').textContent = (Math.min(chen_w, chen_h) * 0.25).toFixed(0);
+    document.getElementById('chen_valVmax').textContent = (Math.max(chen_w, chen_h) * 0.15).toFixed(0);
+  }
+  window.addEventListener('resize', chen_updateViewport);
+  chen_updateViewport();
+</script>
+</body>
+</html>

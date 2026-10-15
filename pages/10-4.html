@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>响应式网格布局</title>
+    <style>
+        :root {
+            --page-padding: 1rem;
+            --box-gap: 0.75rem;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            min-width: 320px;
+            min-height: 100%;
+        }
+
+        body {
+            padding: var(--page-padding);
+            background: #eef2f7;
+            color: #27354a;
+            font-family: "Microsoft YaHei", Arial, sans-serif;
+        }
+
+        .layout {
+            width: 100%;
+            max-width: 70rem;
+            margin: 0 auto;
+        }
+
+        h1 {
+            margin-bottom: 1rem;
+            font-size: 1.6rem;
+            text-align: center;
+        }
+
+        .subtitle {
+            margin-bottom: 1.25rem;
+            color: #667085;
+            font-size: 1rem;
+            text-align: center;
+        }
+
+        .box-grid {
+            display: grid;
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+            gap: var(--box-gap);
+        }
+
+        .box {
+            min-height: 8rem;
+            display: grid;
+            place-items: center;
+            padding: 1rem;
+            border-radius: 1rem;
+            background: linear-gradient(135deg, #6c63ff, #8b7cf6);
+            color: #fff;
+            font-size: 1rem;
+            text-align: center;
+            box-shadow: 0 0.5rem 1.25rem rgba(39, 53, 74, 0.12);
+        }
+
+        .box:nth-child(2n) {
+            background: linear-gradient(135deg, #00a99d, #4ecdc4);
+        }
+
+        .box:nth-child(3n) {
+            background: linear-gradient(135deg, #ff7a59, #ff9f1c);
+        }
+
+        .box:nth-child(4n) {
+            background: linear-gradient(135deg, #4e73ff, #6c63ff);
+        }
+
+        @media (min-width: 600px) {
+            .box-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (min-width: 900px) {
+            .box-grid {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .box-grid {
+                grid-template-columns: repeat(5, minmax(0, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="layout">
+        <h1>陈依然 · 响应式盒子布局</h1>
+        <p class="subtitle">不同视口下，一行可显示 1、2、3、4 或 5 个盒子</p>
+
+        <section class="box-grid" aria-label="响应式盒子网格">
+            <div class="box">盒子 1</div>
+            <div class="box">盒子 2</div>
+            <div class="box">盒子 3</div>
+            <div class="box">盒子 4</div>
+            <div class="box">盒子 5</div>
+            <div class="box">盒子 6</div>
+            <div class="box">盒子 7</div>
+            <div class="box">盒子 8</div>
+        </section>
+    </main>
+</body>
+</html>

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flex Layout</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            width: 760px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 28px;
+        }
+
+        .box {
+            width: 340px;
+            height: 220px;
+            border: 2px solid #111;
+            background: #fff;
+        }
+
+        .box1 {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .box1 .small {
+            width: 100px;
+            height: 100px;
+            border: 2px solid #111;
+            background: #eef2f6;
+        }
+
+        .box2 {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .box2 .stack {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .box2 .stack .small {
+            width: 90px;
+            height: 90px;
+            border: 2px solid #111;
+            background: #eef2f6;
+        }
+
+        .box3 {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .box3 .grid {
+            width: 180px;
+            height: 180px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-content: space-between;
+        }
+
+        .box3 .grid .small {
+            width: 72px;
+            height: 72px;
+            border: 2px solid #111;
+            background: #eef2f6;
+        }
+
+        .box4 {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+        }
+
+        .box4 .top {
+            width: 180px;
+            height: 54px;
+            border: 2px solid #111;
+            background: #eef2f6;
+        }
+
+        .box4 .bottom {
+            display: flex;
+            gap: 18px;
+        }
+
+        .box4 .bottom .small {
+            width: 72px;
+            height: 72px;
+            border: 2px solid #111;
+            background: #eef2f6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="box box1">
+            <div class="small"></div>
+        </div>
+
+        <div class="box box2">
+            <div class="stack">
+                <div class="small"></div>
+                <div class="small"></div>
+            </div>
+        </div>
+
+        <div class="box box3">
+            <div class="grid">
+                <div class="small"></div>
+                <div class="small"></div>
+                <div class="small"></div>
+                <div class="small"></div>
+            </div>
+        </div>
+
+        <div class="box box4">
+            <div class="top"></div>
+            <div class="bottom">
+                <div class="small"></div>
+                <div class="small"></div>
+            </div>
+        </div>
+    </div>
+    <p style="margin-top:20px;">
+        <a href="index.html">返回首页</a>
+    </p>
+</body>
+</html>

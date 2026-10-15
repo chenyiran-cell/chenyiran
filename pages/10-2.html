@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>陈依然图片幻灯片</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            background: #111318;
+            color: #fff;
+            font-family: "Microsoft YaHei", Arial, sans-serif;
+        }
+
+        .slideshow {
+            width: min(960px, 92vw);
+            overflow: hidden;
+        }
+
+        h1 {
+            margin-bottom: 18px;
+            text-align: center;
+            font-size: clamp(26px, 5vw, 42px);
+            letter-spacing: 3px;
+        }
+
+        .viewport {
+            overflow: hidden;
+            border-radius: 22px;
+            box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+        }
+
+        .track {
+            display: flex;
+            width: 300%;
+            animation: image-position 9s ease-in-out infinite;
+        }
+
+        .slide {
+            width: 33.333%;
+            flex: 0 0 33.333%;
+        }
+
+        .image-wrap {
+            position: relative;
+            height: min(520px, 62vh);
+            overflow: hidden;
+            background: #000;
+        }
+
+        .image-wrap img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scale(1.03);
+        }
+
+        .caption {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            padding: 18px 24px;
+            background: rgba(0, 0, 0, 0.72);
+            color: #fff;
+            text-align: center;
+            font-size: 22px;
+            letter-spacing: 1px;
+        }
+
+        .caption strong {
+            color: #fff;
+        }
+
+        .dots {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 18px;
+        }
+
+        .dots span {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #777;
+            animation: dot-color 9s ease-in-out infinite;
+        }
+
+        .dots span:nth-child(1) { animation-delay: 0s; }
+        .dots span:nth-child(2) { animation-delay: 3s; }
+        .dots span:nth-child(3) { animation-delay: 6s; }
+
+        @keyframes image-position {
+            0%, 8% { transform: translateX(0); }
+            30%, 38% { transform: translateX(-33.333%); }
+            62%, 70% { transform: translateX(-66.666%); }
+            92%, 100% { transform: translateX(0); }
+        }
+
+        @keyframes dot-color {
+            0%, 8%, 92%, 100% { background: #777; transform: scale(1); }
+            30%, 38% { background: #fff; transform: scale(1.35); }
+            62%, 70% { background: #fff; transform: scale(1.35); }
+        }
+
+        @media (max-width: 600px) {
+            .image-wrap {
+                height: 380px;
+            }
+
+            .caption {
+                padding: 14px;
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="slideshow">
+        <h1>陈依然 · 图片幻灯片</h1>
+
+        <div class="viewport">
+            <div class="track">
+                <section class="slide">
+                    <div class="image-wrap">
+                        <img src="./image/1.jpg" alt="幻灯片图片一">
+                        <div class="caption"><strong>陈依然</strong> — 图片一</div>
+                    </div>
+                </section>
+
+                <section class="slide">
+                    <div class="image-wrap">
+                        <img src="./image/2.jpg" alt="幻灯片图片二">
+                        <div class="caption"><strong>陈依然</strong> — 图片二</div>
+                    </div>
+                </section>
+
+                <section class="slide">
+                    <div class="image-wrap">
+                        <img src="./image/3.jpg" alt="幻灯片图片三">
+                        <div class="caption"><strong>陈依然</strong> — 图片三</div>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <div class="dots" aria-label="幻灯片指示器">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </main>
+</body>
+</html>

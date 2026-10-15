@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>陈依然 - HTML 练习首页</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Microsoft YaHei", Arial, sans-serif;
+            background: linear-gradient(135deg, #eef6ff, #f7f3ff 50%, #f5f5f5);
+            color: #333;
+        }
+
+        .wrap {
+            max-width: 980px;
+            margin: 60px auto;
+            padding: 30px 40px 40px;
+            background: rgba(255, 255, 255, 0.86);
+            border: 1px solid #dfe8f5;
+            border-radius: 18px;
+            box-shadow: 0 12px 30px rgba(40, 60, 90, 0.08);
+        }
+
+        h1 {
+            margin: 0 0 24px;
+            text-align: center;
+            font-size: 36px;
+            color: #1d4f91;
+        }
+
+        .subtitle {
+            margin: 0 0 30px;
+            text-align: center;
+            color: #5f6f85;
+            font-size: 16px;
+        }
+
+        .chapter {
+            margin-bottom: 24px;
+            padding: 18px 20px;
+            border: 1px solid #e2ebf8;
+            border-radius: 12px;
+            background: #f9fbff;
+        }
+
+        .chapter h2 {
+            margin: 0 0 12px;
+            font-size: 20px;
+            color: #2d5a8d;
+        }
+
+        .links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .links a {
+            display: inline-block;
+            min-width: 180px;
+            padding: 12px 16px;
+            text-align: center;
+            text-decoration: none;
+            color: #fff;
+            background: linear-gradient(135deg, #4a90e2, #6e7cf9);
+            border-radius: 10px;
+            font-weight: 600;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 8px 18px rgba(74, 144, 226, 0.18);
+        }
+
+        .links a:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(74, 144, 226, 0.24);
+        }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <h1>HTML 练习首页</h1>
+        <p class="subtitle">陈依然 · 前端练习作品导航</p>
+
+        <div class="chapter">
+            <h2>第二章</h2>
+            <div class="links">
+                <a href="2-1.html">2-1</a>
+                <a href="2-2.html">2-2</a>
+            </div>
+        </div>
+
+        <div class="chapter">
+            <h2>第三章</h2>
+            <div class="links">
+                <a href="3-1.html">3-1</a>
+                <a href="3-2.html">3-2</a>
+            </div>
+        </div>
+
+        <div class="chapter">
+            <h2>第四章</h2>
+            <div class="links">
+                <a href="4-1css2.html">4-1 CSS 2</a>
+            </div>
+        </div>
+
+        <div class="chapter">
+            <h2>第五章</h2>
+            <div class="links">
+                <a href="5-1%E5%B1%82%E5%8F%A0%E4%B8%8E%E7%BB%A7%E6%89%BF.html">5-1 层叠与继承</a>
+                <a href="5-2%20%E7%9B%92%E6%A8%A1%E5%9E%8B.html">5-2 盒模型</a>
+            </div>
+        </div>
+
+        <div class="chapter">
+            <h2>第六章</h2>
+            <div class="links">
+                <a href="6-1flex.html">6-1 Flex</a>
+                <a href="6-2%E4%B8%80%E5%B7%A6%E4%B8%80%E5%8F%B3.html">6-2 一左一右</a>
+            </div>
+        </div>
+
+        <div class="chapter">
+            <h2>第七章</h2>
+            <div class="links">
+                <a href="7-1%20%E4%B8%8A%E5%9B%BE%E4%B8%8B%E6%96%87.html">7-1 上图下文</a>
+                <a href="7-2%20%E5%B7%A6%E5%9B%BE%E5%8F%B3%E6%96%87.html">7-2 左图右文</a>
+            </div>
+        </div>
+
+        <div class="chapter">
+            <h2>第八章</h2>
+            <div class="links">
+                <a href="8-1%20css3%E9%80%89%E6%8B%A9%E5%99%A8.html">8-1 CSS3 选择器</a>
+            </div>
+        </div>
+
+        <div class="chapter">
+            <h2>第九章</h2>
+            <div class="links">
+                <a href="9-1transiton.html">9-1 Transit</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

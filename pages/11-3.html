@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>11-3 CSS 2D 变换与过渡</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: "Microsoft YaHei", "Segoe UI", sans-serif;
+    background: #fdf6ec;
+    color: #333;
+    line-height: 1.6;
+    padding: 24px;
+  }
+
+  .chen_container { max-width: 1000px; margin: 0 auto; }
+
+  .chen_back-home {
+    display: inline-block;
+    margin-bottom: 16px;
+    color: #e67e22;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: bold;
+    transition: color 0.2s;
+  }
+  .chen_back-home:hover { color: #d35400; text-decoration: underline; }
+
+  h1 {
+    text-align: center;
+    font-size: 1.8rem;
+    margin-bottom: 6px;
+    color: #d35400;
+  }
+
+  .chen_subtitle {
+    text-align: center;
+    color: #a0a0a0;
+    margin-bottom: 24px;
+    font-size: 0.9rem;
+  }
+
+  .chen_card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 22px 26px;
+    margin-bottom: 22px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+    border: 1px solid #f0e0cc;
+  }
+
+  .chen_card h2 {
+    font-size: 1.1rem;
+    color: #d35400;
+    border-left: 4px solid #e67e22;
+    padding-left: 10px;
+    margin-bottom: 6px;
+  }
+
+  .chen_desc {
+    color: #888;
+    font-size: 0.85rem;
+    margin-bottom: 16px;
+  }
+
+  code, .chen_code {
+    font-family: Consolas, "Courier New", monospace;
+    background: #fdf0e0;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #d35400;
+    font-size: 0.85em;
+  }
+
+  .chen_stage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 36px;
+  }
+
+  .chen_viewport {
+    width: 320px;
+    height: 220px;
+    background: #fef9f0;
+    border: 2px dashed #e8c9a0;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .chen_box {
+    width: 90px;
+    height: 90px;
+    background: linear-gradient(135deg, #e67e22, #d35400);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: bold;
+    box-shadow: 0 4px 14px rgba(211, 84, 0, 0.35);
+  }
+
+  .chen_box-green {
+    background: linear-gradient(135deg, #2ecc71, #27ae60);
+    box-shadow: 0 4px 14px rgba(39, 174, 96, 0.35);
+  }
+
+  .chen_box-blue {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    box-shadow: 0 4px 14px rgba(41, 128, 185, 0.35);
+  }
+
+  .chen_box-purple {
+    background: linear-gradient(135deg, #9b59b6, #8e44ad);
+    box-shadow: 0 4px 14px rgba(142, 68, 173, 0.35);
+  }
+
+  .chen_controls {
+    background: #fef9f0;
+    border: 1px solid #f0e0cc;
+    border-radius: 10px;
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 250px;
+  }
+
+  .chen_ctrl-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.85rem;
+  }
+
+  .chen_ctrl-row label { width: 80px; color: #888; flex-shrink: 0; }
+
+  .chen_ctrl-row input[type="range"] { flex: 1; accent-color: #e67e22; }
+
+  .chen_val {
+    width: 56px;
+    text-align: right;
+    font-family: Consolas, monospace;
+    color: #d35400;
+    font-weight: bold;
+  }
+
+  .chen_btn {
+    background: linear-gradient(135deg, #e67e22, #d35400);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 0.88rem;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    font-family: inherit;
+  }
+
+  .chen_btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(230, 126, 34, 0.4); }
+
+  /* 过渡演示跑道 */
+  .chen_race-track {
+    width: 100%;
+    height: 50px;
+    background: #fef9f0;
+    border: 1px solid #f0e0cc;
+    border-radius: 8px;
+    position: relative;
+    margin-bottom: 10px;
+    overflow: hidden;
+  }
+
+  .chen_race-track::after {
+    content: "🏁";
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.1rem;
+  }
+
+  .chen_racer {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    font-weight: bold;
+    color: #fff;
+    transition-property: left;
+    transition-duration: 3s;
+  }
+
+  .chen_racer.chen_running { left: calc(100% - 42px); }
+
+  .chen_timing-label {
+    font-size: 0.75rem;
+    color: #888;
+    margin-bottom: 2px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+    margin-top: 6px;
+  }
+
+  th, td { border: 1px solid #f0e0cc; padding: 8px 12px; text-align: left; }
+  th { background: #e67e22; color: #fff; }
+  tr:nth-child(even) td { background: #fef9f0; }
+
+  .chen_tip {
+    color: #e67e22;
+    font-size: 0.82rem;
+    margin-top: 8px;
+  }
+
+  .chen_origin-marker {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ccc;
+    transform: translate(-50%, -50%);
+    opacity: 0.5;
+  }
+
+  footer { text-align: center; color: #bbb; font-size: 0.78rem; margin-top: 20px; }
+
+  .chen_hover-box { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; }
+  .chen_hover-box:hover { transform: scale(1.15) rotate(5deg); box-shadow: 0 10px 30px rgba(0,0,0,0.3); border-radius: 20px; }
+</style>
+</head>
+<body>
+<div class="chen_container">
+
+  <a href="index.html" class="chen_back-home">← 返回首页</a>
+
+  <h1>CSS 2D 变换与过渡</h1>
+  <p class="chen_subtitle">transform（translate / rotate / scale / skew）+ transition 交互演示</p>
+
+  <!-- 1. 自由变换 -->
+  <div class="chen_card">
+    <h2>① 自由 2D 变换</h2>
+    <p class="chen_desc">
+      用滑块实时控制 <span class="chen_code">translate</span>、<span class="chen_code">rotate</span>、<span class="chen_code">scale</span>、<span class="chen_code">skew</span>，观察盒子变化。中心灰点为 <span class="chen_code">transform-origin</span>。
+    </p>
+    <div class="chen_stage">
+      <div class="chen_viewport">
+        <div class="chen_origin-marker"></div>
+        <div class="chen_box" id="chen_box">Transform</div>
+      </div>
+      <div class="chen_controls">
+        <div class="chen_ctrl-row">
+          <label>translateX</label>
+          <input type="range" id="chen_tx" min="-120" max="120" value="0">
+          <span class="chen_val" id="chen_txVal">0px</span>
+        </div>
+        <div class="chen_ctrl-row">
+          <label>translateY</label>
+          <input type="range" id="chen_ty" min="-80" max="80" value="0">
+          <span class="chen_val" id="chen_tyVal">0px</span>
+        </div>
+        <div class="chen_ctrl-row">
+          <label>rotate</label>
+          <input type="range" id="chen_rot" min="-180" max="180" value="0">
+          <span class="chen_val" id="chen_rotVal">0°</span>
+        </div>
+        <div class="chen_ctrl-row">
+          <label>scale</label>
+          <input type="range" id="chen_scl" min="30" max="200" value="100">
+          <span class="chen_val" id="chen_sclVal">1.0</span>
+        </div>
+        <div class="chen_ctrl-row">
+          <label>skew</label>
+          <input type="range" id="chen_skew" min="-45" max="45" value="0">
+          <span class="chen_val" id="chen_skewVal">0°</span>
+        </div>
+        <div class="chen_ctrl-row">
+          <label></label>
+          <button class="chen_btn" id="chen_reset">重置</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. transform-origin -->
+  <div class="chen_card">
+    <h2>② transform-origin（变换原点）</h2>
+    <p class="chen_desc">
+      同一个 <span class="chen_code">rotate(45deg)</span>，变换原点不同，旋转中心完全不同。点击按钮切换原点位置。
+    </p>
+    <div class="chen_stage">
+      <div class="chen_viewport" style="flex-direction:column; gap:14px;">
+        <div class="chen_box chen_box-green" id="chen_originBox">原点旋转</div>
+        <div style="font-size:0.78rem;color:#888;">当前原点：<span class="chen_val" id="chen_originLabel">center</span></div>
+      </div>
+      <div class="chen_controls">
+        <div class="chen_ctrl-row"><button class="chen_btn" data-chen_origin="center">center</button></div>
+        <div class="chen_ctrl-row"><button class="chen_btn" data-chen_origin="top left">top left</button></div>
+        <div class="chen_ctrl-row"><button class="chen_btn" data-chen_origin="bottom right">bottom right</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. 过渡时序函数 -->
+  <div class="chen_card">
+    <h2>③ transition-timing-function（过渡时序）</h2>
+    <p class="chen_desc">
+      四个方块以不同 <span class="chen_code">transition-timing-function</span> 从起点移动到终点（3 秒）。点击"开始赛跑"观察速度曲线差异。
+    </p>
+    <div style="background:#fff; border:1px solid #f0e0cc; border-radius:10px; padding:16px;">
+      <div class="chen_race-track">
+        <span class="chen_timing-label" style="position:absolute; left:6px; top:2px; font-size:0.7rem;">linear（匀速）</span>
+        <div class="chen_racer" style="background:#e67e22;" data-chen_timing="linear">L</div>
+      </div>
+      <div class="chen_race-track">
+        <span class="chen_timing-label" style="position:absolute; left:6px; top:2px; font-size:0.7rem;">ease（先快后慢）</span>
+        <div class="chen_racer" style="background:#2ecc71;" data-chen_timing="ease">E</div>
+      </div>
+      <div class="chen_race-track">
+        <span class="chen_timing-label" style="position:absolute; left:6px; top:2px; font-size:0.7rem;">ease-in（加速）</span>
+        <div class="chen_racer" style="background:#3498db;" data-chen_timing="ease-in">EI</div>
+      </div>
+      <div class="chen_race-track" style="margin-bottom:0;">
+        <span class="chen_timing-label" style="position:absolute; left:6px; top:2px; font-size:0.7rem;">cubic-bezier 回弹</span>
+        <div class="chen_racer" style="background:#9b59b6;" data-chen_timing="cubic-bezier(.68,-0.55,.27,1.55)">B</div>
+      </div>
+    </div>
+    <div style="margin-top:14px; text-align:center;">
+      <button class="chen_btn" id="chen_raceBtn">开始赛跑 🏁</button>
+    </div>
+  </div>
+
+  <!-- 4. 悬停过渡效果 -->
+  <div class="chen_card">
+    <h2>④ 悬停过渡（Hover Transition）</h2>
+    <p class="chen_desc">
+      鼠标悬停在卡片上，观察 <span class="chen_code">transition</span> 让 transform / box-shadow / border-radius 平滑变化。
+    </p>
+    <div class="chen_stage">
+      <div class="chen_viewport" style="flex-direction:column; gap:16px;">
+        <div class="chen_box chen_box-blue chen_hover-box" style="width:120px; height:60px;">悬停我</div>
+        <div class="chen_box chen_box-purple chen_hover-box" style="width:120px; height:60px;">悬停我</div>
+      </div>
+      <div class="chen_controls">
+        <p style="color:#888; font-size:0.85rem;">两个盒子分别演示了不同属性的过渡：<br>• 蓝色：缩放 + 旋转 + 阴影 + 圆角<br>• 紫色：同左（颜色不同便于区分）</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 属性速查表 -->
+  <div class="chen_card">
+    <h2>⑤ 2D 变换 / 过渡核心属性速查</h2>
+    <table>
+      <tr><th>属性</th><th>作用</th><th>示例</th></tr>
+      <tr><td><span class="chen_code">translate(x, y)</span></td><td>平移元素</td><td><code>transform: translate(50px, 20px);</code></td></tr>
+      <tr><td><span class="chen_code">rotate(deg)</span></td><td>旋转元素</td><td><code>transform: rotate(45deg);</code></td></tr>
+      <tr><td><span class="chen_code">scale(sx, sy)</span></td><td>缩放元素</td><td><code>transform: scale(1.5);</code></td></tr>
+      <tr><td><span class="chen_code">skew(ax, ay)</span></td><td>倾斜元素</td><td><code>transform: skew(20deg);</code></td></tr>
+      <tr><td><span class="chen_code">transform-origin</span></td><td>变换的基准点</td><td><code>transform-origin: top left;</code></td></tr>
+      <tr><td><span class="chen_code">transition-property</span></td><td>参与过渡的属性</td><td><code>transition-property: all;</code></td></tr>
+      <tr><td><span class="chen_code">transition-duration</span></td><td>过渡时长</td><td><code>transition-duration: 0.3s;</code></td></tr>
+      <tr><td><span class="chen_code">transition-timing-function</span></td><td>速度曲线</td><td><code>ease / linear / cubic-bezier(...)</code></td></tr>
+    </table>
+    <p class="chen_tip">提示：2D 变换在 Z 轴（屏幕纵深）上没有效果；需要纵深效果请用 3D 变换（见 11-2）。</p>
+  </div>
+
+  <footer>11-3 · CSS 2D 变换与过渡演示</footer>
+</div>
+
+<script>
+  /* ===== 1. 自由变换 ===== */
+  const chen_box = document.getElementById('chen_box');
+  const chen_tx = document.getElementById('chen_tx');
+  const chen_ty = document.getElementById('chen_ty');
+  const chen_rot = document.getElementById('chen_rot');
+  const chen_scl = document.getElementById('chen_scl');
+  const chen_skew = document.getElementById('chen_skew');
+
+  function chen_applyTransform() {
+    const chen_txV = chen_tx.value;
+    const chen_tyV = chen_ty.value;
+    const chen_rotV = chen_rot.value;
+    const chen_sclV = (chen_scl.value / 100).toFixed(2);
+    const chen_skewV = chen_skew.value;
+    chen_box.style.transform = 'translate(' + chen_txV + 'px,' + chen_tyV + 'px) rotate(' + chen_rotV + 'deg) scale(' + chen_sclV + ') skew(' + chen_skewV + 'deg)';
+    document.getElementById('chen_txVal').textContent = chen_txV + 'px';
+    document.getElementById('chen_tyVal').textContent = chen_tyV + 'px';
+    document.getElementById('chen_rotVal').textContent = chen_rotV + '°';
+    document.getElementById('chen_sclVal').textContent = chen_sclV;
+    document.getElementById('chen_skewVal').textContent = chen_skewV + '°';
+  }
+
+  [chen_tx, chen_ty, chen_rot, chen_scl, chen_skew].forEach(el => el.addEventListener('input', chen_applyTransform));
+
+  document.getElementById('chen_reset').addEventListener('click', () => {
+    chen_tx.value = 0; chen_ty.value = 0; chen_rot.value = 0; chen_scl.value = 100; chen_skew.value = 0;
+    chen_applyTransform();
+  });
+
+  /* ===== 2. transform-origin ===== */
+  const chen_originBox = document.getElementById('chen_originBox');
+  const chen_originLabel = document.getElementById('chen_originLabel');
+  document.querySelectorAll('[data-chen_origin]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const chen_o = btn.getAttribute('data-chen_origin');
+      chen_originBox.style.transformOrigin = chen_o;
+      chen_originBox.style.transition = 'transform 0.6s ease';
+      chen_originBox.style.transform = 'rotate(45deg)';
+      chen_originLabel.textContent = chen_o;
+    });
+  });
+
+  /* ===== 3. 赛跑 ===== */
+  const chen_raceBtn = document.getElementById('chen_raceBtn');
+  const chen_racers = document.querySelectorAll('.chen_racer');
+
+  chen_raceBtn.addEventListener('click', () => {
+    const chen_running = chen_racers[0].classList.contains('chen_running');
+    if (chen_running) {
+      // 重置
+      chen_racers.forEach(r => {
+        r.classList.remove('chen_running');
+        r.style.transitionTimingFunction = r.getAttribute('data-chen_timing');
+      });
+      chen_raceBtn.textContent = '开始赛跑 🏁';
+    } else {
+      // 开始
+      chen_racers.forEach(r => {
+        r.classList.remove('chen_running');
+        r.style.transitionTimingFunction = r.getAttribute('data-chen_timing');
+        void r.offsetWidth;
+        r.classList.add('chen_running');
+      });
+      chen_raceBtn.textContent = '重置 🏁';
+    }
+  });
+</script>
+</body>
+</html>

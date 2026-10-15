@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        /*全局CSS*/
+        *{margin:0;padding:0;}
+        ul{list-style:none;}
+        image{
+            display:block;
+        }
+        .slist{
+            display:flex;
+            margin:8px;
+        }
+        .slist li{
+            width:30%;
+            margin-right:3px;
+            flex-grow:1;
+            /*相对定位*/
+            position: relative;
+        }
+        .slist image{
+            width:100%;
+        }
+        .slist p{
+            font-size:14px;
+            text-align:center;
+            line-height:24px;
+            /*绝对定位*/
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: rgba(0, 0, 0, .5);
+            color: #fff;
+            /*加粗*/
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <ul class="slist">
+        <li>
+            <image src="./image/1.jpg">
+            <p>陈依然的标题1</p>
+        </li>
+
+        <li>
+            <image src="./image/2.jpg">
+            <p>陈依然的标题2</p>
+        </li>
+
+        <li>
+            <image src="./image/3.jpg">
+            <p>陈依然的标题3</p>
+        </li>
+    </ul>
+    <p style="margin-top:20px; text-align:center;">
+        <a href="index.html">返回首页</a>
+    </p>
+</body>
+</html>

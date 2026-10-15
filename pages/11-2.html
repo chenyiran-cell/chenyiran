@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>11-2 CSS3 3D 动画</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --chen_perspective: 900px;
+  }
+
+  body {
+    font-family: "Microsoft YaHei", "Segoe UI", sans-serif;
+    background: #0f1420;
+    color: #e8eaf0;
+    line-height: 1.6;
+    padding: 24px;
+    min-height: 100vh;
+  }
+
+  .chen_container { max-width: 1100px; margin: 0 auto; }
+
+  h1 {
+    text-align: center;
+    font-size: 1.8rem;
+    margin-bottom: 6px;
+    background: linear-gradient(90deg, #3498db, #9b59b6);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .chen_subtitle {
+    text-align: center;
+    color: #8b93a7;
+    margin-bottom: 24px;
+    font-size: 0.9rem;
+  }
+
+  .chen_card {
+    background: #1a2030;
+    border: 1px solid #2a3247;
+    border-radius: 12px;
+    padding: 22px 26px;
+    margin-bottom: 22px;
+  }
+
+  .chen_card h2 {
+    font-size: 1.1rem;
+    color: #5dade2;
+    margin-bottom: 4px;
+  }
+
+  .chen_desc {
+    color: #8b93a7;
+    font-size: 0.85rem;
+    margin-bottom: 16px;
+  }
+
+  code, .chen_code {
+    font-family: Consolas, "Courier New", monospace;
+    background: #252c40;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #f0a35e;
+    font-size: 0.85em;
+  }
+
+  /* ===== 通用 3D 舞台 ===== */
+  .chen_stage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 40px;
+  }
+
+  .chen_viewport {
+    width: 300px;
+    height: 240px;
+    perspective: var(--chen_perspective);
+    perspective-origin: center center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at center, #1f2740 0%, #141a29 100%);
+    border-radius: 10px;
+    border: 1px solid #2a3247;
+  }
+
+  /* ===== 1. 3D 立方体 ===== */
+  .chen_cube-scene {
+    width: 110px;
+    height: 110px;
+    position: relative;
+    transform-style: preserve-3d;
+    animation: chen_cube-spin var(--chen_speed, 8s) linear infinite;
+  }
+
+  @keyframes chen_cube-spin {
+    from { transform: rotateX(-20deg) rotateY(0deg); }
+    to   { transform: rotateX(-20deg) rotateY(360deg); }
+  }
+
+  .chen_cube-face {
+    position: absolute;
+    width: 110px;
+    height: 110px;
+    border: 2px solid rgba(93, 173, 226, 0.8);
+    background: rgba(52, 152, 219, 0.18);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: #aed6f1;
+    backface-visibility: visible;
+  }
+
+  .chen_cube-front  { transform: translateZ(55px); }
+  .chen_cube-back   { transform: rotateY(180deg) translateZ(55px); }
+  .chen_cube-right  { transform: rotateY(90deg) translateZ(55px); }
+  .chen_cube-left   { transform: rotateY(-90deg) translateZ(55px); }
+  .chen_cube-top    { transform: rotateX(90deg) translateZ(55px); }
+  .chen_cube-bottom { transform: rotateX(-90deg) translateZ(55px); }
+
+  /* ===== 2. 3D 翻转卡片 ===== */
+  .chen_flip-card {
+    width: 190px;
+    height: 120px;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.9s cubic-bezier(0.4, 0.2, 0.2, 1);
+    cursor: pointer;
+  }
+
+  .chen_flip-card.chen_flipped { transform: rotateY(180deg); }
+
+  .chen_flip-face {
+    position: absolute;
+    inset: 0;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 6px;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    font-weight: bold;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  }
+
+  .chen_flip-front {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: #fff;
+  }
+
+  .chen_flip-back {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    color: #fff;
+    transform: rotateY(180deg);
+  }
+
+  /* ===== 3. 3D 旋转木马 ===== */
+  .chen_carousel-scene {
+    width: 130px;
+    height: 130px;
+    position: relative;
+    transform-style: preserve-3d;
+    animation: chen_carousel-spin var(--chen_speed, 10s) linear infinite;
+  }
+
+  @keyframes chen_carousel-spin {
+    from { transform: rotateX(-12deg) rotateY(0deg); }
+    to   { transform: rotateX(-12deg) rotateY(360deg); }
+  }
+
+  .chen_carousel-item {
+    position: absolute;
+    width: 70px;
+    height: 100px;
+    left: 50%;
+    top: 50%;
+    margin: -50px 0 0 -35px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.4rem;
+    font-weight: bold;
+    border: 2px solid rgba(255,255,255,0.35);
+  }
+
+  /* ===== 4. 3D 文字 ===== */
+  .chen_text3d {
+    font-size: 2.6rem;
+    font-weight: 900;
+    color: #5dade2;
+    text-shadow:
+      1px 1px 0 #2e86c1,
+      2px 2px 0 #2e86c1,
+      3px 3px 0 #2471a3,
+      4px 4px 0 #2471a3,
+      5px 5px 0 #1b4f72,
+      6px 6px 0 #1b4f72,
+      8px 8px 16px rgba(0,0,0,0.6);
+    animation: chen_text-float 3s ease-in-out infinite;
+  }
+
+  @keyframes chen_text-float {
+    0%, 100% { transform: translateY(0) rotateX(8deg); }
+    50%      { transform: translateY(-14px) rotateX(-8deg); }
+  }
+
+  /* ===== 5. 3D 悬浮卡片 ===== */
+  .chen_tilt-card {
+    width: 200px;
+    height: 130px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #9b59b6, #8e44ad);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: bold;
+    font-size: 1rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    transition: transform 0.15s ease-out;
+    will-change: transform;
+  }
+
+  /* ===== 控制面板 ===== */
+  .chen_controls {
+    background: #141a29;
+    border: 1px solid #2a3247;
+    border-radius: 10px;
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 240px;
+  }
+
+  .chen_ctrl-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.85rem;
+  }
+
+  .chen_ctrl-row label { width: 92px; color: #aab2c5; flex-shrink: 0; }
+
+  .chen_ctrl-row input[type="range"] { flex: 1; accent-color: #5dade2; }
+
+  .chen_ctrl-row .chen_val {
+    width: 52px;
+    text-align: right;
+    font-family: Consolas, monospace;
+    color: #5dade2;
+  }
+
+  .chen_btn {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 9px 18px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    font-family: inherit;
+  }
+
+  .chen_btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(52,152,219,0.4); }
+  .chen_btn:active { transform: translateY(0); }
+
+  /* ===== 属性速查表 ===== */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+    margin-top: 6px;
+  }
+
+  th, td { border: 1px solid #2a3247; padding: 8px 12px; text-align: left; }
+  th { background: #252c40; color: #5dade2; }
+  tr:nth-child(even) td { background: #1e2536; }
+
+  .chen_tip {
+    color: #f0a35e;
+    font-size: 0.82rem;
+    margin-top: 8px;
+  }
+
+  footer { text-align: center; color: #5a6378; font-size: 0.78rem; margin-top: 20px; }
+
+  .chen_back-home {
+    display: inline-block;
+    margin-bottom: 16px;
+    color: #5dade2;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: bold;
+    transition: color 0.2s;
+  }
+  .chen_back-home:hover { color: #3498db; text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="chen_container">
+
+  <a href="index.html" class="chen_back-home">← 返回首页</a>
+
+  <h1>CSS3 3D 动画</h1>
+  <p class="chen_subtitle">transform / perspective / preserve-3d 交互演示</p>
+
+  <!-- 1. 3D 立方体 -->
+  <div class="chen_card">
+    <h2>① 3D 立方体（Cube）</h2>
+    <p class="chen_desc">
+      6 个面用 <span class="chen_code">rotateX / rotateY + translateZ</span> 定位，
+      父容器 <span class="chen_code">transform-style: preserve-3d</span> 保留 3D 空间，
+      通过 <span class="chen-code">@keyframes</span> 持续旋转。
+    </p>
+    <div class="chen_stage">
+      <div class="chen_viewport">
+        <div class="chen_cube-scene" id="chen_cubeScene">
+          <div class="chen_cube-face chen_cube-front">前</div>
+          <div class="chen_cube-face chen_cube-back">后</div>
+          <div class="chen_cube-face chen_cube-right">右</div>
+          <div class="chen_cube-face chen_cube-left">左</div>
+          <div class="chen_cube-face chen_cube-top">上</div>
+          <div class="chen_cube-face chen_cube-bottom">下</div>
+        </div>
+      </div>
+      <div class="chen_controls">
+        <div class="chen_ctrl-row">
+          <label>旋转速度</label>
+          <input type="range" id="chen_cubeSpeed" min="2" max="20" value="8">
+          <span class="chen_val" id="chen_cubeSpeedVal">8s</span>
+        </div>
+        <div class="chen_ctrl-row">
+          <label>透视距离</label>
+          <input type="range" id="chen_cubePersp" min="300" max="1600" value="900">
+          <span class="chen_val" id="chen_cubePerspVal">900px</span>
+        </div>
+        <div class="chen_ctrl-row">
+          <label>自动旋转</label>
+          <button class="chen_btn" id="chen_cubeToggle">暂停</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. 3D 翻转卡片 -->
+  <div class="chen_card">
+    <h2>② 3D 翻转卡片（Flip Card）</h2>
+    <p class="chen_desc">
+      正反面使用 <span class="chen-code">backface-visibility: hidden</span> 隐藏背面，
+      点击卡片触发 <span class="chen-code">rotateY(180deg)</span> 翻转（JS 切换类名）。
+    </p>
+    <div class="chen_stage">
+      <div class="chen_viewport">
+        <div class="chen_flip-card" id="chen_flipCard">
+          <div class="chen_flip-face chen_flip-front">正面 · 点我<br><small style="font-weight:normal;opacity:.85;">HOVER ME</small></div>
+          <div class="chen_flip-face chen_flip-back">背面<br><small style="font-weight:normal;opacity:.85;">CLICK AGAIN</small></div>
+        </div>
+      </div>
+      <div class="chen_controls">
+        <div class="chen_ctrl-row"><label>状态</label><span class="chen_val" id="chen_flipState">正面</span></div>
+        <div class="chen_ctrl-row">
+          <label></label>
+          <button class="chen_btn" id="chen_flipBtn">翻转卡片</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. 3D 旋转木马 -->
+  <div class="chen_card">
+    <h2>③ 3D 旋转木马（Carousel）</h2>
+    <p class="chen_desc">
+      多个面板绕 Y 轴环形排列（<span class="chen-code">rotateY(i × 60deg) translateZ(半径)</span>），
+      整体绕 Y 轴旋转形成 3D 轮播效果。
+    </p>
+    <div class="chen_stage">
+      <div class="chen_viewport">
+        <div class="chen_carousel-scene" id="chen_carouselScene"></div>
+      </div>
+      <div class="chen_controls">
+        <div class="chen_ctrl-row">
+          <label>旋转速度</label>
+          <input type="range" id="chen_carouselSpeed" min="3" max="25" value="10">
+          <span class="chen_val" id="chen_carouselSpeedVal">10s</span>
+        </div>
+        <div class="chen_ctrl-row">
+          <label>面板数量</label>
+          <input type="range" id="chen_carouselCount" min="3" max="8" value="6">
+          <span class="chen_val" id="chen_carouselCountVal">6</span>
+        </div>
+        <div class="chen_ctrl-row">
+          <label>自动旋转</label>
+          <button class="chen_btn" id="chen_carouselToggle">暂停</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. 3D 文字 -->
+  <div class="chen_card">
+    <h2>④ 3D 立体文字（Text Shadow）</h2>
+    <p class="chen_desc">
+      多层 <span class="chen-code">text-shadow</span> 叠加出立体厚度，
+      配合 <span class="chen-code">rotateX</span> 实现上下浮动。
+    </p>
+    <div class="chen_stage">
+      <div class="chen_viewport">
+        <div class="chen_text3d">CSS 3D</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. 鼠标视差 3D 卡片 -->
+  <div class="chen_card">
+    <h2>⑤ 鼠标视差 3D 卡片（Tilt）</h2>
+    <p class="chen_desc">
+      监听 <span class="chen-code">mousemove</span>，根据鼠标位置动态计算
+      <span class="chen-code">rotateX / rotateY</span>，产生跟随视差效果。
+    </p>
+    <div class="chen_stage">
+      <div class="chen_viewport" id="chen_tiltViewport">
+        <div class="chen_tilt-card" id="chen_tiltCard">移动鼠标试试</div>
+      </div>
+      <div class="chen_controls">
+        <div class="chen_ctrl-row"><label>当前 rotateX</label><span class="chen_val" id="chen_tiltX">0°</span></div>
+        <div class="chen_ctrl-row"><label>当前 rotateY</label><span class="chen_val" id="chen_tiltY">0°</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 属性速查表 -->
+  <div class="chen_card">
+    <h2>⑥ 3D 变换核心属性速查</h2>
+    <table>
+      <tr><th>属性</th><th>作用</th><th>示例</th></tr>
+      <tr><td><span class="chen_code">perspective</span></td><td>观察者与 3D 空间的距离（透视强度）</td><td><code>perspective: 900px;</code></td></tr>
+      <tr><td><span class="chen_code">perspective-origin</span></td><td>透视消失点位置</td><td><code>perspective-origin: center;</code></td></tr>
+      <tr><td><span class="chen_code">transform-style</span></td><td>子元素是否保留 3D 空间</td><td><code>transform-style: preserve-3d;</code></td></tr>
+      <tr><td><span class="chen_code">rotateX/Y/Z</span></td><td>绕 X / Y / Z 轴旋转</td><td><code>transform: rotateY(180deg);</code></td></tr>
+      <tr><td><span class="chen_code">translateZ</span></td><td>沿 Z 轴（纵深）移动</td><td><code>transform: translateZ(55px);</code></td></tr>
+      <tr><td><span class="chen_code">backface-visibility</span></td><td>元素背面是否可见</td><td><code>backface-visibility: hidden;</code></td></tr>
+      <tr><td><span class="chen_code">will-change</span></td><td>提前告知浏览器优化渲染</td><td><code>will-change: transform;</code></td></tr>
+    </table>
+    <p class="chen_tip">提示：perspective 值越小，透视变形越强烈；preserve-3d 必须加在 3D 子元素的父级上。</p>
+  </div>
+
+  <footer>11-2 · CSS3 3D 动画演示</footer>
+</div>
+
+<script>
+  const chen_root = document.documentElement;
+
+  /* ===== 1. 立方体控制 ===== */
+  const chen_cubeScene = document.getElementById('chen_cubeScene');
+  const chen_cubeSpeed = document.getElementById('chen_cubeSpeed');
+  const chen_cubeSpeedVal = document.getElementById('chen_cubeSpeedVal');
+  const chen_cubePersp = document.getElementById('chen_cubePersp');
+  const chen_cubePerspVal = document.getElementById('chen_cubePerspVal');
+  const chen_cubeToggle = document.getElementById('chen_cubeToggle');
+  let chen_cubePlaying = true;
+
+  chen_cubeSpeed.addEventListener('input', e => {
+    const chen_v = e.target.value;
+    chen_root.style.setProperty('--chen_speed', chen_v + 's');
+    chen_cubeSpeedVal.textContent = chen_v + 's';
+  });
+
+  chen_cubePersp.addEventListener('input', e => {
+    const chen_v = e.target.value;
+    chen_root.style.setProperty('--chen_perspective', chen_v + 'px');
+    chen_cubePerspVal.textContent = chen_v + 'px';
+  });
+
+  chen_cubeToggle.addEventListener('click', () => {
+    chen_cubePlaying = !chen_cubePlaying;
+    chen_cubeScene.style.animationPlayState = chen_cubePlaying ? 'running' : 'paused';
+    chen_cubeToggle.textContent = chen_cubePlaying ? '暂停' : '播放';
+  });
+
+  /* ===== 2. 翻转卡片 ===== */
+  const chen_flipCard = document.getElementById('chen_flipCard');
+  const chen_flipBtn = document.getElementById('chen_flipBtn');
+  const chen_flipState = document.getElementById('chen_flipState');
+  let chen_flipped = false;
+
+  function chen_doFlip() {
+    chen_flipped = !chen_flipped;
+    chen_flipCard.classList.toggle('chen_flipped', chen_flipped);
+    chen_flipState.textContent = chen_flipped ? '背面' : '正面';
+  }
+  chen_flipCard.addEventListener('click', chen_doFlip);
+  chen_flipBtn.addEventListener('click', chen_doFlip);
+
+  /* ===== 3. 旋转木马 ===== */
+  const chen_carouselScene = document.getElementById('chen_carouselScene');
+  const chen_carouselSpeed = document.getElementById('chen_carouselSpeed');
+  const chen_carouselSpeedVal = document.getElementById('chen_carouselSpeedVal');
+  const chen_carouselCount = document.getElementById('chen_carouselCount');
+  const chen_carouselCountVal = document.getElementById('chen_carouselCountVal');
+  const chen_carouselToggle = document.getElementById('chen_carouselToggle');
+  let chen_carouselPlaying = true;
+
+  const chen_colors = [
+    'linear-gradient(135deg,#e74c3c,#c0392b)',
+    'linear-gradient(135deg,#3498db,#2980b9)',
+    'linear-gradient(135deg,#2ecc71,#27ae60)',
+    'linear-gradient(135deg,#f39c12,#d68910)',
+    'linear-gradient(135deg,#9b59b6,#8e44ad)',
+    'linear-gradient(135deg,#1abc9c,#16a085)',
+    'linear-gradient(135deg,#e84393,#d63384)',
+    'linear-gradient(135deg,#34495e,#2c3e50)'
+  ];
+
+  function chen_buildCarousel() {
+    const chen_n = parseInt(chen_carouselCount.value, 10);
+    const chen_radius = 70 / Math.tan(Math.PI / chen_n) + 20;
+    chen_carouselScene.innerHTML = '';
+    for (let i = 0; i < chen_n; i++) {
+      const chen_item = document.createElement('div');
+      chen_item.className = 'chen_carousel-item';
+      chen_item.style.background = chen_colors[i % chen_colors.length];
+      chen_item.style.transform = 'rotateY(' + (360 / chen_n * i) + 'deg) translateZ(' + chen_radius.toFixed(1) + 'px)';
+      chen_item.textContent = i + 1;
+      chen_carouselScene.appendChild(chen_item);
+    }
+  }
+
+  chen_carouselCount.addEventListener('input', e => {
+    chen_carouselCountVal.textContent = e.target.value;
+    chen_buildCarousel();
+  });
+
+  chen_carouselSpeed.addEventListener('input', e => {
+    const chen_v = e.target.value;
+    chen_carouselScene.style.animationDuration = chen_v + 's';
+    chen_carouselSpeedVal.textContent = chen_v + 's';
+  });
+
+  chen_carouselToggle.addEventListener('click', () => {
+    chen_carouselPlaying = !chen_carouselPlaying;
+    chen_carouselScene.style.animationPlayState = chen_carouselPlaying ? 'running' : 'paused';
+    chen_carouselToggle.textContent = chen_carouselPlaying ? '暂停' : '播放';
+  });
+  chen_buildCarousel();
+
+  /* ===== 4. 鼠标视差卡片 ===== */
+  const chen_tiltViewport = document.getElementById('chen_tiltViewport');
+  const chen_tiltCard = document.getElementById('chen_tiltCard');
+  const chen_tiltX = document.getElementById('chen_tiltX');
+  const chen_tiltY = document.getElementById('chen_tiltY');
+
+  chen_tiltViewport.addEventListener('mousemove', e => {
+    const chen_r = chen_tiltCard.getBoundingClientRect();
+    const chen_cx = chen_r.left + chen_r.width / 2;
+    const chen_cy = chen_r.top + chen_r.height / 2;
+    const chen_rx = ((e.clientY - chen_cy) / (chen_r.height / 2)) * -14;
+    const chen_ry = ((e.clientX - chen_cx) / (chen_r.width / 2)) * 14;
+    chen_tiltCard.style.transform = 'rotateX(' + chen_rx.toFixed(1) + 'deg) rotateY(' + chen_ry.toFixed(1) + 'deg)';
+    chen_tiltX.textContent = chen_rx.toFixed(1) + '°';
+    chen_tiltY.textContent = chen_ry.toFixed(1) + '°';
+  });
+
+  chen_tiltViewport.addEventListener('mouseleave', () => {
+    chen_tiltCard.style.transform = 'rotateX(0deg) rotateY(0deg)';
+    chen_tiltX.textContent = '0°';
+    chen_tiltY.textContent = '0°';
+  });
+</script>
+</body>
+</html>

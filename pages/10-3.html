@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>视口背景颜色变化</title>
+    <style>
+        :root {
+            --font-size: 2rem;
+            --title-size: 3rem;
+            --small-size: 1rem;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+        }
+
+        body {
+            display: grid;
+            place-items: center;
+            overflow: hidden;
+            background: #d9e7ff;
+            color: #17233a;
+            font-family: "Microsoft YaHei", Arial, sans-serif;
+            transition: background-color 0.8s ease, color 0.8s ease;
+        }
+
+        .viewport-box {
+            width: 100%;
+            height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .viewport-box h1 {
+            font-size: var(--title-size);
+            line-height: 1.2;
+            letter-spacing: 0.1em;
+            transition: font-size 0.5s ease;
+        }
+
+        .viewport-box p {
+            margin-top: 1rem;
+            font-size: var(--small-size);
+            line-height: 1.7;
+            letter-spacing: 0.05em;
+            transition: font-size 0.5s ease;
+        }
+
+        .viewport-box .name {
+            display: inline-block;
+            margin-top: 1.5rem;
+            padding: 0.65rem 1.2rem;
+            border: 1px solid currentColor;
+            border-radius: 999px;
+            font-size: var(--font-size);
+            font-weight: 700;
+            transition: font-size 0.5s ease;
+        }
+
+        @media (max-width: 900px) {
+            body {
+                background: #d8f3e8;
+                color: #123c35;
+            }
+
+            :root {
+                --font-size: 1.6rem;
+                --title-size: 2.4rem;
+                --small-size: 0.95rem;
+            }
+        }
+
+        @media (max-width: 600px) {
+            body {
+                background: #ffe6cf;
+                color: #5a2c16;
+            }
+
+            :root {
+                --font-size: 1.35rem;
+                --title-size: 1.8rem;
+                --small-size: 0.9rem;
+            }
+
+            .viewport-box {
+                padding: 1rem;
+            }
+        }
+
+        @media (min-width: 1200px) {
+            body {
+                background: #eee5ff;
+                color: #3a245f;
+            }
+
+            :root {
+                --font-size: 2.4rem;
+                --title-size: 4rem;
+                --small-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="viewport-box">
+        <div>
+            <h1>响应式背景</h1>
+            <p>视口变化时，背景颜色与文字大小自动调整</p>
+            <span class="name">陈依然</span>
+        </div>
+    </main>
+</body>
+</html>
