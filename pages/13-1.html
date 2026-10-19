@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>13-1 Font Awesome 图标</title>
+<link rel="stylesheet" href="cdn/fontawesome.min.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: "Microsoft YaHei", "Segoe UI", sans-serif;
+    background: #f0f4f8;
+    color: #333;
+    line-height: 1.6;
+    padding: 24px;
+  }
+
+  .chen_container { max-width: 1000px; margin: 0 auto; }
+
+  .chen_back-home {
+    display: inline-block;
+    margin-bottom: 16px;
+    color: #2563eb;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: bold;
+    transition: color 0.2s;
+  }
+  .chen_back-home:hover { color: #1d4ed8; text-decoration: underline; }
+
+  h1 {
+    text-align: center;
+    font-size: 1.8rem;
+    margin-bottom: 4px;
+    color: #1e40af;
+  }
+
+  .chen_subtitle {
+    text-align: center;
+    color: #6b7280;
+    margin-bottom: 24px;
+    font-size: 0.9rem;
+  }
+
+  .chen_card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 22px 26px;
+    margin-bottom: 22px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    border: 1px solid #e5e7eb;
+  }
+
+  .chen_card h2 {
+    font-size: 1.1rem;
+    color: #1e40af;
+    border-left: 4px solid #2563eb;
+    padding-left: 10px;
+    margin-bottom: 8px;
+  }
+
+  .chen_desc {
+    color: #6b7280;
+    font-size: 0.85rem;
+    margin-bottom: 16px;
+  }
+
+  code, .chen_code {
+    font-family: Consolas, "Courier New", monospace;
+    background: #eff6ff;
+    padding: 2px 7px;
+    border-radius: 4px;
+    color: #1d4ed8;
+    font-size: 0.85em;
+  }
+
+  /* 图标展示网格 */
+  .chen_icon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 14px;
+  }
+
+  .chen_icon-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 10px;
+    border-radius: 10px;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    transition: all 0.25s ease;
+    cursor: default;
+  }
+  .chen_icon-item:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.15);
+    border-color: #2563eb;
+  }
+
+  .chen_icon-item i {
+    font-size: 1.8rem;
+    color: #2563eb;
+  }
+
+  .chen_icon-item span {
+    font-size: 0.72rem;
+    color: #6b7280;
+    text-align: center;
+    word-break: break-all;
+  }
+
+  /* 尺寸演示 */
+  .chen_size-row {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    padding: 14px;
+    background: #f8fafc;
+    border-radius: 10px;
+    margin-bottom: 12px;
+  }
+  .chen_size-row i { color: #2563eb; }
+
+  /* 颜色演示 */
+  .chen_color-row {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex-wrap: wrap;
+    padding: 14px;
+    background: #f8fafc;
+    border-radius: 10px;
+    margin-bottom: 12px;
+  }
+
+  /* 动画演示 */
+  .chen_anim-row {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+    padding: 14px;
+    background: #f8fafc;
+    border-radius: 10px;
+  }
+  .chen_anim-row i { color: #2563eb; }
+
+  .chen_spin { animation: chen_fa-spin 2s linear infinite; }
+  .chen_pulse { animation: chen_fa-pulse 1s ease-in-out infinite; }
+  .chen_bounce { animation: chen_fa-bounce 1.5s ease-in-out infinite; }
+
+  @keyframes chen_fa-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  @keyframes chen_fa-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.25); }
+  }
+  @keyframes chen_fa-bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+  }
+
+  /* 按钮演示 */
+  .chen_btn-row {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+  .chen_btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  .chen_btn-primary { background: #2563eb; color: #fff; }
+  .chen_btn-primary:hover { background: #1d4ed8; transform: translateY(-2px); }
+  .chen_btn-success { background: #16a34a; color: #fff; }
+  .chen_btn-success:hover { background: #15803d; transform: translateY(-2px); }
+  .chen_btn-danger { background: #dc2626; color: #fff; }
+  .chen_btn-danger:hover { background: #b91c1c; transform: translateY(-2px); }
+
+  /* 对比说明 */
+  .chen_compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 8px;
+  }
+  .chen_compare-box {
+    padding: 16px;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+  }
+  .chen_compare-box h3 { font-size: 0.95rem; margin-bottom: 8px; }
+  .chen_compare-box ul { padding-left: 18px; font-size: 0.82rem; color: #6b7280; }
+  .chen_compare-box li { margin-bottom: 4px; }
+
+  footer { text-align: center; color: #9ca3af; font-size: 0.78rem; margin-top: 20px; }
+</style>
+</head>
+<body>
+<div class="chen_container">
+
+  <a href="index.html" class="chen_back-home">← 返回首页</a>
+
+  <h1>Font Awesome 图标</h1>
+  <p class="chen_subtitle">字体图标（Font Icon）方案 · 通过 @font-face 加载字体文件，用 CSS 类名渲染图标</p>
+
+  <!-- 1. 基础图标 -->
+  <div class="chen_card">
+    <h2>① 基础图标（Solid / Regular / Brands）</h2>
+    <p class="chen_desc">
+      Font Awesome 通过 <code>@font-face</code> 加载字体文件，每个图标对应一个 Unicode 字符，
+      用 <code>&lt;i class="fa-solid fa-xxx"&gt;</code> 渲染。
+    </p>
+    <div class="chen_icon-grid">
+      <div class="chen_icon-item"><i class="fa-solid fa-house"></i><span>fa-house</span></div>
+      <div class="chen_icon-item"><i class="fa-solid fa-user"></i><span>fa-user</span></div>
+      <div class="chen_icon-item"><i class="fa-solid fa-heart"></i><span>fa-heart</span></div>
+      <div class="chen_icon-item"><i class="fa-solid fa-star"></i><span>fa-star</span></div>
+      <div class="chen_icon-item"><i class="fa-solid fa-gear"></i><span>fa-gear</span></div>
+      <div class="chen_icon-item"><i class="fa-solid fa-magnifying-glass"></i><span>fa-magnifying-glass</span></div>
+      <div class="chen_icon-item"><i class="fa-solid fa-envelope"></i><span>fa-envelope</span></div>
+      <div class="chen_icon-item"><i class="fa-solid fa-camera"></i><span>fa-camera</span></div>
+      <div class="chen_icon-item"><i class="fa-solid fa-music"></i><span>fa-music</span></div>
+      <div class="chen_icon-item"><i class="fa-solid fa-cart-shopping"></i><span>fa-cart-shopping</span></div>
+      <div class="chen_icon-item"><i class="fa-solid fa-thumbs-up"></i><span>fa-thumbs-up</span></div>
+      <div class="chen_icon-item"><i class="fa-solid fa-bell"></i><span>fa-bell</span></div>
+      <div class="chen_icon-item"><i class="fa-regular fa-heart"></i><span>fa-regular fa-heart</span></div>
+      <div class="chen_icon-item"><i class="fa-regular fa-star"></i><span>fa-regular fa-star</span></div>
+      <div class="chen_icon-item"><i class="fa-regular fa-bell"></i><span>fa-regular fa-bell</span></div>
+      <div class="chen_icon-item"><i class="fa-brands fa-github"></i><span>fa-brands fa-github</span></div>
+      <div class="chen_icon-item"><i class="fa-brands fa-weixin"></i><span>fa-brands fa-weixin</span></div>
+      <div class="chen_icon-item"><i class="fa-brands fa-weibo"></i><span>fa-brands fa-weibo</span></div>
+      <div class="chen_icon-item"><i class="fa-brands fa-qq"></i><span>fa-brands fa-qq</span></div>
+      <div class="chen_icon-item"><i class="fa-brands fa-chrome"></i><span>fa-brands fa-chrome</span></div>
+      <div class="chen_icon-item"><i class="fa-brands fa-firefox"></i><span>fa-brands fa-firefox</span></div>
+    </div>
+  </div>
+
+  <!-- 2. 尺寸控制 -->
+  <div class="chen_card">
+    <h2>② 尺寸控制（CSS font-size）</h2>
+    <p class="chen_desc">
+      字体图标本质是文字，直接用 <code>font-size</code> 控制大小，或用 FA 内置类 <code>fa-2x</code> ~ <code>fa-10x</code>。
+    </p>
+    <div class="chen_size-row">
+      <i class="fa-solid fa-star" style="font-size:16px;"></i>
+      <i class="fa-solid fa-star" style="font-size:24px;"></i>
+      <i class="fa-solid fa-star" style="font-size:32px;"></i>
+      <i class="fa-solid fa-star" style="font-size:48px;"></i>
+      <i class="fa-solid fa-star" style="font-size:64px;"></i>
+      <i class="fa-solid fa-star fa-2x"></i>
+      <i class="fa-solid fa-star fa-5x"></i>
+    </div>
+  </div>
+
+  <!-- 3. 颜色控制 -->
+  <div class="chen_card">
+    <h2>③ 颜色控制（CSS color）</h2>
+    <p class="chen_desc">
+      同样因为是文字，直接用 <code>color</code> 改颜色，支持渐变、阴影等所有 CSS 文字效果。
+    </p>
+    <div class="chen_color-row">
+      <i class="fa-solid fa-heart" style="color:#ef4444; font-size:2rem;"></i>
+      <i class="fa-solid fa-heart" style="color:#f59e0b; font-size:2rem;"></i>
+      <i class="fa-solid fa-heart" style="color:#10b981; font-size:2rem;"></i>
+      <i class="fa-solid fa-heart" style="color:#3b82f6; font-size:2rem;"></i>
+      <i class="fa-solid fa-heart" style="color:#8b5cf6; font-size:2rem;"></i>
+      <i class="fa-solid fa-heart" style="color:#ec4899; font-size:2rem;"></i>
+      <i class="fa-solid fa-star" style="color:#f59e0b; font-size:2rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);"></i>
+    </div>
+  </div>
+
+  <!-- 4. 动画效果 -->
+  <div class="chen_card">
+    <h2>④ 动画效果（CSS Animation）</h2>
+    <p class="chen_desc">
+      Font Awesome 内置 <code>fa-spin</code>、<code>fa-pulse</code> 动画类，也可自定义 CSS 动画。
+    </p>
+    <div class="chen_anim-row">
+      <i class="fa-solid fa-gear fa-3x chen_spin"></i>
+      <i class="fa-solid fa-heart fa-3x chen_pulse"></i>
+      <i class="fa-solid fa-bell fa-3x chen_bounce"></i>
+      <i class="fa-solid fa-circle-notch fa-3x chen_spin"></i>
+      <i class="fa-solid fa-spinner fa-3x chen_spin"></i>
+    </div>
+  </div>
+
+  <!-- 5. 实际应用场景 -->
+  <div class="chen_card">
+    <h2>⑤ 实际应用场景</h2>
+    <p class="chen_desc">图标在按钮、列表、导航中的常见用法。</p>
+    <div class="chen_btn-row">
+      <button class="chen_btn chen_btn-primary"><i class="fa-solid fa-download"></i> 下载</button>
+      <button class="chen_btn chen_btn-success"><i class="fa-solid fa-check"></i> 确认</button>
+      <button class="chen_btn chen_btn-danger"><i class="fa-solid fa-trash"></i> 删除</button>
+    </div>
+    <div style="margin-top:16px; padding:14px; background:#f8fafc; border-radius:10px; font-size:0.88rem;">
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+        <i class="fa-solid fa-user" style="color:#2563eb;"></i>
+        <span>用户中心</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+        <i class="fa-solid fa-gear" style="color:#6b7280;"></i>
+        <span>系统设置</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <i class="fa-solid fa-right-from-bracket" style="color:#dc2626;"></i>
+        <span>退出登录</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. 技术对比 -->
+  <div class="chen_card">
+    <h2>⑥ 字体图标 vs SVG 图标</h2>
+    <div class="chen_compare">
+      <div class="chen_compare-box">
+        <h3>✅ 字体图标（Font Awesome）</h3>
+        <ul>
+          <li>用 CSS 类名使用，简单快捷</li>
+          <li>用 font-size / color 控制样式</li>
+          <li>一次加载字体文件，图标数量多</li>
+          <li>不支持多色图标</li>
+          <li>旧浏览器兼容性好</li>
+        </ul>
+      </div>
+      <div class="chen_compare-box">
+        <h3>🎨 SVG 图标（Lucide）</h3>
+        <ul>
+          <li>内联 SVG，可精确控制每个路径</li>
+          <li>支持多色、渐变、描边动画</li>
+          <li>按需加载，无额外字体请求</li>
+          <li>可被 CSS / JS 精确操控</li>
+          <li>矢量无损缩放</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <footer>13-1 · Font Awesome 字体图标演示</footer>
+</div>
+</body>
+</html>

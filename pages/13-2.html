@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>13-2 Lucide 图标</title>
+<script src="cdn/lucide.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: "Microsoft YaHei", "Segoe UI", sans-serif;
+    background: #faf9f7;
+    color: #333;
+    line-height: 1.6;
+    padding: 24px;
+  }
+
+  .chen_container { max-width: 1000px; margin: 0 auto; }
+
+  .chen_back-home {
+    display: inline-block;
+    margin-bottom: 16px;
+    color: #059669;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: bold;
+    transition: color 0.2s;
+  }
+  .chen_back-home:hover { color: #047857; text-decoration: underline; }
+
+  h1 {
+    text-align: center;
+    font-size: 1.8rem;
+    margin-bottom: 4px;
+    color: #065f46;
+  }
+
+  .chen_subtitle {
+    text-align: center;
+    color: #6b7280;
+    margin-bottom: 24px;
+    font-size: 0.9rem;
+  }
+
+  .chen_card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 22px 26px;
+    margin-bottom: 22px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    border: 1px solid #e5e7eb;
+  }
+
+  .chen_card h2 {
+    font-size: 1.1rem;
+    color: #065f46;
+    border-left: 4px solid #059669;
+    padding-left: 10px;
+    margin-bottom: 8px;
+  }
+
+  .chen_desc {
+    color: #6b7280;
+    font-size: 0.85rem;
+    margin-bottom: 16px;
+  }
+
+  code, .chen_code {
+    font-family: Consolas, "Courier New", monospace;
+    background: #ecfdf5;
+    padding: 2px 7px;
+    border-radius: 4px;
+    color: #047857;
+    font-size: 0.85em;
+  }
+
+  /* 图标展示网格 */
+  .chen_icon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 14px;
+  }
+
+  .chen_icon-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 10px;
+    border-radius: 10px;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    transition: all 0.25s ease;
+    cursor: default;
+  }
+  .chen_icon-item:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(5, 150, 105, 0.15);
+    border-color: #059669;
+  }
+
+  .chen_icon-item svg {
+    width: 28px;
+    height: 28px;
+    color: #059669;
+  }
+
+  .chen_icon-item span {
+    font-size: 0.72rem;
+    color: #6b7280;
+    text-align: center;
+    word-break: break-all;
+  }
+
+  /* 尺寸演示 */
+  .chen_size-row {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    padding: 14px;
+    background: #f9fafb;
+    border-radius: 10px;
+    margin-bottom: 12px;
+  }
+  .chen_size-row svg { color: #059669; }
+
+  /* 颜色演示 */
+  .chen_color-row {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex-wrap: wrap;
+    padding: 14px;
+    background: #f9fafb;
+    border-radius: 10px;
+    margin-bottom: 12px;
+  }
+
+  /* 描边宽度演示 */
+  .chen_stroke-row {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    padding: 14px;
+    background: #f9fafb;
+    border-radius: 10px;
+    margin-bottom: 12px;
+  }
+  .chen_stroke-row svg { color: #059669; }
+
+  /* 动画演示 */
+  .chen_anim-row {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+    padding: 14px;
+    background: #f9fafb;
+    border-radius: 10px;
+  }
+  .chen_anim-row svg { color: #059669; }
+
+  .chen_spin { animation: chen_lucide-spin 2s linear infinite; }
+  .chen_pulse { animation: chen_lucide-pulse 1.5s ease-in-out infinite; }
+  .chen_draw { stroke-dasharray: 100; stroke-dashoffset: 100; animation: chen_lucide-draw 2s ease forwards; }
+
+  @keyframes chen_lucide-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  @keyframes chen_lucide-pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.2); opacity: 0.7; }
+  }
+  @keyframes chen_lucide-draw {
+    to { stroke-dashoffset: 0; }
+  }
+
+  /* 按钮演示 */
+  .chen_btn-row {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+  .chen_btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  .chen_btn svg { width: 18px; height: 18px; }
+  .chen_btn-primary { background: #059669; color: #fff; }
+  .chen_btn-primary:hover { background: #047857; transform: translateY(-2px); }
+  .chen_btn-outline { background: transparent; color: #059669; border: 2px solid #059669; }
+  .chen_btn-outline:hover { background: #ecfdf5; transform: translateY(-2px); }
+
+  /* SVG 代码展示 */
+  .chen_code-block {
+    background: #1f2937;
+    color: #e5e7eb;
+    border-radius: 10px;
+    padding: 16px;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 0.8rem;
+    line-height: 1.5;
+    overflow-x: auto;
+    margin-top: 10px;
+  }
+  .chen_code-block .chen_tag { color: #f472b6; }
+  .chen_code-block .chen_attr { color: #a5b4fc; }
+  .chen_code-block .chen_val { color: #6ee7b7; }
+
+  footer { text-align: center; color: #9ca3af; font-size: 0.78rem; margin-top: 20px; }
+</style>
+</head>
+<body>
+<div class="chen_container">
+
+  <a href="index.html" class="chen_back-home">← 返回首页</a>
+
+  <h1>Lucide 图标</h1>
+  <p class="chen_subtitle">SVG 图标方案 · 通过 JavaScript 动态生成内联 SVG，可精确控制每个路径</p>
+
+  <!-- 1. 基础图标 -->
+  <div class="chen_card">
+    <h2>① 基础图标（SVG 内联渲染）</h2>
+    <p class="chen_desc">
+      Lucide 通过 <code>lucide.createIcons()</code> 将 <code>&lt;i data-lucide="xxx"&gt;</code> 替换为内联 SVG。
+      每个图标都是纯 SVG 路径，可用 CSS 精确控制。
+    </p>
+    <div class="chen_icon-grid">
+      <div class="chen_icon-item"><i data-lucide="house"></i><span>house</span></div>
+      <div class="chen_icon-item"><i data-lucide="user"></i><span>user</span></div>
+      <div class="chen_icon-item"><i data-lucide="heart"></i><span>heart</span></div>
+      <div class="chen_icon-item"><i data-lucide="star"></i><span>star</span></div>
+      <div class="chen_icon-item"><i data-lucide="settings"></i><span>settings</span></div>
+      <div class="chen_icon-item"><i data-lucide="search"></i><span>search</span></div>
+      <div class="chen_icon-item"><i data-lucide="mail"></i><span>mail</span></div>
+      <div class="chen_icon-item"><i data-lucide="camera"></i><span>camera</span></div>
+      <div class="chen_icon-item"><i data-lucide="music"></i><span>music</span></div>
+      <div class="chen_icon-item"><i data-lucide="shopping-cart"></i><span>shopping-cart</span></div>
+      <div class="chen_icon-item"><i data-lucide="thumbs-up"></i><span>thumbs-up</span></div>
+      <div class="chen_icon-item"><i data-lucide="bell"></i><span>bell</span></div>
+      <div class="chen_icon-item"><i data-lucide="trash-2"></i><span>trash-2</span></div>
+      <div class="chen_icon-item"><i data-lucide="download"></i><span>download</span></div>
+      <div class="chen_icon-item"><i data-lucide="check"></i><span>check</span></div>
+      <div class="chen_icon-item"><i data-lucide="x"></i><span>x</span></div>
+      <div class="chen_icon-item"><i data-lucide="plus"></i><span>plus</span></div>
+      <div class="chen_icon-item"><i data-lucide="minus"></i><span>minus</span></div>
+      <div class="chen_icon-item"><i data-lucide="arrow-right"></i><span>arrow-right</span></div>
+      <div class="chen_icon-item"><i data-lucide="log-out"></i><span>log-out</span></div>
+    </div>
+  </div>
+
+  <!-- 2. 尺寸控制 -->
+  <div class="chen_card">
+    <h2>② 尺寸控制（width / height）</h2>
+    <p class="chen_desc">
+      SVG 图标通过 <code>width</code> 和 <code>height</code> 属性控制大小，完美矢量缩放。
+    </p>
+    <div class="chen_size-row">
+      <i data-lucide="star" style="width:16px; height:16px;"></i>
+      <i data-lucide="star" style="width:24px; height:24px;"></i>
+      <i data-lucide="star" style="width:32px; height:32px;"></i>
+      <i data-lucide="star" style="width:48px; height:48px;"></i>
+      <i data-lucide="star" style="width:64px; height:64px;"></i>
+    </div>
+  </div>
+
+  <!-- 3. 颜色控制 -->
+  <div class="chen_card">
+    <h2>③ 颜色控制（color / stroke）</h2>
+    <p class="chen_desc">
+      Lucide 图标默认使用 <code>stroke="currentColor"</code>，自动继承文字颜色，也可用 CSS <code>color</code> 或 <code>stroke</code> 覆盖。
+    </p>
+    <div class="chen_color-row">
+      <i data-lucide="heart" style="color:#ef4444; width:32px; height:32px;"></i>
+      <i data-lucide="heart" style="color:#f59e0b; width:32px; height:32px;"></i>
+      <i data-lucide="heart" style="color:#10b981; width:32px; height:32px;"></i>
+      <i data-lucide="heart" style="color:#3b82f6; width:32px; height:32px;"></i>
+      <i data-lucide="heart" style="color:#8b5cf6; width:32px; height:32px;"></i>
+      <i data-lucide="heart" style="color:#ec4899; width:32px; height:32px;"></i>
+    </div>
+  </div>
+
+  <!-- 4. 描边宽度 -->
+  <div class="chen_card">
+    <h2>④ 描边宽度（stroke-width）</h2>
+    <p class="chen_desc">
+      Lucide 默认 <code>stroke-width="2"</code>，可调整为 1（细线）、3（粗线）等不同风格。
+    </p>
+    <div class="chen_stroke-row">
+      <i data-lucide="star" style="stroke-width:1; width:40px; height:40px;"></i>
+      <i data-lucide="star" style="stroke-width:1.5; width:40px; height:40px;"></i>
+      <i data-lucide="star" style="stroke-width:2; width:40px; height:40px;"></i>
+      <i data-lucide="star" style="stroke-width:2.5; width:40px; height:40px;"></i>
+      <i data-lucide="star" style="stroke-width:3; width:40px; height:40px;"></i>
+    </div>
+  </div>
+
+  <!-- 5. 动画效果 -->
+  <div class="chen_card">
+    <h2>⑤ 动画效果（CSS Animation）</h2>
+    <p class="chen_desc">
+      因为是 SVG，可以用 CSS 变换、SMIL 或 JS 实现旋转、缩放、描边动画等效果。
+    </p>
+    <div class="chen_anim-row">
+      <i data-lucide="settings" class="chen_spin" style="width:40px; height:40px;"></i>
+      <i data-lucide="heart" class="chen_pulse" style="width:40px; height:40px;"></i>
+      <i data-lucide="loader-2" class="chen_spin" style="width:40px; height:40px;"></i>
+      <i data-lucide="refresh-cw" class="chen_spin" style="width:40px; height:40px;"></i>
+    </div>
+  </div>
+
+  <!-- 6. 实际应用场景 -->
+  <div class="chen_card">
+    <h2>⑥ 实际应用场景</h2>
+    <p class="chen_desc">图标在按钮、列表中的常见用法。</p>
+    <div class="chen_btn-row">
+      <button class="chen_btn chen_btn-primary"><i data-lucide="download" style="width:18px; height:18px;"></i> 下载</button>
+      <button class="chen_btn chen_btn-outline"><i data-lucide="settings" style="width:18px; height:18px;"></i> 设置</button>
+    </div>
+    <div style="margin-top:16px; padding:14px; background:#f9fafb; border-radius:10px; font-size:0.88rem;">
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+        <i data-lucide="user" style="color:#059669; width:20px; height:20px;"></i>
+        <span>用户中心</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+        <i data-lucide="settings" style="color:#6b7280; width:20px; height:20px;"></i>
+        <span>系统设置</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <i data-lucide="log-out" style="color:#dc2626; width:20px; height:20px;"></i>
+        <span>退出登录</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. SVG 源码展示 -->
+  <div class="chen_card">
+    <h2>⑦ SVG 源码结构</h2>
+    <p class="chen_desc">
+      Lucide 图标渲染后的 SVG 结构如下，每个图标由多个 <code>&lt;path&gt;</code> / <code>&lt;circle&gt;</code> 等元素组成：
+    </p>
+    <div class="chen_code-block">
+      <span class="chen_tag">&lt;svg</span>
+      <span class="chen_attr"> xmlns</span>=<span class="chen-val">"http://www.w3.org/2000/svg"</span>
+      <span class="chen-attr"> width</span>=<span class="chen-val">"24"</span>
+      <span class="chen-attr"> height</span>=<span class="chen-val">"24"</span>
+      <span class="chen-attr"> viewBox</span>=<span class="chen-val">"0 0 24 24"</span>
+      <span class="chen-attr"> fill</span>=<span class="chen-val">"none"</span>
+      <span class="chen-attr"> stroke</span>=<span class="chen-val">"currentColor"</span>
+      <span class="chen-attr"> stroke-width</span>=<span class="chen-val">"2"</span>
+      <span class="chen-attr"> stroke-linecap</span>=<span class="chen-val">"round"</span>
+      <span class="chen-attr"> stroke-linejoin</span>=<span class="chen-val">"round"</span><span class="chen-tag">&gt;</span><br>
+      &nbsp;&nbsp;<span class="chen-tag">&lt;path</span> <span class="chen-attr">d</span>=<span class="chen-val">"M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"</span><span class="chen-tag">/&gt;</span><br>
+      &nbsp;&nbsp;<span class="chen-tag">&lt;polyline</span> <span class="chen-attr">points</span>=<span class="chen-val">"9 22 9 12 15 12 15 22"</span><span class="chen-tag">/&gt;</span><br>
+      <span class="chen-tag">&lt;/svg&gt;</span>
+    </div>
+  </div>
+
+  <footer>13-2 · Lucide SVG 图标演示</footer>
+</div>
+
+<script>
+  lucide.createIcons();
+</script>
+</body>
+</html>
