@@ -96,14 +96,21 @@ git push github main
 
 出现冲突文件时，先解决冲突、`git add` 后继续 `git rebase --continue`。
 
-## 认证失败处理
+## 网络与认证（本机已配置，勿改回 HTTPS）
 
-HTTPS 推送若报认证错误，说明缺少 GitHub 凭据，不要反复重试。可改用本机已有的 SSH 密钥：
+本机直连 github.com 的 443 和 22 端口均不通。**已验证可用**的方式是 SSH over 443：
+
+- `~/.ssh/config` 已配置：`Host github.com → HostName ssh.github.com, Port 443`
+- github 远程地址已设为 SSH：`git@github.com:chenyiran-cell/chenyiran.git`
+- `~/.ssh/known_hosts` 已写入 GitHub 官方主机密钥
+
+若推送报 `Host key verification failed`，把 GitHub 官方主机密钥追加到 known_hosts（本机 ssh-keyscan 因 KEX 不兼容不可用）：
 
 ```powershell
-git remote set-url github git@github.com:chenyiran-cell/chenyiran.git
-git push github main
+Add-Content "$env:USERPROFILE\.ssh\known_hosts" "[ssh.github.com]:443 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl"
 ```
+
+若报权限错误（Permission denied），检查 GitHub 账号是否已添加本机公钥 `~/.ssh/id_ed25519.pub`。
 
 ## Windows PowerShell 注意事项
 
