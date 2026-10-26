@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>15-2 JavaScript 程序结构：条件与循环</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: "Microsoft YaHei", "Segoe UI", sans-serif;
+    background: linear-gradient(135deg, #141e30 0%, #243b55 100%);
+    color: #e8eaf0;
+    line-height: 1.7;
+    padding: 28px 16px;
+    min-height: 100vh;
+  }
+
+  .cyr_container { max-width: 1000px; margin: 0 auto; }
+
+  .cyr_back-home {
+    display: inline-block;
+    margin-bottom: 16px;
+    color: #64b5f6;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: bold;
+  }
+  .cyr_back-home:hover { color: #42a5f5; text-decoration: underline; }
+
+  h1 {
+    text-align: center;
+    font-size: 1.8rem;
+    margin-bottom: 6px;
+    background: linear-gradient(90deg, #4fc3f7, #81c784);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .cyr_subtitle {
+    text-align: center;
+    color: #8b93a7;
+    font-size: 0.9rem;
+    margin-bottom: 24px;
+  }
+
+  .cyr_section-title {
+    font-size: 1.2rem;
+    color: #4fc3f7;
+    border-left: 4px solid #4fc3f7;
+    padding-left: 10px;
+    margin: 26px 0 14px;
+  }
+
+  .cyr_card {
+    background: #1f2937;
+    border: 1px solid #374151;
+    border-radius: 12px;
+    padding: 18px 22px;
+    margin-bottom: 18px;
+    transition: border-color 0.2s;
+  }
+  .cyr_card:hover { border-color: #4fc3f7; }
+
+  .cyr_card h3 {
+    font-size: 1rem;
+    color: #e2e8f0;
+    margin-bottom: 8px;
+  }
+  .cyr_card h3 .cyr_tag {
+    display: inline-block;
+    font-size: 0.7rem;
+    padding: 2px 10px;
+    border-radius: 12px;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+  .cyr_tag-if     { background: rgba(79, 195, 247, 0.15); color: #4fc3f7; }
+  .cyr_tag-switch { background: rgba(129, 199, 132, 0.15); color: #81c784; }
+  .cyr_tag-for    { background: rgba(255, 183, 77, 0.15); color: #ffb74d; }
+  .cyr_tag-while  { background: rgba(186, 104, 200, 0.15); color: #ce93d8; }
+
+  .cyr_desc { color: #9ca3af; font-size: 0.86rem; margin-bottom: 12px; }
+  .cyr_desc code {
+    background: rgba(79, 195, 247, 0.12);
+    color: #4fc3f7;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-family: Consolas, monospace;
+  }
+
+  .cyr_code {
+    background: #0f172a;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 0.84rem;
+    line-height: 1.6;
+    overflow-x: auto;
+    margin-bottom: 12px;
+    white-space: pre;
+  }
+  .cyr_kw  { color: #c084fc; }
+  .cyr_str { color: #86efac; }
+  .cyr_num { color: #fbbf24; }
+  .cyr_cmt { color: #6b7280; }
+  .cyr_var { color: #93c5fd; }
+
+  .cyr_run-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .cyr_btn {
+    background: linear-gradient(135deg, #0288d1, #26a69a);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 18px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    font-family: inherit;
+    flex-shrink: 0;
+  }
+  .cyr_btn:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(2, 136, 209, 0.4); }
+  .cyr_btn:active { transform: translateY(0); }
+
+  .cyr_output {
+    flex: 1;
+    min-width: 220px;
+    background: #0f172a;
+    border: 1px solid #374151;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-family: Consolas, monospace;
+    font-size: 0.82rem;
+    color: #34d399;
+    min-height: 38px;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+
+  .cyr_input {
+    background: #0f172a;
+    border: 1px solid #4b5563;
+    border-radius: 8px;
+    color: #e8eaf0;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    font-family: inherit;
+    width: 140px;
+  }
+  .cyr_input:focus { outline: none; border-color: #4fc3f7; }
+
+  footer { text-align: center; color: #607d8b; font-size: 0.78rem; margin-top: 24px; }
+</style>
+</head>
+<body>
+<!-- 姓名：陈依然，日期：2026-10-26，功能：JavaScript 程序结构（条件与循环） -->
+<a href="index.html" class="cyr_back-home">← 返回首页</a>
+<div class="cyr_container">
+  <h1>JavaScript 程序结构</h1>
+  <p class="cyr_subtitle">条件分支 · 循环迭代 · 交互演示 —— 陈依然</p>
+
+  <!-- ============ 条件结构 ============ -->
+  <h2 class="cyr_section-title">一、条件结构（分支）</h2>
+
+  <!-- if...else -->
+  <div class="cyr_card">
+    <h3>1. if ... else if ... else<span class="cyr_tag cyr_tag-if">条件</span></h3>
+    <p class="cyr_desc">按条件依次判断，执行第一个为 <code>true</code> 的分支。输入一个分数（0~100），判断等级。</p>
+    <div class="cyr_code"><span class="cyr_kw">const</span> <span class="cyr_var">cyr_score</span> = <span class="cyr_num">85</span>;
+<span class="cyr_kw">if</span> (<span class="cyr_var">cyr_score</span> &gt;= <span class="cyr_num">90</span>)      { <span class="cyr_cmt">// 优秀</span>
+} <span class="cyr_kw">else if</span> (<span class="cyr_var">cyr_score</span> &gt;= <span class="cyr_num">80</span>) { <span class="cyr_cmt">// 良好</span>
+} <span class="cyr_kw">else if</span> (<span class="cyr_var">cyr_score</span> &gt;= <span class="cyr_num">60</span>) { <span class="cyr_cmt">// 及格</span>
+} <span class="cyr_kw">else</span> {                            <span class="cyr_cmt">// 不及格</span>
+}</div>
+    <div class="cyr_run-row">
+      <input class="cyr_input" id="cyr_inScore" type="number" value="85" min="0" max="100" placeholder="输入分数">
+      <button class="cyr_btn" onclick="cyr_runIf()">▶ 判断等级</button>
+      <div class="cyr_output" id="cyr_outIf">等待输入…</div>
+    </div>
+  </div>
+
+  <!-- 三元运算符 -->
+  <div class="cyr_card">
+    <h3>2. 三元运算符 ? :<span class="cyr_tag cyr_tag-if">条件</span></h3>
+    <p class="cyr_desc"><code>条件 ? 值1 : 值2</code> 是 if...else 的简写，适合简单的二选一赋值。判断一个数是奇数还是偶数。</p>
+    <div class="cyr_code"><span class="cyr_kw">const</span> <span class="cyr_var">cyr_n</span> = <span class="cyr_num">7</span>;
+<span class="cyr_kw">const</span> <span class="cyr_var">cyr_result</span> = (<span class="cyr_var">cyr_n</span> % <span class="cyr_num">2</span> === <span class="cyr_num">0</span>) ? <span class="cyr_str">'偶数'</span> : <span class="cyr_str">'奇数'</span>;</div>
+    <div class="cyr_run-row">
+      <input class="cyr_input" id="cyr_inNum" type="number" value="7" placeholder="输入整数">
+      <button class="cyr_btn" onclick="cyr_runTernary()">▶ 判断奇偶</button>
+      <div class="cyr_output" id="cyr_outTernary">等待输入…</div>
+    </div>
+  </div>
+
+  <!-- switch -->
+  <div class="cyr_card">
+    <h3>3. switch ... case<span class="cyr_tag cyr_tag-switch">条件</span></h3>
+    <p class="cyr_desc">对一个值做多路<strong>严格相等</strong>匹配，注意每个 case 末尾要加 <code>break</code>，否则会"穿透"到下一个分支。输入 1~7 输出星期几。</p>
+    <div class="cyr_code"><span class="cyr_kw">const</span> <span class="cyr_var">cyr_day</span> = <span class="cyr_num">3</span>;
+<span class="cyr_kw">switch</span> (<span class="cyr_var">cyr_day</span>) {
+  <span class="cyr_kw">case</span> <span class="cyr_num">1</span>: <span class="cyr_var">cyr_text</span> = <span class="cyr_str">'星期一'</span>; <span class="cyr_kw">break</span>;
+  <span class="cyr_kw">case</span> <span class="cyr_num">2</span>: <span class="cyr_var">cyr_text</span> = <span class="cyr_str">'星期二'</span>; <span class="cyr_kw">break</span>;
+  <span class="cyr_kw">case</span> <span class="cyr_num">3</span>: <span class="cyr_var">cyr_text</span> = <span class="cyr_str">'星期三'</span>; <span class="cyr_kw">break</span>;
+  <span class="cyr_cmt">// ... case 4 ~ 6 ...</span>
+  <span class="cyr_kw">default</span>: <span class="cyr_var">cyr_text</span> = <span class="cyr_str">'星期日'</span>;
+}</div>
+    <div class="cyr_run-row">
+      <input class="cyr_input" id="cyr_inDay" type="number" value="3" min="1" max="7" placeholder="1~7">
+      <button class="cyr_btn" onclick="cyr_runSwitch()">▶ 匹配星期</button>
+      <div class="cyr_output" id="cyr_outSwitch">等待输入…</div>
+    </div>
+  </div>
+
+  <!-- ============ 循环结构 ============ -->
+  <h2 class="cyr_section-title">二、循环结构（迭代）</h2>
+
+  <!-- for -->
+  <div class="cyr_card">
+    <h3>4. for 循环<span class="cyr_tag cyr_tag-for">循环</span></h3>
+    <p class="cyr_desc">三要素：<code>初始化; 条件; 步进</code>。循环次数确定时首选。演示：计算 1+2+…+100 的和。</p>
+    <div class="cyr_code"><span class="cyr_kw">let</span> <span class="cyr_var">cyr_sum</span> = <span class="cyr_num">0</span>;
+<span class="cyr_kw">for</span> (<span class="cyr_kw">let</span> <span class="cyr_var">cyr_i</span> = <span class="cyr_num">1</span>; <span class="cyr_var">cyr_i</span> &lt;= <span class="cyr_num">100</span>; <span class="cyr_var">cyr_i</span>++) {
+  <span class="cyr_var">cyr_sum</span> += <span class="cyr_var">cyr_i</span>;
+}</div>
+    <div class="cyr_run-row">
+      <button class="cyr_btn" onclick="cyr_runFor()">▶ 运行</button>
+      <div class="cyr_output" id="cyr_outFor">等待运行…</div>
+    </div>
+  </div>
+
+  <!-- while -->
+  <div class="cyr_card">
+    <h3>5. while 循环<span class="cyr_tag cyr_tag-while">循环</span></h3>
+    <p class="cyr_desc"><strong>先判断后执行</strong>，条件为 false 时一次都不执行。适合循环次数未知的场景。演示：不断折半，看 1000 几次后小于 1。</p>
+    <div class="cyr_code"><span class="cyr_kw">let</span> <span class="cyr_var">cyr_val</span> = <span class="cyr_num">1000</span>, <span class="cyr_var">cyr_times</span> = <span class="cyr_num">0</span>;
+<span class="cyr_kw">while</span> (<span class="cyr_var">cyr_val</span> &gt;= <span class="cyr_num">1</span>) {
+  <span class="cyr_var">cyr_val</span> /= <span class="cyr_num">2</span>;
+  <span class="cyr_var">cyr_times</span>++;
+}</div>
+    <div class="cyr_run-row">
+      <button class="cyr_btn" onclick="cyr_runWhile()">▶ 运行</button>
+      <div class="cyr_output" id="cyr_outWhile">等待运行…</div>
+    </div>
+  </div>
+
+  <!-- do...while -->
+  <div class="cyr_card">
+    <h3>6. do ... while 循环<span class="cyr_tag cyr_tag-while">循环</span></h3>
+    <p class="cyr_desc"><strong>先执行后判断</strong>，循环体至少执行一次。演示：模拟掷骰子，直到掷出 6 点为止，记录掷了几次。</p>
+    <div class="cyr_code"><span class="cyr_kw">let</span> <span class="cyr_var">cyr_dice</span>, <span class="cyr_var">cyr_count</span> = <span class="cyr_num">0</span>;
+<span class="cyr_kw">do</span> {
+  <span class="cyr_var">cyr_dice</span> = <span class="cyr_var">Math</span>.floor(<span class="cyr_var">Math</span>.random() * <span class="cyr_num">6</span>) + <span class="cyr_num">1</span>;
+  <span class="cyr_var">cyr_count</span>++;
+} <span class="cyr_kw">while</span> (<span class="cyr_var">cyr_dice</span> !== <span class="cyr_num">6</span>);</div>
+    <div class="cyr_run-row">
+      <button class="cyr_btn" onclick="cyr_runDoWhile()">▶ 掷骰子</button>
+      <div class="cyr_output" id="cyr_outDoWhile">等待运行…</div>
+    </div>
+  </div>
+
+  <!-- for...of / for...in -->
+  <div class="cyr_card">
+    <h3>7. for...of 与 for...in<span class="cyr_tag cyr_tag-for">循环</span></h3>
+    <p class="cyr_desc"><code>for...of</code> 遍历<strong>数组的值</strong>；<code>for...in</code> 遍历<strong>对象的键</strong>。两者不要混用。</p>
+    <div class="cyr_code"><span class="cyr_kw">const</span> <span class="cyr_var">cyr_fruits</span> = [<span class="cyr_str">'苹果'</span>, <span class="cyr_str">'香蕉'</span>, <span class="cyr_str">'橙子'</span>];
+<span class="cyr_kw">for</span> (<span class="cyr_kw">const</span> <span class="cyr_var">cyr_f</span> <span class="cyr_kw">of</span> <span class="cyr_var">cyr_fruits</span>) { <span class="cyr_cmt">/* 拿到值 */</span> }
+
+<span class="cyr_kw">const</span> <span class="cyr_var">cyr_user</span> = { <span class="cyr_var">name</span>: <span class="cyr_str">'陈依然'</span>, <span class="cyr_var">age</span>: <span class="cyr_num">20</span> };
+<span class="cyr_kw">for</span> (<span class="cyr_kw">const</span> <span class="cyr_var">cyr_k</span> <span class="cyr_kw">in</span> <span class="cyr_var">cyr_user</span>) { <span class="cyr_cmt">/* 拿到键 */</span> }</div>
+    <div class="cyr_run-row">
+      <button class="cyr_btn" onclick="cyr_runForOfIn()">▶ 运行</button>
+      <div class="cyr_output" id="cyr_outForOfIn">等待运行…</div>
+    </div>
+  </div>
+
+  <!-- break / continue -->
+  <div class="cyr_card">
+    <h3>8. break 与 continue<span class="cyr_tag cyr_tag-for">循环控制</span></h3>
+    <p class="cyr_desc"><code>break</code> 直接<strong>结束整个循环</strong>；<code>continue</code> <strong>跳过本次</strong>进入下一轮。演示：1~20 中跳过 3 的倍数（continue），遇到 16 提前停止（break）。</p>
+    <div class="cyr_code"><span class="cyr_kw">const</span> <span class="cyr_var">cyr_list</span> = [];
+<span class="cyr_kw">for</span> (<span class="cyr_kw">let</span> <span class="cyr_var">cyr_i</span> = <span class="cyr_num">1</span>; <span class="cyr_var">cyr_i</span> &lt;= <span class="cyr_num">20</span>; <span class="cyr_var">cyr_i</span>++) {
+  <span class="cyr_kw">if</span> (<span class="cyr_var">cyr_i</span> % <span class="cyr_num">3</span> === <span class="cyr_num">0</span>) <span class="cyr_kw">continue</span>;  <span class="cyr_cmt">// 跳过 3 的倍数</span>
+  <span class="cyr_kw">if</span> (<span class="cyr_var">cyr_i</span> &gt; <span class="cyr_num">15</span>) <span class="cyr_kw">break</span>;          <span class="cyr_cmt">// 16 起停止</span>
+  <span class="cyr_var">cyr_list</span>.push(<span class="cyr_var">cyr_i</span>);
+}</div>
+    <div class="cyr_run-row">
+      <button class="cyr_btn" onclick="cyr_runBreakContinue()">▶ 运行</button>
+      <div class="cyr_output" id="cyr_outBreakContinue">等待运行…</div>
+    </div>
+  </div>
+
+  <footer>15-2 · JavaScript 程序结构（条件与循环） · 陈依然</footer>
+</div>
+
+<script>
+  function cyr_setOut(id, text) {
+    document.getElementById(id).textContent = text;
+  }
+
+  // 1. if...else if...else：成绩等级
+  function cyr_runIf() {
+    const cyr_score = Number(document.getElementById('cyr_inScore').value);
+    let cyr_level;
+    if (Number.isNaN(cyr_score) || cyr_score < 0 || cyr_score > 100) {
+      cyr_level = '请输入 0~100 的有效分数';
+    } else if (cyr_score >= 90) {
+      cyr_level = '优秀';
+    } else if (cyr_score >= 80) {
+      cyr_level = '良好';
+    } else if (cyr_score >= 60) {
+      cyr_level = '及格';
+    } else {
+      cyr_level = '不及格';
+    }
+    cyr_setOut('cyr_outIf', '分数 ' + cyr_score + ' → 等级：' + cyr_level);
+  }
+
+  // 2. 三元运算符：奇偶
+  function cyr_runTernary() {
+    const cyr_n = Number(document.getElementById('cyr_inNum').value);
+    const cyr_result = Number.isNaN(cyr_n) ? '无效输入' : (cyr_n % 2 === 0 ? '偶数' : '奇数');
+    cyr_setOut('cyr_outTernary', cyr_n + ' 是 ' + cyr_result);
+  }
+
+  // 3. switch：星期
+  function cyr_runSwitch() {
+    const cyr_day = Number(document.getElementById('cyr_inDay').value);
+    let cyr_text;
+    switch (cyr_day) {
+      case 1: cyr_text = '星期一'; break;
+      case 2: cyr_text = '星期二'; break;
+      case 3: cyr_text = '星期三'; break;
+      case 4: cyr_text = '星期四'; break;
+      case 5: cyr_text = '星期五'; break;
+      case 6: cyr_text = '星期六'; break;
+      case 7: cyr_text = '星期日'; break;
+      default: cyr_text = '无效（请输入 1~7）';
+    }
+    cyr_setOut('cyr_outSwitch', '输入 ' + cyr_day + ' → ' + cyr_text);
+  }
+
+  // 4. for：1~100 求和
+  function cyr_runFor() {
+    let cyr_sum = 0;
+    for (let cyr_i = 1; cyr_i <= 100; cyr_i++) {
+      cyr_sum += cyr_i;
+    }
+    cyr_setOut('cyr_outFor', '1 + 2 + … + 100 = ' + cyr_sum);
+  }
+
+  // 5. while：折半计数
+  function cyr_runWhile() {
+    let cyr_val = 1000, cyr_times = 0;
+    const cyr_steps = [];
+    while (cyr_val >= 1) {
+      cyr_val /= 2;
+      cyr_times++;
+      cyr_steps.push(cyr_val.toFixed(2));
+    }
+    cyr_setOut('cyr_outWhile', '1000 折半 ' + cyr_times + ' 次后小于 1\n过程：' + cyr_steps.join(' → '));
+  }
+
+  // 6. do...while：掷骰子直到 6
+  function cyr_runDoWhile() {
+    let cyr_dice, cyr_count = 0;
+    const cyr_history = [];
+    do {
+      cyr_dice = Math.floor(Math.random() * 6) + 1;
+      cyr_count++;
+      cyr_history.push(cyr_dice);
+    } while (cyr_dice !== 6);
+    cyr_setOut('cyr_outDoWhile', '掷了 ' + cyr_count + ' 次掷出 6 点\n序列：' + cyr_history.join(' → '));
+  }
+
+  // 7. for...of 与 for...in
+  function cyr_runForOfIn() {
+    const cyr_fruits = ['苹果', '香蕉', '橙子'];
+    const cyr_ofResult = [];
+    for (const cyr_f of cyr_fruits) {
+      cyr_ofResult.push(cyr_f);
+    }
+    const cyr_user = { name: '陈依然', age: 20 };
+    const cyr_inResult = [];
+    for (const cyr_k in cyr_user) {
+      cyr_inResult.push(cyr_k + '=' + cyr_user[cyr_k]);
+    }
+    cyr_setOut('cyr_outForOfIn',
+      'for...of 遍历数组值：' + cyr_ofResult.join('、') +
+      '\nfor...in 遍历对象键：' + cyr_inResult.join('，'));
+  }
+
+  // 8. break 与 continue
+  function cyr_runBreakContinue() {
+    const cyr_list = [];
+    for (let cyr_i = 1; cyr_i <= 20; cyr_i++) {
+      if (cyr_i % 3 === 0) continue;
+      if (cyr_i > 15) break;
+      cyr_list.push(cyr_i);
+    }
+    cyr_setOut('cyr_outBreakContinue', '结果：' + cyr_list.join(', ') + '\n（continue 跳过 3/6/9/12/15，break 在 16 停止）');
+  }
+</script>
+</body>
+</html>
