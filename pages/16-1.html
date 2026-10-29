@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>16-1 JavaScript 数组方法全景</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Microsoft YaHei", "Segoe UI", sans-serif;
+    background: linear-gradient(135deg, #0c1445 0%, #1a2980 50%, #26d0ce 100%);
+    background-attachment: fixed; color: #e8eaf0; line-height: 1.7;
+    padding: 28px 16px; min-height: 100vh;
+  }
+  .cyr_container { max-width: 1180px; margin: 0 auto; }
+  .cyr_back-home { display: inline-block; margin-bottom: 14px; color: #64b5f6; text-decoration: none; font-size: 0.9rem; font-weight: bold; }
+  .cyr_back-home:hover { color: #42a5f5; text-decoration: underline; }
+  h1 { text-align: center; font-size: 1.9rem; margin-bottom: 6px;
+    background: linear-gradient(90deg, #ffd54f, #81d4fa); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .cyr_author { text-align: center; color: #90a4ae; font-size: 0.9rem; margin-bottom: 6px; }
+  .cyr_legend { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; margin: 18px 0 26px; font-size: 0.85rem; }
+  .cyr_legend-item { display: flex; align-items: center; gap: 6px; }
+  .cyr_dot { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+  .cyr_dot_mut { background: #ef5350; }
+  .cyr_dot_nonmut { background: #66bb6a; }
+  .cyr_dot_find { background: #ffa726; }
+  .cyr_dot_reduce { background: #ab47bc; }
+  .cyr_section-title { font-size: 1.25rem; color: #ffd54f; border-left: 4px solid #ffd54f; padding-left: 12px; margin: 32px 0 16px; }
+  .cyr_section-sub { color: #b0bec5; font-size: 0.85rem; margin-bottom: 14px; }
+  .cyr_grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+  .cyr_card { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 16px 18px; backdrop-filter: blur(8px); transition: transform 0.2s, border-color 0.2s; }
+  .cyr_card:hover { transform: translateY(-3px); border-color: rgba(255,213,79,0.5); }
+  .cyr_card-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
+  .cyr_method-name { font-family: Consolas, monospace; font-size: 1.05rem; font-weight: bold; color: #fff; }
+  .cyr_badge { font-size: 0.68rem; padding: 2px 8px; border-radius: 10px; font-weight: bold; letter-spacing: 0.5px; }
+  .cyr_badge_mut { background: rgba(239,83,80,0.25); color: #ef5350; }
+  .cyr_badge_nonmut { background: rgba(102,187,106,0.25); color: #66bb6a; }
+  .cyr_badge_find { background: rgba(255,167,38,0.25); color: #ffa726; }
+  .cyr_badge_reduce { background: rgba(171,71,188,0.25); color: #ab47bc; }
+  .cyr_desc { color: #b0bec5; font-size: 0.82rem; margin-bottom: 10px; line-height: 1.55; }
+  .cyr_desc code { background: rgba(100,181,246,0.15); color: #81d4fa; padding: 1px 5px; border-radius: 4px; font-family: Consolas, monospace; font-size: 0.78rem; }
+  .cyr_array-box { background: #0f172a; border-radius: 8px; padding: 10px; margin-bottom: 10px; min-height: 52px; display: flex; flex-wrap: wrap; gap: 4px; align-items: flex-start; }
+  .cyr_cell { min-width: 34px; background: #1e293b; border: 1px solid #334155; border-radius: 5px; padding: 3px 5px; font-size: 0.75rem; text-align: center; font-family: Consolas, monospace; color: #94a3b8; line-height: 1.2; }
+  .cyr_cell .cyr_idx { display: block; font-size: 0.58rem; color: #64748b; margin-bottom: 1px; }
+  .cyr_cell .cyr_val { color: #e2e8f0; font-weight: bold; }
+  .cyr_cell.cyr_added { background: #064e3b; border-color: #10b981; box-shadow: 0 0 6px rgba(16,185,129,0.5); }
+  .cyr_cell.cyr_removed { background: #450a0a; border-color: #ef4444; opacity: 0.4; text-decoration: line-through; }
+  .cyr_cell.cyr_changed { background: #713f12; border-color: #f59e0b; box-shadow: 0 0 6px rgba(245,158,11,0.5); }
+  .cyr_cell.cyr_found { background: #581c87; border-color: #a855f7; box-shadow: 0 0 8px rgba(168,85,247,0.6); }
+  .cyr_result-box { background: rgba(15,23,42,0.7); border-radius: 6px; padding: 6px 10px; font-family: Consolas, monospace; font-size: 0.78rem; color: #34d399; min-height: 22px; word-break: break-all; margin-bottom: 8px; white-space: pre-wrap; }
+  .cyr_ctrl-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .cyr_input { background: #0f172a; border: 1px solid #475569; border-radius: 6px; color: #e8eaf0; padding: 5px 10px; font-size: 0.82rem; font-family: Consolas, monospace; flex: 1; min-width: 120px; }
+  .cyr_input:focus { outline: none; border-color: #64b5f6; }
+  .cyr_btn { background: linear-gradient(135deg, #0288d1, #26a69a); color: #fff; border: none; border-radius: 6px; padding: 6px 14px; font-size: 0.82rem; font-weight: bold; cursor: pointer; transition: transform 0.15s; font-family: inherit; flex-shrink: 0; }
+  .cyr_btn:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(2,136,209,0.4); }
+  .cyr_btn-sm { padding: 4px 10px; font-size: 0.76rem; }
+  .cyr_table-wrap { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 16px; margin-top: 28px; overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  th, td { padding: 8px 14px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1); }
+  th { color: #ffd54f; font-weight: bold; }
+  td code { font-family: Consolas, monospace; color: #81d4fa; }
+  td.cyr_mut-col { color: #ef5350; font-weight: bold; }
+  td.cyr_nonmut-col { color: #66bb6a; font-weight: bold; }
+  footer { text-align: center; color: #546e7a; font-size: 0.78rem; margin-top: 30px; }
+</style>
+</head>
+<body>
+<!-- 姓名：陈依然，日期：2026-10-29，功能：JavaScript 数组方法全景展示 -->
+<a href="index.html" class="cyr_back-home">← 返回首页</a>
+<div class="cyr_container">
+  <h1>JavaScript 数组方法全景</h1>
+  <p class="cyr_author">作者：陈依然 · 点击卡片按钮即时体验</p>
+
+  <div class="cyr_legend">
+    <span class="cyr_legend-item"><span class="cyr_dot cyr_dot_mut"></span>修改原数组</span>
+    <span class="cyr_legend-item"><span class="cyr_dot cyr_dot_nonmut"></span>不修改</span>
+    <span class="cyr_legend-item"><span class="cyr_dot cyr_dot_find"></span>查找/检测</span>
+    <span class="cyr_legend-item"><span class="cyr_dot cyr_dot_reduce"></span>归约</span>
+  </div>
+
+  <!-- ========== 一、增删 ========== -->
+  <h2 class="cyr_section-title">一、增删方法（Mutating）</h2>
+  <p class="cyr_section-sub">会<strong>直接修改</strong>原数组</p>
+  <div class="cyr_grid">
+    <div class="cyr_card">
+      <div class="cyr_card-head"><span class="cyr_method-name">.push()</span><span class="cyr_badge cyr_badge_mut">修改</span></div>
+      <p class="cyr_desc">数组<strong>末尾</strong>添加元素，返回新长度。</p>
+      <div class="cyr_array-box" id="cyr_box-push"></div>
+      <div class="cyr_result-box" id="cyr_res-push">返回值：—</div>
+      <div class="cyr_ctrl-row">
+        <input class="cyr_input" id="cyr_in-push" value="['陈六']">
+        <button class="cyr_btn cyr_btn-sm" onclick="cyr_run('push')">▶ push</button>
+        <button class="cyr_btn cyr_btn-sm" style="background:#455a64" onclick="cyr_reset('push')">重置</button>
+      </div>
+    </div>
+    <div class="cyr_card">
+      <div class="cyr_card-head"><span class="cyr_method-name">.pop()</span><span class="cyr_badge cyr_badge_mut">修改</span></div>
+      <p class="cyr_desc">删除并返回数组<strong>最后一个</strong>元素。</p>
+      <div class="cyr_array-box" id="cyr_box-pop"></div>
+      <div class="cyr_result-box" id="cyr_res-pop">返回值：—</div>
+      <div class="cyr_ctrl-row">
+        <button class="cyr_btn cyr_btn-sm" onclick="cyr_run('pop')">▶ pop</button>
+        <button class="cyr_btn cyr_btn-sm" style="background:#455a64" onclick="cyr_reset('pop')">重置</button>
+      </div>
+    </div>
+    <div class="cyr_card">
+      <div class="cyr_card-head"><span class="cyr_method-name">.shift()</span><span class="cyr_badge cyr_badge_mut">修改</span></div>
+      <p class="cyr_desc">删除并返回数组<strong>第一个</strong>元素。</p>
+      <div class="cyr_array-box" id="cyr_box-shift"></div>
+      <div class="cyr_result-box" id="cyr_res-shift">返回值：—</div>
+      <div class="cyr_ctrl-row">
+        <button class="cyr_btn cyr_btn-sm" onclick="cyr_run('shift')">▶ shift</button>
+        <button class="cyr_btn cyr_btn-sm" style="background:#455a64" onclick="cyr_reset('shift')">重置</button>
+      </div>
+    </div>
+    <div class="cyr_card">
+      <div class="cyr_card-head"><span class="cyr_method-name">.unshift()</span><span class="cyr_badge cyr_badge_mut">修改</span></div>
+      <p class="cyr_desc">数组<strong>开头</strong>插入元素。</p>
+      <div class="cyr_array-box" id="cyr_box-unshift"></div>
+      <div class="cyr_result-box" id="cyr_res-unshift">返回值：—</div>
+      <div class="cyr_ctrl-row">
+        <input class="cyr_input" id="cyr_in-unshift" value="['张零']">
+        <button class="cyr_btn cyr_btn-sm" onclick="cyr_run('unshift')">▶ unshift</button>
+        <button class="cyr_btn cyr_btn-sm" style="background:#455a64" onclick="cyr_reset('unshift')">重置</button>
+      </div>
+    </div>
+    <div class="cyr_card" style="grid-column: span 2">
+      <div class="cyr_card-head"><span class="cyr_method-name">.splice(start, deleteCount, ...items)</span><span class="cyr_badge cyr_badge_mut">修改</span></div>
+      <p class="cyr_desc">最灵活的增删改方法：<code>start</code> 起删除 <code>deleteCount</code> 个，可选插入新元素。返回被删除数组。</p>
+      <div class="cyr_array-box" id="cyr_box-splice"></div>
+      <div class="cyr_result-box" id="cyr_res-splice">返回值：—</div>
+      <div class="cyr_ctrl-row">
+        <button class="cyr_btn cyr_btn-sm" onclick="cyr_run('splice-del')">splice(1,2) 删除</button>
+        <button class="cyr_btn cyr_btn-sm" onclick="cyr_run('splice-ins')">splice(2,0,'X') 插入</button>
+        <button class="cyr_btn cyr_btn-sm" onclick="cyr_run('splice-rep')">splice(1,1,'R') 替换</button>
+        <button class="cyr_btn cyr_btn-sm" style="background:#455a64" onclick="cyr_reset('splice')">重置</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 二、变换 ========== -->
+  <h2 class="cyr_section-title">二、变换方法（Non-mutating，返回新数组）</h2>
+  <p class="cyr_section-sub">不修改原数组，返回处理后的<strong>新数组</strong></p>
+  <div class="cyr_grid">
+    <div class="cyr_card">
+      <div class="cyr_card-head"><span class="cyr_method-name">.map(fn)</span><span class="cyr_badge cyr_badge_nonmut">不修改</span></div>
+      <p class="cyr_desc">每个元素执行 fn，返回同长度新数组。</p>
+      <div class="cyr_array-box" id="cyr_box-map"></div>
+      <div class="cyr_result-box" id="cyr_res-map">结果：—</div>
+      <div class="cyr_ctrl-row">
+        <button class="cyr_btn cyr_btn-sm" onclick="cyr_run('map-double')">map(n*2)</button>
+        <button class="cyr_btn cyr_btn-sm" onclick="cyr_run('map-square')">map(n²)</button>
+      </div>
+    </div>
+    <div class="cyr_card">
+      <div class="cyr_card-head"><span class="cyr_method-name">.filter(fn)</span><span class="cyr_badge cyr_badge_nonmut">不修改</span></div>
+      <p class="cyr_desc">返回 fn 为 true 的元素组成的新数组。</p>
+      <div class="cyr_array-box" id="cyr_box-filter"></div>
+      <div class="cyr_result-box" id="cyr_res-filter">结果：—</div>
+      <div class="cyr_ctrl-row">
+        <button class="cyr_btn cyr_btn-sm" onclick="cyr_run('filter-even')">filter(偶数)</button>
+        <button class="cyr_btn cyr_btn-sm" onclick="cyr_run('filter-gt5')">filter(n>5)</button>
+      </div>
+    </div>
+    <div class="cyr_card">
+      <div class="cyr_card-head"><span class="cyr_method-name">.slice(start, end)</span><span class="cyr_badge cyr_badge_nonmut">不修改</span></div>
+      <p class="cyr_desc">返回 start 到 end（不含 end）的子数组，支持负数索引。</p>
+      <div class="cyr_array-box" id="cyr_box-slice"></div>
+      <div class="cyr_result-box" id="cyr_res-slice">结果：—</div>
+      <div class="cyr_ctrl-row">
+        <button class="cyr_btn cyr_btn-sm" onclick="cyr_run('slice-14')">slice(1,4)</button>
+        <button class="cyr_btn cyr_btn-sm" onclick="cyr_run('slice-last3')">slice(-3)</button>
+      </div>
+    </div>
+    <div class="cyr_card">
+      <div class="cyr_card-head"><span class="cyr_method-name">.concat(...arr)</span><span class="cyr_badge cyr_badge_nonmut">不修改</span></div>
+      <p class="cyr_desc">合并多个数组/值为新数组（仅展平一层）。</p>
+      <div class="cyr_array-box" id="cyr_box-concat"></div>
+      <div class="cyr_result-box" id="cyr_res-concat">结果：—</div>
+      <div class="cyr_ctrl-row">
+        <button class="cyr_btn cyr_btn-sm" onclick="cyr_run('concat')">concat([10,20])</button>
+      </div>
+    </div>
+    <div class="cyr_card">
+      <div class="cyr_card-head"><span class="cyr_method-name">.flat(depth)</span><span class="cyr_badge cyr_badge_nonmut">不修改</span></div>
+      <p class="cyr_desc">按深度扁平化嵌套数组。默认 depth=1，Infinity 彻底展平。</p>
+      <div class="cyr_array-box" id="cyr_box-flat"></div>
+      <div class="cyr_result-box" id="cyr_res-flat">结果：—</div>
+      <div class="cyr_ctrl-row">
+        <button class="cyr_btn cyr_btn-sm" onclick="cyr_run('flat-1')">flat(1)</button>
+        <button class="cyr_btn cyr_btn-sm" onclick="cyr_run('flat-all')">flat(Infinity)</button>
+      </div>
+    </div>
+    <div class="cyr_card">
+      <div class="cyr_card-head"><span class="cyr_method-name">.join(sep)</span><span class="cyr_badge cyr_badge_nonmut">不修改</span></div>
+      <p class="cyr_desc">用分隔符把所有元素拼成一个字符串。</p>
+      <div class="cyr_array-box" id="cyr_box-join"></div>
+      <div class="cyr_result-box" id="cyr_res-join">结果：—</div>
+      <div class="cyr_ctrl-row">
+        <button class="cyr_btn cyr_btn-sm" onclick="cyr_run('join-comma')">join(',')</button>
+        <button class="cyr_btn cyr_btn-sm" onclick="cyr_run('join-space')">join(' | ')</button>
+      </div>
+    </div>
+    <div class="cyr_card">
+      <div class="cyr_card-head"><span class="cyr_method-name">.sort(fn)</span><span class="cyr_badge cyr_badge_mut">修改</span></div>
+      <p class="cyr_desc">原地排序。默认按 Unicode（数字会错！），务必传比较函数。</p>
+      <div class="cyr_array-box" id="cyr_box-sort"></div>
+      <div class="cyr_result-box" id="cyr_res-sort">返回值：原数组</div>
+      <div class="cyr_ctrl-row">
+        <button class="cyr_btn cyr_btn-sm" onclick="cyr_run('sort-num')">升序 a-b</button>
+        <button class="cyr_btn cyr_btn-sm" onclick="cyr_run('sort-desc')">降序 b-a</button>
+        <button class="cyr_btn cyr_btn-sm" style="background:#455a64" onclick="cyr_reset('sort')">重置</button>
+      </div>
+    </div>
+    <div class="cyr_card">
+      <div class="cyr_card-head"><span class="cyr_method-name">.reverse()</span><span class="cyr_badge cyr_badge_mut">修改</span></div>
+      <p class="cyr_desc">原地反转数组顺序。</p>
+      <div class="cyr_array-box" id="cyr_box-reverse"></div>
+      <div class="cyr_result-box" id="cyr_res-reverse">返回值：原数组</div>
+      <div class="cyr_ctrl-row">
+        <button class="cyr_btn cyr_btn-sm" onclick="cyr_run('reverse')">▶ reverse</button>
+        <button class="cyr_btn cyr_btn-sm" style="background:#455a64" onclick="cyr_reset('reverse')">重置</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 三、遍历 ========== -->
+  <h2 class="cyr_section-title">三、遍历方法</h2>
+  <div class="cyr_grid">
+    <div class="cyr_card">
+      <div class="cyr_card-head"><span class="cyr_method-name">.forEach(fn)</span><span class="cyr_badge cyr_badge_nonmut">不修改</span></div>
+      <p class="cyr_desc">每个元素执行一次 fn。<strong>无返回值</strong>（undefined），仅用于副作用。</p>
+      <div class="cyr_array-box" id="cyr_box-foreach"></div>
+      <div class="cyr_result-box" id="cyr_res-foreach">执行日志：—</div>
+      <div class="cyr_ctrl-row">
+        <button class="cyr_btn cyr_btn-sm" onclick="cyr_run('foreach')">forEach(打印 索引:值)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 四、查找检测 ========== -->
+  <h2 class="cyr_section-title">四、查找与检测方法</h2>
+  <p class="cyr_section-sub">返回元素/索引/布尔值，不修改原数组</p>
+  <div class="cyr_grid">
+    <div class="cyr_card">
+      <div class="cyr_card-head"><span class="cyr_method-name">.find(fn)</span><span class="cyr_badge cyr_badge_find">查找</span></div>
+      <p class="cyr_desc">返回<strong>第一个</strong>满足 fn 的元素；否则 undefined。</p>
+      <div class="cyr_array-box" id="cyr_box-find"></div>
+      <div class="cyr_result-box" id="cyr_res-find">返回值：—</div>
+      <div class="cyr_ctrl-row">
+        <button class="cyr_btn cyr_btn-sm" onclick="cyr_run('find-gt5')">find(n>5)</button>
+        <button class="cyr_btn cyr_btn-sm" onclick="cyr_run('find-gt20')">find(n>20)</button>
+      </div>
+    </div>
+    <div class="cyr_card">
+      <div class="cyr_card-head"><span class="cyr_method-name">.findIndex(fn)</span><span class="cyr_badge cyr_badge_find">查找</span></div>
+      <p class="cyr_desc">返回<strong>第一个</strong>满足 fn 的索引；否则 -1。</p>
+      <div class="cyr_array-box" id="cyr_box-findIndex"></div>
+      <div class="cyr_result-box" id="cyr_res-findIndex">返回值：—</div>
+      <div class="cyr_ctrl-row">
+        <button class="cyr_btn cyr_btn-sm" onclick="cyr_run('findIndex-even')">findIndex(偶数)</button>
+        <button class="cyr_btn cyr_btn-sm" onclick="cyr_run('findIndex-neg')">findIndex(n<0)</button>
+      </div>
+    </div>
+    <div class="cyr_card">
+      <div class="cyr_card-head"><span class="cyr_method-name">.includes() / .indexOf()</span><span class="cyr_badge cyr_badge_find">查找</span></div>
+      <p class="cyr_desc">includes 判断是否存在；indexOf 返回索引。均用 <code>===</code> 比较。</p>
+      <div class="cyr_array-box" id="cyr_box-includes"></div>
+      <div class="cyr_result-box" id="cyr_res-includes">结果：—</div>
+      <div class="cyr_ctrl-row">
+        <button class="cyr_btn cyr_btn-sm" onclick="cyr_run('includes-7')">includes(7)</button>
+        <button class="cyr_btn cyr_btn-sm" onclick="cyr_run('indexOf-7')">indexOf(7)</button>
+        <button class="cyr_btn cyr_btn-sm" onclick="cyr_run('includes-99')">includes(99)</button>
+      </div>
+    </div>
+    <div class="cyr_card">
+      <div class="cyr_card-head"><span class="cyr_method-name">.some() / .every()</span><span class="cyr_badge cyr_badge_find">检测</span></div>
+      <p class="cyr_desc">some：<strong>至少一个</strong>满足 → true。every：<strong>全部</strong>满足 → true。</p>
+      <div class="cyr_array-box" id="cyr_box-some"></div>
+      <div class="cyr_result-box" id="cyr_res-some">结果：—</div>
+      <div class="cyr_ctrl-row">
+        <button class="cyr_btn cyr_btn-sm" onclick="cyr_run('some-gt5')">some(n>5)</button>
+        <button class="cyr_btn cyr_btn-sm" onclick="cyr_run('every-gt0')">every(n>0)</button>
+        <button class="cyr_btn cyr_btn-sm" onclick="cyr_run('every-gt3')">every(n>3)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 五、归约 ========== -->
+  <h2 class="cyr_section-title">五、归约方法</h2>
+  <div class="cyr_grid">
+    <div class="cyr_card" style="grid-column: span 2">
+      <div class="cyr_card-head"><span class="cyr_method-name">.reduce((acc, cur) => ..., initial)</span><span class="cyr_badge cyr_badge_reduce">归约</span></div>
+      <p class="cyr_desc">从左到右遍历数组，fn 返回值作为下一轮 acc（累加器）。可求和、求最值、计数、分组…</p>
+      <div class="cyr_array-box" id="cyr_box-reduce"></div>
+      <div class="cyr_result-box" id="cyr_res-reduce">累加过程：—</div>
+      <div class="cyr_ctrl-row">
+        <button class="cyr_btn cyr_btn-sm" onclick="cyr_run('reduce-sum')">求和 reduce((a,b)=>a+b, 0)</button>
+        <button class="cyr_btn cyr_btn-sm" onclick="cyr_run('reduce-max')">求最大值</button>
+        <button class="cyr_btn cyr_btn-sm" onclick="cyr_run('reduce-count')">频次统计</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 六、速查表 ========== -->
+  <h2 class="cyr_section-title">六、速查表</h2>
+  <div class="cyr_table-wrap">
+    <table>
+      <tr><th>方法</th><th>分类</th><th>修改原数组</th><th>返回值</th><th>用途</th></tr>
+      <tr><td><code>push / pop</code></td><td>增删</td><td class="cyr_mut-col">✓ 修改</td><td>push→length pop→element</td><td>尾部增删</td></tr>
+      <tr><td><code>shift / unshift</code></td><td>增删</td><td class="cyr_mut-col">✓ 修改</td><td>shift→element unshift→length</td><td>头部增删</td></tr>
+      <tr><td><code>splice</code></td><td>增删改</td><td class="cyr_mut-col">✓ 修改</td><td>被删除数组</td><td>最灵活</td></tr>
+      <tr><td><code>sort / reverse</code></td><td>变换</td><td class="cyr_mut-col">✓ 修改</td><td>原数组</td><td>排序/反转</td></tr>
+      <tr><td><code>map</code></td><td>变换</td><td class="cyr_nonmut-col">✗</td><td>新数组</td><td>一一映射</td></tr>
+      <tr><td><code>filter</code></td><td>变换</td><td class="cyr_nonmut-col">✗</td><td>新数组</td><td>条件筛选</td></tr>
+      <tr><td><code>slice</code></td><td>截取</td><td class="cyr_nonmut-col">✗</td><td>子数组</td><td>截取片段</td></tr>
+      <tr><td><code>concat / flat</code></td><td>组合</td><td class="cyr_nonmut-col">✗</td><td>新数组</td><td>合并/展平</td></tr>
+      <tr><td><code>join</code></td><td>转换</td><td class="cyr_nonmut-col">✗</td><td>字符串</td><td>拼字符串</td></tr>
+      <tr><td><code>forEach</code></td><td>遍历</td><td class="cyr_nonmut-col">✗</td><td>undefined</td><td>副作用</td></tr>
+      <tr><td><code>find / findIndex</code></td><td>查找</td><td class="cyr_nonmut-col">✗</td><td>元素/索引</td><td>第一个匹配</td></tr>
+      <tr><td><code>includes / indexOf</code></td><td>查找</td><td class="cyr_nonmut-col">✗</td><td>布尔/索引</td><td>精确查找</td></tr>
+      <tr><td><code>some / every</code></td><td>检测</td><td class="cyr_nonmut-col">✗</td><td>布尔</td><td>存在/全部</td></tr>
+      <tr><td><code>reduce</code></td><td>归约</td><td class="cyr_nonmut-col">✗</td><td>任意值</td><td>汇总为一个值</td></tr>
+    </table>
+  </div>
+
+  <footer>16-1 · JavaScript 数组方法全景 · 陈依然</footer>
+</div>
+
+<script>
+  var cyr_defaults = {
+    push:[3,7,1,8,2,9,4,6,5], pop:[3,7,1,8,2,9,4,6,5], shift:[3,7,1,8,2,9,4,6,5],
+    unshift:[3,7,1,8,2,9,4,6,5], splice:[3,7,1,8,2,9,4,6,5],
+    map:[3,7,1,8,2,9,4,6,5], filter:[3,7,1,8,2,9,4,6,5], slice:[3,7,1,8,2,9,4,6,5],
+    concat:[3,7,1,8,2,9,4,6,5], flat:[1,[2,3],[4,[5,6]],7], join:['春','夏','秋','冬'],
+    sort:[3,7,1,8,2,9,4,6,5], reverse:[3,7,1,8,2,9,4,6,5],
+    foreach:['甲','乙','丙','丁'], find:[3,7,1,8,2,9,4,6,5], findIndex:[3,7,1,8,2,9,4,6,5],
+    includes:[3,7,1,8,2,9,4,6,5], some:[3,7,1,8,2,9,4,6,5], reduce:[3,7,1,8,2,9,4,6,5]
+  };
+  var cyr_states = {};
+  for (var k in cyr_defaults) cyr_states[k] = cyr_defaults[k].slice();
+
+  function cyr_render(key, options) {
+    options = options || {};
+    var box = document.getElementById('cyr_box-' + key); if (!box) return;
+    box.innerHTML = ''; var arr = cyr_states[key];
+    arr.forEach(function(val, i) {
+      var cell = document.createElement('div'); cell.className = 'cyr_cell';
+      var mark = options.highlight && options.highlight.has(i) ? options.highlight.get(i) : '';
+      if (mark) cell.classList.add(mark);
+      cell.innerHTML = '<span class="cyr_idx">' + i + '</span><span class="cyr_val">' + (Array.isArray(val) ? JSON.stringify(val) : val) + '</span>';
+      box.appendChild(cell);
+    });
+    if (arr.length === 0) box.innerHTML = '<span style="color:#64748b;font-size:0.8rem">(空数组)</span>';
+  }
+  function cyr_setRes(key, text) { document.getElementById('cyr_res-' + key).textContent = text; }
+  function cyr_reset(key) {
+    cyr_states[key] = cyr_defaults[key].slice(); cyr_render(key);
+    var r = document.getElementById('cyr_res-' + key);
+    if (r) r.textContent = (key==='sort'||key==='reverse') ? '返回值：原数组（已重置）' : '返回值：—';
+  }
+  function cyr_parseInput(id) {
+    var raw = document.getElementById(id).value.trim();
+    try { return Function('return (' + raw + ')')(); } catch (e) { return raw; }
+  }
+
+  function cyr_run(action) {
+    switch (action) {
+      case 'push': { var it = cyr_parseInput('cyr_in-push'); var l = Array.isArray(it) ? it : [it];
+        var len = cyr_states.push.push.apply(cyr_states.push, l);
+        var hl = new Map(); for (var i = cyr_states.push.length - l.length; i < cyr_states.push.length; i++) hl.set(i, 'cyr_added');
+        cyr_render('push', {highlight:hl}); cyr_setRes('push', '返回值（新长度）：' + len); break; }
+      case 'pop': { var r = cyr_states.pop.pop(); var hl = new Map(); hl.set(cyr_states.pop.length, 'cyr_removed');
+        cyr_render('pop', {highlight:hl}); cyr_setRes('pop', '返回值：' + r); break; }
+      case 'shift': { var r = cyr_states.shift.shift(); var hl = new Map(); hl.set(0, 'cyr_removed');
+        cyr_render('shift', {highlight:hl}); cyr_setRes('shift', '返回值：' + r); break; }
+      case 'unshift': { var it = cyr_parseInput('cyr_in-unshift'); var l = Array.isArray(it) ? it : [it];
+        var len = cyr_states.unshift.unshift.apply(cyr_states.unshift, l);
+        var hl = new Map(); for (var i = 0; i < l.length; i++) hl.set(i, 'cyr_added');
+        cyr_render('unshift', {highlight:hl}); cyr_setRes('unshift', '返回值（新长度）：' + len); break; }
+      case 'splice-del': { var r = cyr_states.splice.splice(1, 2); cyr_render('splice');
+        cyr_setRes('splice', 'splice(1,2) 删除：' + JSON.stringify(r) + '  剩余：' + JSON.stringify(cyr_states.splice)); break; }
+      case 'splice-ins': { cyr_states.splice.splice(2, 0, 'X'); var hl = new Map(); hl.set(2, 'cyr_added');
+        cyr_render('splice', {highlight:hl}); cyr_setRes('splice', 'splice(2,0,"X") 插入成功'); break; }
+      case 'splice-rep': { var r = cyr_states.splice.splice(1, 1, 'R'); var hl = new Map(); hl.set(1, 'cyr_changed');
+        cyr_render('splice', {highlight:hl}); cyr_setRes('splice', 'splice(1,1,"R") 替换：' + JSON.stringify(r) + ' → R'); break; }
+      case 'map-double': { cyr_setRes('map', 'map(n*2) → [' + cyr_states.map.map(function(n){return n*2;}).join(', ') + ']'); break; }
+      case 'map-square': { cyr_setRes('map', 'map(n²) → [' + cyr_states.map.map(function(n){return n*n;}).join(', ') + ']'); break; }
+      case 'filter-even': { cyr_setRes('filter', 'filter(偶数) → [' + cyr_states.filter.filter(function(n){return n%2===0;}).join(', ') + ']'); break; }
+      case 'filter-gt5': { cyr_setRes('filter', 'filter(n>5) → [' + cyr_states.filter.filter(function(n){return n>5;}).join(', ') + ']'); break; }
+      case 'slice-14': { cyr_setRes('slice', 'slice(1,4) → [' + cyr_states.slice.slice(1,4).join(', ') + ']'); break; }
+      case 'slice-last3': { cyr_setRes('slice', 'slice(-3) → [' + cyr_states.slice.slice(-3).join(', ') + ']'); break; }
+      case 'concat': { cyr_setRes('concat', 'concat([10,20]) → [' + cyr_states.concat.concat([10,20]).join(', ') + ']'); break; }
+      case 'flat-1': { cyr_setRes('flat', 'flat(1) → [' + cyr_states.flat.flat(1).join(', ') + ']'); break; }
+      case 'flat-all': { cyr_setRes('flat', 'flat(Infinity) → [' + cyr_states.flat.flat(Infinity).join(', ') + ']'); break; }
+      case 'join-comma': { cyr_setRes('join', 'join(",") → "' + cyr_states.join.join(',') + '"'); break; }
+      case 'join-space': { cyr_setRes('join', 'join(" | ") → "' + cyr_states.join.join(' | ') + '"'); break; }
+      case 'sort-num': { cyr_states.sort.sort(function(a,b){return a-b;}); var hl = new Map();
+        cyr_states.sort.forEach(function(_,i){hl.set(i,'cyr_changed');}); cyr_render('sort',{highlight:hl});
+        cyr_setRes('sort','已升序：[' + cyr_states.sort.join(', ') + ']'); break; }
+      case 'sort-desc': { cyr_states.sort.sort(function(a,b){return b-a;}); var hl = new Map();
+        cyr_states.sort.forEach(function(_,i){hl.set(i,'cyr_changed');}); cyr_render('sort',{highlight:hl});
+        cyr_setRes('sort','已降序：[' + cyr_states.sort.join(', ') + ']'); break; }
+      case 'reverse': { cyr_states.reverse.reverse(); var hl = new Map();
+        cyr_states.reverse.forEach(function(_,i){hl.set(i,'cyr_changed');}); cyr_render('reverse',{highlight:hl});
+        cyr_setRes('reverse','已反转：[' + cyr_states.reverse.join(', ') + ']'); break; }
+      case 'foreach': { var logs=[]; cyr_states.foreach.forEach(function(v,i){logs.push('  ['+i+']='+v);});
+        cyr_setRes('foreach','forEach 执行：\n' + logs.join('\n')); break; }
+      case 'find-gt5': { var r=cyr_states.find.find(function(n){return n>5;}); var idx=cyr_states.find.findIndex(function(n){return n>5;});
+        var hl=idx>=0?new Map([[idx,'cyr_found']]):new Map(); cyr_render('find',{highlight:hl});
+        cyr_setRes('find','find(n>5) → ' + r + (idx>=0?'（索引 '+idx+'）':'')); break; }
+      case 'find-gt20': { cyr_render('find'); cyr_setRes('find','find(n>20) → ' + cyr_states.find.find(function(n){return n>20;})); break; }
+      case 'findIndex-even': { var r=cyr_states.findIndex.findIndex(function(n){return n%2===0;});
+        var hl=r>=0?new Map([[r,'cyr_found']]):new Map(); cyr_render('findIndex',{highlight:hl});
+        cyr_setRes('findIndex','findIndex(偶数) → ' + r + (r>=0?'  值：'+cyr_states.findIndex[r]:'')); break; }
+      case 'findIndex-neg': { cyr_render('findIndex'); cyr_setRes('findIndex','findIndex(n<0) → ' + cyr_states.findIndex.findIndex(function(n){return n<0;})); break; }
+      case 'includes-7': { var r=cyr_states.includes.includes(7); var idx=cyr_states.includes.indexOf(7);
+        var hl=idx>=0?new Map([[idx,'cyr_found']]):new Map(); cyr_render('includes',{highlight:hl});
+        cyr_setRes('includes','includes(7) → ' + r + '   indexOf(7) → ' + idx); break; }
+      case 'indexOf-7': { var idx=cyr_states.includes.indexOf(7);
+        var hl=idx>=0?new Map([[idx,'cyr_found']]):new Map(); cyr_render('includes',{highlight:hl});
+        cyr_setRes('includes','indexOf(7) → ' + idx); break; }
+      case 'includes-99': { cyr_render('includes'); cyr_setRes('includes','includes(99) → ' + cyr_states.includes.includes(99) + '   indexOf(99) → -1'); break; }
+      case 'some-gt5': { cyr_setRes('some','some(n>5) → ' + cyr_states.some.some(function(n){return n>5;})); break; }
+      case 'every-gt0': { cyr_setRes('some','every(n>0) → ' + cyr_states.some.every(function(n){return n>0;})); break; }
+      case 'every-gt3': { cyr_setRes('some','every(n>3) → ' + cyr_states.some.every(function(n){return n>3;})); break; }
+      case 'reduce-sum': { var steps=[]; var r=cyr_states.reduce.reduce(function(a,b){steps.push(a+'+'+b);return a+b;},0);
+        cyr_setRes('reduce','求和：' + r + '   过程：' + steps.join('→')); break; }
+      case 'reduce-max': { var r=cyr_states.reduce.reduce(function(a,b){return Math.max(a,b);},-Infinity);
+        cyr_setRes('reduce','最大值：' + r); break; }
+      case 'reduce-count': { var r=cyr_states.reduce.reduce(function(a,b){a[b]=(a[b]||0)+1;return a;},{});
+        cyr_setRes('reduce','频次统计：' + JSON.stringify(r)); break; }
+    }
+  }
+
+  for (var k in cyr_states) cyr_render(k);
+</script>
+</body>
+</html>
