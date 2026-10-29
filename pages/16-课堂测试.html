@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>16-课堂测试 Tab 选项卡</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: "PingFang SC", "Microsoft YaHei", "Segoe UI", Arial, sans-serif;
+    background: #f5f7fa;
+    color: #1a1a2e;
+    min-height: 100vh;
+    padding: 24px 16px;
+  }
+
+  .cyr_container {
+    max-width: 880px; margin: 0 auto;
+    background: #fff; border-radius: 14px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    overflow: hidden;
+  }
+
+  .cyr_back-home {
+    display: inline-block; margin-bottom: 14px;
+    color: #2196f3; text-decoration: none; font-size: 0.9rem; font-weight: bold;
+  }
+  .cyr_back-home:hover { color: #1565c0; text-decoration: underline; }
+
+  .cyr_page-title {
+    text-align: center; font-size: 1.3rem; font-weight: bold;
+    color: #263238; padding: 18px 18px 4px;
+  }
+  .cyr_page-sub { text-align: center; color: #78909c; font-size: 0.82rem; margin-bottom: 8px; }
+
+  /* ============ 顶部 Banner ============ */
+  .cyr_banner {
+    width: 100%; height: 200px; overflow: hidden; position: relative;
+  }
+  .cyr_banner-img {
+    width: 100%; height: 100%; object-fit: cover;
+    transition: opacity 0.4s ease, transform 0.6s ease;
+  }
+  .cyr_banner-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,0.55) 100%);
+    display: flex; align-items: flex-end; padding: 20px 26px;
+    color: #fff;
+  }
+  .cyr_banner-title {
+    font-size: 1.3rem; font-weight: bold; text-shadow: 0 2px 6px rgba(0,0,0,0.5);
+  }
+  .cyr_banner-sub {
+    font-size: 0.78rem; margin-top: 4px; opacity: 0.9;
+  }
+
+  /* ============ Tab 栏 ============ */
+  .cyr_tab-bar {
+    display: flex; background: #fff; border-bottom: 1px solid #e8eaf0;
+    position: relative;
+  }
+  .cyr_tab {
+    flex: 1; padding: 16px 0; text-align: center;
+    font-size: 0.95rem; color: #78909c; font-weight: 500;
+    cursor: pointer; position: relative;
+    transition: color 0.25s;
+    user-select: none;
+  }
+  .cyr_tab:hover { color: #1565c0; }
+  .cyr_tab.cyr_active { color: #1565c0; font-weight: bold; }
+
+  /* 下划线 */
+  .cyr_tab-underline {
+    position: absolute; bottom: 0; left: 0;
+    height: 3px; width: 50%;
+    background: linear-gradient(90deg, #2196f3, #42a5f5);
+    border-radius: 3px 3px 0 0;
+    transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  /* ============ Tab 内容 ============ */
+  .cyr_tab-content { position: relative; }
+  .cyr_tab-panel {
+    display: none; animation: cyr_fadeIn 0.4s ease;
+  }
+  .cyr_tab-panel.cyr_active { display: block; }
+
+  @keyframes cyr_fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ============ 表格 ============ */
+  .cyr_table {
+    width: 100%; border-collapse: collapse; font-size: 0.88rem;
+  }
+  .cyr_table thead th {
+    background: #f5f9ff; color: #263238; font-weight: bold;
+    padding: 14px 18px; text-align: left;
+    border-bottom: 2px solid #e3f2fd;
+  }
+  .cyr_table tbody td {
+    padding: 14px 18px; border-bottom: 1px solid #f0f2f5;
+    color: #37474f;
+  }
+  .cyr_table tbody tr { transition: background 0.2s; }
+  .cyr_table tbody tr:hover { background: #f8faff; }
+
+  .cyr_col-date { width: 90px; color: #78909c; font-size: 0.82rem; }
+  .cyr_col-car {
+    display: flex; align-items: center; gap: 12px;
+  }
+  .cyr_car-badge {
+    width: 36px; height: 36px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: bold; font-size: 0.85rem; color: #fff; flex-shrink: 0;
+  }
+  .cyr_car-info { line-height: 1.4; }
+  .cyr_car-brand { color: #78909c; font-size: 0.76rem; }
+  .cyr_car-model { font-weight: 600; color: #263238; }
+  .cyr_col-price {
+    font-family: Consolas, monospace; font-weight: bold; color: #ff5722;
+    font-size: 0.95rem;
+  }
+  .cyr_col-soon {
+    font-family: Consolas, monospace; color: #ff9800; font-weight: bold;
+  }
+  .cyr_tag {
+    display: inline-block; padding: 2px 8px; border-radius: 10px;
+    font-size: 0.7rem; margin-left: 6px; font-weight: normal;
+  }
+  .cyr_tag-hot { background: #ffebee; color: #e53935; }
+  .cyr_tag-new { background: #e8f5e9; color: #43a047; }
+  .cyr_tag-soon { background: #fff3e0; color: #f57c00; }
+
+  footer { text-align: center; color: #b0bec5; font-size: 0.72rem; margin-top: 22px; }
+</style>
+</head>
+<body>
+<!-- 姓名：陈依然，日期：2026-10-29，功能：Tab 选项卡课堂测试（图生代码） -->
+<a href="index.html" class="cyr_back-home">← 返回首页</a>
+
+<div class="cyr_container">
+  <div class="cyr_page-title">🚗 新车情报中心</div>
+  <div class="cyr_page-sub">实时更新上市资讯 · 数据来自内部数据库 · 图生代码复刻演示</div>
+
+  <!-- ============ Banner ============ -->
+  <div class="cyr_banner">
+    <img id="cyr_banner_img" class="cyr_banner-img" src="image/weather_sunny.jpg" alt="banner">
+    <div class="cyr_banner-overlay">
+      <div>
+        <div id="cyr_banner_title" class="cyr_banner-title">最新上市</div>
+        <div id="cyr_banner_sub" class="cyr_banner-sub">本月热门车型，总有一款适合你</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ Tabs ============ -->
+  <div class="cyr_tab-bar">
+    <div class="cyr_tab cyr_active" data-key="latest" onclick="cyr_switch('latest')">最新上市</div>
+    <div class="cyr_tab" data-key="soon" onclick="cyr_switch('soon')">即将上市</div>
+    <div class="cyr_tab-underline" id="cyr_underline"></div>
+  </div>
+
+  <!-- ============ Tab 内容 ============ -->
+  <div class="cyr_tab-content">
+
+    <!-- 最新上市 -->
+    <div id="cyr_panel-latest" class="cyr_tab-panel cyr_active">
+      <table class="cyr_table">
+        <thead>
+          <tr><th style="width:90px">上市时间</th><th>品牌 / 车型</th><th style="width:180px">售价（万元）</th></tr>
+        </thead>
+        <tbody id="cyr_body-latest"></tbody>
+      </table>
+    </div>
+
+    <!-- 即将上市 -->
+    <div id="cyr_panel-soon" class="cyr_tab-panel">
+      <table class="cyr_table">
+        <thead>
+          <tr><th style="width:90px">预计上市</th><th>品牌 / 车型</th><th style="width:180px">预售价（万元）</th></tr>
+        </thead>
+        <tbody id="cyr_body-soon"></tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<footer>16-课堂测试 · Tab 选项卡（图生代码） · 陈依然</footer>
+
+<script>
+  /* ============ 数据 ============ */
+  var cyr_data = {
+    latest: [
+      { date: '12月13日', brand: '沃尔沃',   model: 'S60L',        price: '26.99-38.49', badge: '#1976d2', tag: 'new', tagText: '新上市' },
+      { date: '12月12日', brand: 'Jeep',      model: '牧马人龙鳞典藏', price: '47.99-59.99', badge: '#7b1fa2', tag: 'hot', tagText: '热门' },
+      { date: '12月10日', brand: '一汽大众', model: '高尔夫 7',    price: '11.89-18.29', badge: '#d32f2f', tag: null },
+      { date: '12月6日',  brand: '2014款',  model: '古思特',      price: '419.0-666.0', badge: '#00838f', tag: 'hot', tagText: '限量' },
+      { date: '12月5日',  brand: '起亚新款', model: 'K5',         price: '15.98-25.18', badge: '#f57c00', tag: null },
+      { date: '12月5日',  brand: '2014款',  model: '奥德赛',      price: '22.98-28.68', badge: '#388e3c', tag: null }
+    ],
+    soon: [
+      { date: '1月中旬', brand: '比亚迪', model: '汉 EV 2025款', price: '22.98-32.98', badge: '#c62828', tag: 'soon', tagText: '预售中' },
+      { date: '1月下旬', brand: '特斯拉', model: 'Model Y 改款', price: '29.99-35.99', badge: '#37474f', tag: 'soon', tagText: '预售中' },
+      { date: '2月初',   brand: '小米',   model: 'SU7 Ultra',    price: '52.99',        badge: '#ff6f00', tag: 'hot', tagText: '热门' },
+      { date: '2月中旬', brand: '蔚来',   model: 'ET9',         price: '78.80-118.0',  badge: '#283593', tag: 'soon', tagText: '预售中' },
+      { date: '3月初',   brand: '理想',   model: 'L6',          price: '24.98-31.98',  badge: '#00695c', tag: null },
+      { date: '3月中旬', brand: '奔驰',   model: '全新 GLC',    price: '40.63-53.13',  badge: '#1a237e', tag: 'new', tagText: '首发' }
+    ]
+  };
+
+  /* 每个 tab 对应的 banner 图片和描述 */
+  var cyr_bannerInfo = {
+    latest: { img: 'image/weather_sunny.jpg',  title: '最新上市',     sub: '本月热门车型，总有一款适合你' },
+    soon:   { img: 'image/weather_sunset.jpg',  title: '即将上市',     sub: '提前锁定心仪座驾，预售优惠中' }
+  };
+
+  /* ============ 渲染 ============ */
+  function cyr_renderRow(item) {
+    var tagHtml = '';
+    if (item.tag && item.tagText) {
+      tagHtml = '<span class="cyr_tag cyr_tag-' + item.tag + '">' + item.tagText + '</span>';
+    }
+    return '<tr>' +
+      '<td class="cyr_col-date">' + item.date + '</td>' +
+      '<td><div class="cyr_col-car">' +
+        '<div class="cyr_car-badge" style="background:' + item.badge + '">' + item.brand.charAt(0) + '</div>' +
+        '<div class="cyr_car-info">' +
+          '<div class="cyr_car-brand">' + item.brand + '</div>' +
+          '<div class="cyr_car-model">' + item.model + tagHtml + '</div>' +
+        '</div>' +
+      '</div></td>' +
+      '<td class="cyr_col-price">¥ ' + item.price + '</td>' +
+    '</tr>';
+  }
+
+  function cyr_renderBody(key) {
+    var tbody = document.getElementById('cyr_body-' + key);
+    tbody.innerHTML = cyr_data[key].map(cyr_renderRow).join('');
+  }
+
+  /* ============ Tab 切换 ============ */
+  var cyr_underline = document.getElementById('cyr_underline');
+
+  function cyr_switch(key) {
+    // 1. 切换 tab 激活态
+    document.querySelectorAll('.cyr_tab').forEach(function(tab) {
+      tab.classList.toggle('cyr_active', tab.dataset.key === key);
+    });
+
+    // 2. 下划线动画
+    var tabs = document.querySelectorAll('.cyr_tab');
+    for (var i = 0; i < tabs.length; i++) {
+      if (tabs[i].dataset.key === key) {
+        cyr_underline.style.transform = 'translateX(' + (i * 100) + '%)';
+        break;
+      }
+    }
+
+    // 3. 切换面板
+    document.querySelectorAll('.cyr_tab-panel').forEach(function(p) {
+      p.classList.toggle('cyr_active', p.id === 'cyr_panel-' + key);
+    });
+
+    // 4. 切换 banner（图生代码核心）
+    var info = cyr_bannerInfo[key];
+    var img = document.getElementById('cyr_banner_img');
+    var ttl = document.getElementById('cyr_banner_title');
+    var sub = document.getElementById('cyr_banner_sub');
+
+    // 淡出 → 换图 → 淡入
+    img.style.opacity = '0';
+    ttl.style.opacity = '0';
+    sub.style.opacity = '0';
+
+    setTimeout(function() {
+      img.src = info.img;
+      ttl.textContent = info.title;
+      sub.textContent = info.sub;
+      img.style.opacity = '1';
+      ttl.style.opacity = '1';
+      sub.style.opacity = '1';
+    }, 220);
+  }
+
+  /* ============ 初始化 ============ */
+  cyr_renderBody('latest');
+  cyr_renderBody('soon');
+  document.getElementById('cyr_banner_title').style.transition = 'opacity 0.25s';
+  document.getElementById('cyr_banner_sub').style.transition = 'opacity 0.25s';
+  document.getElementById('cyr_banner_img').style.transition = 'opacity 0.35s ease, transform 0.6s ease';
+</script>
+</body>
+</html>
