@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>16-3 大连天气预报</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+    background: #e8edf3;
+    color: #1a1a2e;
+    -webkit-font-smoothing: antialiased;
+  }
+  .cyr_page {
+    max-width: 430px; margin: 0 auto;
+    min-height: 100vh;
+    background: linear-gradient(180deg, #3d7fff 0%, #5ba3ff 280px, #89c4ff 360px, #e8edf3 520px);
+    padding-bottom: 30px;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* ============ 顶部导航 ============ */
+  .cyr_topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 18px 8px; color: #fff;
+  }
+  .cyr_topbar-left { display: flex; align-items: center; gap: 4px; font-size: 0.92rem; }
+  .cyr_city { font-weight: bold; font-size: 1rem; }
+  .cyr_caret { font-size: 0.72rem; opacity: 0.8; margin-left: 2px; }
+  .cyr_topbar-right { display: flex; align-items: center; gap: 12px; font-size: 0.82rem; opacity: 0.9; }
+  .cyr_svg { width: 18px; height: 18px; fill: currentColor; display: inline-block; vertical-align: middle; }
+
+  /* ============ 蓝色预警横幅 ============ */
+  .cyr_alert {
+    margin: 8px 18px 0; padding: 10px 14px; border-radius: 10px;
+    background: rgba(30, 80, 200, 0.55);
+    color: #fff; display: flex; align-items: center; gap: 8px; font-size: 0.82rem;
+    backdrop-filter: blur(4px);
+  }
+  .cyr_alert svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+  /* ============ 主天气 ============ */
+  .cyr_main-weather {
+    text-align: center; padding: 22px 18px 16px; color: #fff;
+  }
+  .cyr_main-temp { font-size: 76px; font-weight: 200; line-height: 1; letter-spacing: -2px; }
+  .cyr_main-temp sup { font-size: 30px; font-weight: 200; margin-left: -4px; }
+  .cyr_main-desc { font-size: 1.05rem; margin-top: 4px; letter-spacing: 1px; }
+  .cyr_main-detail {
+    display: flex; justify-content: center; gap: 14px; margin-top: 10px;
+    font-size: 0.78rem; opacity: 0.95;
+  }
+  .cyr_air-tag {
+    display: inline-flex; align-items: center; gap: 3px;
+    background: #22c55e; color: #fff; border-radius: 10px;
+    padding: 1px 8px 2px; font-size: 0.72rem; font-weight: bold;
+  }
+  .cyr_air-tag svg { width: 11px; height: 11px; fill: #fff; }
+
+  /* ============ 逐小时 ============ */
+  .cyr_hourly-wrap {
+    margin: 14px 16px 0;
+    background: rgba(255,255,255,0.12);
+    border-radius: 14px;
+    padding: 14px 6px 10px;
+    backdrop-filter: blur(4px);
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+  }
+  .cyr_hourly-scroll {
+    display: flex; gap: 14px; overflow-x: auto; padding: 0 6px 6px;
+    scrollbar-width: none;
+  }
+  .cyr_hourly-scroll::-webkit-scrollbar { display: none; }
+  .cyr_hourly-item {
+    flex-shrink: 0; width: 44px; display: flex; flex-direction: column; align-items: center;
+    gap: 4px; font-size: 0.72rem;
+  }
+  .cyr_hourly-now { color: #ffd54f; font-weight: bold; }
+  .cyr_hourly-temp { font-weight: bold; font-size: 0.85rem; margin-top: 2px; }
+  .cyr_hourly-icon svg { width: 26px; height: 26px; }
+
+  /* 温度曲线 */
+  .cyr_curve-wrap {
+    position: relative; height: 70px; margin: 4px 8px 0;
+  }
+  .cyr_curve-svg { width: 100%; height: 100%; }
+
+  .cyr_hourly-arrow {
+    position: absolute; right: 10px; bottom: 58px;
+    width: 28px; height: 28px; border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; pointer-events: none;
+  }
+  .cyr_hourly-arrow svg { width: 14px; height: 14px; }
+
+  /* ============ 每日预报卡片 ============ */
+  .cyr_daily-card {
+    margin: 14px 16px 0; background: #fff; border-radius: 14px;
+    overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  }
+  .cyr_daily-row {
+    display: grid; grid-template-columns: 60px 54px 1fr 80px 72px;
+    align-items: center; gap: 4px;
+    padding: 11px 14px; border-bottom: 1px solid #f1f5f9;
+    font-size: 0.82rem; color: #374151;
+  }
+  .cyr_daily-row:last-child { border-bottom: none; }
+  .cyr_daily-row.cyr_daily-today { background: #fffbeb; }
+  .cyr_day-label { font-weight: bold; color: #1e293b; }
+  .cyr_day-date { color: #94a3b8; font-size: 0.72rem; }
+  .cyr_day-icon { display: flex; align-items: center; justify-content: center; }
+  .cyr_day-icon svg { width: 28px; height: 28px; }
+  .cyr_day-desc { color: #475569; }
+  .cyr_day-wind { color: #94a3b8; font-size: 0.74rem; text-align: right; }
+
+  /* 温度条 */
+  .cyr_tempbar-wrap { display: flex; align-items: center; gap: 8px; }
+  .cyr_temp { font-family: Consolas, monospace; font-weight: bold; width: 24px; text-align: center; color: #64748b; }
+  .cyr_temp.cyr_temp-low { color: #3b82f6; }
+  .cyr_temp.cyr_temp-high { color: #ef4444; }
+  .cyr_tempbar {
+    flex: 1; height: 5px; border-radius: 3px; background: #e2e8f0;
+    position: relative; overflow: hidden;
+  }
+  .cyr_tempbar-fill {
+    height: 100%; border-radius: 3px;
+    background: linear-gradient(90deg, #3b82f6, #60a5fa, #f59e0b, #ef4444);
+  }
+
+  /* 展开按钮 */
+  .cyr_expand {
+    margin: 14px 16px 0; background: #fff; border-radius: 14px;
+    padding: 14px; text-align: center; font-size: 0.88rem; color: #374151;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06); cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .cyr_expand svg { width: 14px; height: 14px; fill: #64748b; }
+
+  /* ============ 生活指数 ============ */
+  .cyr_index-title {
+    margin: 22px 18px 10px; font-size: 0.92rem; font-weight: bold; color: #475569;
+  }
+  .cyr_index-wrap { display: flex; gap: 10px; overflow-x: auto; padding: 0 16px 10px; scrollbar-width: none; }
+  .cyr_index-wrap::-webkit-scrollbar { display: none; }
+  .cyr_index-card {
+    flex-shrink: 0; width: 86px; background: #fff; border-radius: 12px;
+    padding: 14px 8px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+  }
+  .cyr_index-icon {
+    width: 34px; height: 34px; margin: 0 auto 8px;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  }
+  .cyr_index-icon svg { width: 20px; height: 20px; }
+  .cyr_index-label { font-size: 0.72rem; color: #94a3b8; margin-bottom: 4px; }
+  .cyr_index-val { font-size: 0.78rem; font-weight: bold; color: #374151; }
+
+  /* 生活指数配色 */
+  .cyr_idx-humidity  { background: rgba(14,165,233,0.12); } .cyr_idx-humidity svg { fill: #0ea5e9; }
+  .cyr_idx-uv        { background: rgba(245,158,11,0.15); } .cyr_idx-uv svg { fill: #f59e0b; }
+  .cyr_idx-allergy   { background: rgba(236,72,153,0.12); } .cyr_idx-allergy svg { fill: #ec4899; }
+  .cyr_idx-cold      { background: rgba(239,68,68,0.12); } .cyr_idx-cold svg { fill: #ef4444; }
+  .cyr_idx-wash      { background: rgba(34,197,94,0.12); } .cyr_idx-wash svg { fill: #22c55e; }
+  .cyr_idx-clothes   { background: rgba(139,92,246,0.12); } .cyr_idx-clothes svg { fill: #8b5cf6; }
+
+  /* ============ 装饰云彩 ============ */
+  .cyr_cloud { position: absolute; opacity: 0.35; pointer-events: none; }
+  .cyr_cloud-1 { top: 40px; right: 30px; width: 70px; height: 40px; }
+  .cyr_cloud-2 { top: 140px; left: -20px; width: 90px; height: 50px; }
+
+  footer { text-align: center; color: #94a3b8; font-size: 0.72rem; margin-top: 20px; }
+</style>
+</head>
+<body>
+<!-- 姓名：陈依然，日期：2026-10-29，功能：大连天气预报页面复刻 -->
+<a href="index.html" class="cyr_back-home" style="display:none">← 返回首页</a>
+<div class="cyr_page">
+
+  <!-- ============ 顶部导航 ============ -->
+  <div class="cyr_topbar">
+    <div class="cyr_topbar-left">
+      <!-- 返回 -->
+      <svg class="cyr_svg" viewBox="0 0 24 24"><path d="M15.5 3.5L7 12l8.5 8.5a1 1 0 0 1 0 1.4L14.1 23.4a1 1 0 0 1-1.4 0L3.3 14a1 1 0 0 1 0-1.4l9.4-9.4a1 1 0 0 1 1.4 0l1.4 1.4a1 1 0 0 1 0 1.4z"/></svg>
+      <span class="cyr_city">大连市</span>
+      <span class="cyr_caret">▼</span>
+    </div>
+    <div class="cyr_topbar-right">
+      <!-- 时钟 -->
+      <svg class="cyr_svg" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 10.6V6h-2v7.4l6.3 3.6 1-1.7z"/></svg>
+      <span>16:00 更新</span>
+      <!-- 三点 -->
+      <svg class="cyr_svg" viewBox="0 0 24 24"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+    </div>
+  </div>
+
+  <!-- ============ 蓝色预警 ============ -->
+  <div class="cyr_alert">
+    <!-- 喇叭 -->
+    <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9zm13.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4z"/></svg>
+    <span>16:02 发布寒潮 <strong>蓝色预警</strong></span>
+  </div>
+
+  <!-- ============ 主天气 ============ -->
+  <div class="cyr_main-weather">
+    <div class="cyr_main-temp">16<sup>°</sup></div>
+    <div class="cyr_main-desc">晴</div>
+    <div class="cyr_main-detail">
+      <span>13° - 17°</span>
+      <span>西风2级</span>
+      <span class="cyr_air-tag">
+        <!-- info circle -->
+        <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 15h-2v-6h2zm0-8h-2V7h2z"/></svg>
+        空气优
+      </span>
+    </div>
+  </div>
+
+  <!-- ============ 逐小时 ============ -->
+  <div class="cyr_hourly-wrap">
+    <!-- 温度曲线 -->
+    <div class="cyr_curve-wrap">
+      <svg class="cyr_curve-svg" viewBox="0 0 440 70" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="cyr_grad-curve" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stop-color="#ffffff" stop-opacity="0.3"/>
+            <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <!-- 渐变填充面积 -->
+        <path d="M 0,20 C 40,20 80,22 120,25 C 160,28 200,32 240,38 C 280,44 320,48 360,52 C 400,55 440,58 440,58 L 440,70 L 0,70 Z"
+              fill="url(#cyr_grad-curve)"/>
+        <!-- 曲线 -->
+        <path d="M 0,20 C 40,20 80,22 120,25 C 160,28 200,32 240,38 C 280,44 320,48 360,52 C 400,55 440,58 440,58"
+              fill="none" stroke="#ffffff" stroke-width="1.5" stroke-opacity="0.85"/>
+        <!-- 当前点高亮（第5个点 220,40 附近位置） -->
+        <circle cx="220" cy="38" r="8" fill="#ffffff" fill-opacity="0.25"/>
+        <circle cx="220" cy="38" r="4" fill="#ffffff"/>
+      </svg>
+    </div>
+
+    <!-- 逐小时项 -->
+    <div class="cyr_hourly-scroll" id="cyr_hourly"></div>
+
+    <!-- 右箭头 -->
+    <div class="cyr_hourly-arrow">
+      <svg viewBox="0 0 24 24"><path d="M8.6 3.5L17.1 12 8.6 20.5a1 1 0 0 0 0 1.4l1.3 1.3a1 1 0 0 0 1.4 0L21 13.4a1 1 0 0 0 0-1.4L11.3 2.1a1 1 0 0 0-1.4 0L8.6 3.5a1 1 0 0 0 0 1.4z"/></svg>
+    </div>
+  </div>
+
+  <!-- ============ 每日预报 ============ -->
+  <div class="cyr_daily-card">
+    <div class="cyr_daily-row cyr_daily-today">
+      <div><div class="cyr_day-label">今天</div><div class="cyr_day-date">10/29</div></div>
+      <div class="cyr_day-icon">
+        <!-- 多云 -->
+        <svg viewBox="0 0 48 48">
+          <circle cx="16" cy="16" r="8" fill="#fbbf24"/>
+          <path d="M34 34H14a8 8 0 0 1 1-15.9 10 10 0 0 1 19 1.4 7 7 0 0 1 0 14.5z" fill="#cbd5e1"/>
+        </svg>
+      </div>
+      <div class="cyr_day-desc">多云</div>
+      <div class="cyr_day-wind">西风 5-6级</div>
+      <div class="cyr_tempbar-wrap">
+        <span class="cyr_temp cyr_temp-low">13°</span>
+        <div class="cyr_tempbar"><div class="cyr_tempbar-fill" style="margin-left:10%; width:60%"></div></div>
+        <span class="cyr_temp cyr_temp-high">17°</span>
+      </div>
+    </div>
+    <div class="cyr_daily-row">
+      <div><div class="cyr_day-label">昨天</div><div class="cyr_day-date">10/28</div></div>
+      <div class="cyr_day-icon">
+        <svg viewBox="0 0 48 48"><circle cx="16" cy="16" r="8" fill="#fbbf24"/><path d="M34 34H14a8 8 0 0 1 1-15.9 10 10 0 0 1 19 1.4 7 7 0 0 1 0 14.5z" fill="#cbd5e1"/></svg>
+      </div>
+      <div class="cyr_day-desc">多云</div>
+      <div class="cyr_day-wind">西南风 3-4级</div>
+      <div class="cyr_tempbar-wrap">
+        <span class="cyr_temp cyr_temp-low">13°</span>
+        <div class="cyr_tempbar"><div class="cyr_tempbar-fill" style="margin-left:10%; width:55%"></div></div>
+        <span class="cyr_temp cyr_temp-high">14°</span>
+      </div>
+    </div>
+    <div class="cyr_daily-row">
+      <div><div class="cyr_day-label">明天</div><div class="cyr_day-date">10/30</div></div>
+      <div class="cyr_day-icon">
+        <!-- 晴天 -->
+        <svg viewBox="0 0 48 48"><g fill="#f59e0b"><circle cx="24" cy="24" r="9"/><path d="M24 4v4M24 40v4M4 24h4M40 24h4M8 8l3 3M37 37l3 3M8 40l3-3M37 11l3-3" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" fill="none"/></g></svg>
+      </div>
+      <div class="cyr_day-desc">晴</div>
+      <div class="cyr_day-wind">西风 5-6级</div>
+      <div class="cyr_tempbar-wrap">
+        <span class="cyr_temp cyr_temp-low">4°</span>
+        <div class="cyr_tempbar"><div class="cyr_tempbar-fill" style="margin-left:0%; width:85%"></div></div>
+        <span class="cyr_temp cyr_temp-high">19°</span>
+      </div>
+    </div>
+    <div class="cyr_daily-row">
+      <div><div class="cyr_day-label">周六</div><div class="cyr_day-date">10/31</div></div>
+      <div class="cyr_day-icon">
+        <svg viewBox="0 0 48 48"><g fill="#f59e0b"><circle cx="24" cy="24" r="9"/><path d="M24 4v4M24 40v4M4 24h4M40 24h4M8 8l3 3M37 37l3 3M8 40l3-3M37 11l3-3" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" fill="none"/></g></svg>
+      </div>
+      <div class="cyr_day-desc">晴</div>
+      <div class="cyr_day-wind">北风 4-5级</div>
+      <div class="cyr_tempbar-wrap">
+        <span class="cyr_temp cyr_temp-low">5°</span>
+        <div class="cyr_tempbar"><div class="cyr_tempbar-fill" style="margin-left:2%; width:65%"></div></div>
+        <span class="cyr_temp cyr_temp-high">14°</span>
+      </div>
+    </div>
+    <div class="cyr_daily-row">
+      <div><div class="cyr_day-label">周日</div><div class="cyr_day-date">11/1</div></div>
+      <div class="cyr_day-icon">
+        <!-- 小雨 -->
+        <svg viewBox="0 0 48 48">
+          <path d="M36 26H16a8 8 0 0 1 1-15.9 10 10 0 0 1 19 1.4 7 7 0 0 1 0 14.5z" fill="#93c5fd"/>
+          <path d="M16 34l-2 4M24 34l-2 4M32 34l-2 4" stroke="#3b82f6" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="cyr_day-desc">小雨</div>
+      <div class="cyr_day-wind">西南风 5-6级</div>
+      <div class="cyr_tempbar-wrap">
+        <span class="cyr_temp cyr_temp-low">6°</span>
+        <div class="cyr_tempbar"><div class="cyr_tempbar-fill" style="margin-left:4%; width:70%"></div></div>
+        <span class="cyr_temp cyr_temp-high">16°</span>
+      </div>
+    </div>
+    <div class="cyr_daily-row">
+      <div><div class="cyr_day-label">周一</div><div class="cyr_day-date">11/2</div></div>
+      <div class="cyr_day-icon">
+        <svg viewBox="0 0 48 48"><g fill="#f59e0b"><circle cx="24" cy="24" r="9"/><path d="M24 4v4M24 40v4M4 24h4M40 24h4M8 8l3 3M37 37l3 3M8 40l3-3M37 11l3-3" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" fill="none"/></g></svg>
+      </div>
+      <div class="cyr_day-desc">晴</div>
+      <div class="cyr_day-wind">西北风 4-5级</div>
+      <div class="cyr_tempbar-wrap">
+        <span class="cyr_temp cyr_temp-low">8°</span>
+        <div class="cyr_tempbar"><div class="cyr_tempbar-fill" style="margin-left:10%; width:50%"></div></div>
+        <span class="cyr_temp cyr_temp-high">13°</span>
+      </div>
+    </div>
+    <div class="cyr_daily-row">
+      <div><div class="cyr_day-label">周二</div><div class="cyr_day-date">11/3</div></div>
+      <div class="cyr_day-icon">
+        <svg viewBox="0 0 48 48"><g fill="#f59e0b"><circle cx="24" cy="24" r="9"/><path d="M24 4v4M24 40v4M4 24h4M40 24h4M8 8l3 3M37 37l3 3M8 40l3-3M37 11l3-3" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" fill="none"/></g></svg>
+      </div>
+      <div class="cyr_day-desc">晴</div>
+      <div class="cyr_day-wind">北风 4-5级</div>
+      <div class="cyr_tempbar-wrap">
+        <span class="cyr_temp cyr_temp-low">8°</span>
+        <div class="cyr_tempbar"><div class="cyr_tempbar-fill" style="margin-left:10%; width:50%"></div></div>
+        <span class="cyr_temp cyr_temp-high">13°</span>
+      </div>
+    </div>
+    <div class="cyr_daily-row">
+      <div><div class="cyr_day-label">周三</div><div class="cyr_day-date">11/4</div></div>
+      <div class="cyr_day-icon">
+        <svg viewBox="0 0 48 48"><g fill="#f59e0b"><circle cx="24" cy="24" r="9"/><path d="M24 4v4M24 40v4M4 24h4M40 24h4M8 8l3 3M37 37l3 3M8 40l3-3M37 11l3-3" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" fill="none"/></g></svg>
+      </div>
+      <div class="cyr_day-desc">晴</div>
+      <div class="cyr_day-wind">西南风 3-4级</div>
+      <div class="cyr_tempbar-wrap">
+        <span class="cyr_temp cyr_temp-low">9°</span>
+        <div class="cyr_tempbar"><div class="cyr_tempbar-fill" style="margin-left:12%; width:62%"></div></div>
+        <span class="cyr_temp cyr_temp-high">17°</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 展开 ============ -->
+  <div class="cyr_expand">
+    <span>展开未来15天天气预报</span>
+    <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
+  </div>
+
+  <!-- ============ 生活指数 ============ -->
+  <div class="cyr_index-title">生活指数</div>
+  <div class="cyr_index-wrap">
+    <div class="cyr_index-card">
+      <div class="cyr_index-icon cyr_idx-humidity">
+        <!-- 水滴 -->
+        <svg viewBox="0 0 24 24"><path d="M12 2s6 7 6 12a6 6 0 0 1-12 0c0-5 6-12 6-12z"/></svg>
+      </div>
+      <div class="cyr_index-label">湿度</div>
+      <div class="cyr_index-val">30%</div>
+    </div>
+    <div class="cyr_index-card">
+      <div class="cyr_index-icon cyr_idx-uv">
+        <!-- 太阳 -->
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.5 4.5l2 2M17.5 17.5l2 2M4.5 19.5l2-2M17.5 6.5l2-2" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+      </div>
+      <div class="cyr_index-label">紫外线指数</div>
+      <div class="cyr_index-val">中等</div>
+    </div>
+    <div class="cyr_index-card">
+      <div class="cyr_index-icon cyr_idx-allergy">
+        <!-- 过敏 -->
+        <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 15h-2v-2h2zm0-4h-2V7h2z"/></svg>
+      </div>
+      <div class="cyr_index-label">过敏指数</div>
+      <div class="cyr_index-val">极不易发</div>
+    </div>
+    <div class="cyr_index-card">
+      <div class="cyr_index-icon cyr_idx-cold">
+        <!-- 感冒 -->
+        <svg viewBox="0 0 24 24"><path d="M14.6 4A5.9 5.9 0 0 0 12 6a5.9 5.9 0 0 0-2.6-2A5 5 0 0 0 4 9c0 1.7.9 3.3 2.3 4.3L12 19l5.7-5.7A5 5 0 0 0 20 9a5 5 0 0 0-5.4-5z"/></svg>
+      </div>
+      <div class="cyr_index-label">感冒指数</div>
+      <div class="cyr_index-val">易发</div>
+    </div>
+    <div class="cyr_index-card">
+      <div class="cyr_index-icon cyr_idx-wash">
+        <!-- 洗车 -->
+        <svg viewBox="0 0 24 24"><path d="M3 13l2-6h14l2 6v7a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1v-1H5v1a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1zm3 4a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm12 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/></svg>
+      </div>
+      <div class="cyr_index-label">洗车指数</div>
+      <div class="cyr_index-val">适宜</div>
+    </div>
+    <div class="cyr_index-card">
+      <div class="cyr_index-icon cyr_idx-clothes">
+        <!-- 穿衣 -->
+        <svg viewBox="0 0 24 24"><path d="M20.4 4.2L15.5 2a2 2 0 0 0-1.6-.2L12 3 10.1 1.8a2 2 0 0 0-1.6.2L3.6 4.2A2 2 0 0 0 2.5 6l1 12a2 2 0 0 0 2 1.8h13a2 2 0 0 0 2-1.8l1-12a2 2 0 0 0-.1-1.8z"/></svg>
+      </div>
+      <div class="cyr_index-label">穿衣指数</div>
+      <div class="cyr_index-val">较冷</div>
+    </div>
+  </div>
+
+  <footer>16-3 · 大连天气预报页面复刻 · 陈依然</footer>
+</div>
+
+<script>
+  /* 逐小时数据：时间、温度、天气类型 */
+  var cyr_hourlyData = [
+    { label: '现在',  temp: 16, type: 'sun',    now: true },
+    { label: '17:00', temp: 14, type: 'cloud-sun' },
+    { label: '18:00', temp: 14, type: 'cloud-sun' },
+    { label: '19:00', temp: 13, type: 'cloud' },
+    { label: '20:00', temp: 13, type: 'cloud' },
+    { label: '21:00', temp: 13, type: 'cloud' },
+    { label: '22:00', temp: 13, type: 'cloud' },
+    { label: '23:00', temp: 13, type: 'cloud' },
+    { label: '00:00', temp: 13, type: 'cloud' },
+    { label: '01:00', temp: 13, type: 'cloud' }
+  ];
+
+  /* 天气 SVG */
+  function cyr_weatherSvg(type) {
+    var cyr_size = ' width="28" height="28"';
+    if (type === 'sun') {
+      return '<svg viewBox="0 0 48 48"' + cyr_size + ' fill="#fbbf24">' +
+        '<circle cx="24" cy="24" r="8"/>' +
+        '<path d="M24 4v4M24 40v4M4 24h4M40 24h4M8 8l3 3M37 37l3 3M8 40l3-3M37 11l3-3" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round" fill="none"/>' +
+        '</svg>';
+    }
+    if (type === 'cloud-sun') {
+      return '<svg viewBox="0 0 48 48"' + cyr_size + '>' +
+        '<circle cx="14" cy="18" r="5" fill="#fbbf24"/>' +
+        '<path d="M36 36H16a7 7 0 0 1 1-13.9 9 9 0 0 1 18 1.4 6 6 0 0 1 0 12.5z" fill="#cbd5e1"/>' +
+        '</svg>';
+    }
+    // default cloud (night-ish moon tint)
+    return '<svg viewBox="0 0 48 48"' + cyr_size + '>' +
+      '<path d="M36 36H16a7 7 0 0 1 1-13.9 9 9 0 0 1 18 1.4 6 6 0 0 1 0 12.5z" fill="#cbd5e1"/>' +
+      '</svg>';
+  }
+
+  var cyr_wrap = document.getElementById('cyr_hourly');
+  cyr_hourlyData.forEach(function(item) {
+    var cyr_div = document.createElement('div');
+    cyr_div.className = 'cyr_hourly-item';
+    cyr_div.innerHTML =
+      '<div class="' + (item.now ? 'cyr_hourly-now' : '') + '">' + item.label + '</div>' +
+      '<div class="cyr_hourly-icon">' + cyr_weatherSvg(item.type) + '</div>' +
+      '<div class="cyr_hourly-temp">' + item.temp + '°</div>';
+    cyr_wrap.appendChild(cyr_div);
+  });
+</script>
+</body>
+</html>

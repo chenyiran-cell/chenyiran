@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>天气App 四级项目1 - 陈依然</title>
+    <link rel="stylesheet" href="../font/iconfont.css">
+    <style>
+        /* 全局重置 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: "Microsoft YaHei", Arial, sans-serif;
+            background: #F5F7FA;
+            color: #333;
+        }
+
+        /* 返回首页链接 */
+        .cyr_back-home {
+            position: fixed;
+            top: 12px;
+            left: 16px;
+            z-index: 99;
+            color: #4A90E2;
+            text-decoration: none;
+            font-size: 14px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 4px 10px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(40, 60, 90, 0.12);
+        }
+        .cyr_back-home:hover {
+            color: #1d4f91;
+        }
+
+        /* 手机 App 容器 */
+        .cyr_app {
+            max-width: 420px;
+            margin: 0 auto;
+            min-height: 100vh;
+            position: relative;
+            background: #F5F7FA;
+            box-shadow: 0 0 24px rgba(0, 0, 0, 0.08);
+        }
+
+        /* 面板切换 */
+        .cyr_panel {
+            display: none;
+            padding-bottom: 76px;
+        }
+        .cyr_panel-active {
+            display: block;
+        }
+
+        /* ── 顶部大背景天气图：上图下文 ── */
+        .cyr_hero {
+            position: relative;
+            height: 300px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .cyr_hero-bg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .cyr_hero-info {
+            position: relative;
+            text-align: center;
+            color: #fff;
+            text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+        }
+        .cyr_city {
+            font-size: 28px;
+            font-weight: 700;
+        }
+        .cyr_temp {
+            font-size: 64px;
+            font-weight: 300;
+            margin: 10px 0 0;
+        }
+        .cyr_cond {
+            font-size: 16px;
+            margin-top: 5px;
+        }
+
+        /* ── 通用板块标题 ── */
+        .cyr_title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #333;
+            padding: 15px;
+        }
+
+        /* ── 逐小时预报：列表 ── */
+        .cyr_hourly {
+            background: #fff;
+        }
+        .cyr_hourly-list {
+            list-style: none;
+            display: flex;
+            justify-content: space-around;
+            padding: 0 15px 15px;
+        }
+        .cyr_hourly-item {
+            text-align: center;
+            font-size: 13px;
+            color: #666;
+        }
+        .cyr_hourly-item .cyr_hourly-cond {
+            display: block;
+            font-size: 15px;
+            color: #333;
+            margin-top: 10px;
+        }
+        .cyr_hourly-item .cyr_hourly-temp {
+            display: block;
+            font-size: 14px;
+            color: #333;
+            margin-top: 8px;
+        }
+
+        /* ── 城市天气：横向图片滚动 ── */
+        .cyr_city-weather {
+            margin-top: 1px;
+            background: #fff;
+        }
+        .cyr_city-scroll {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding: 0 15px 15px;
+            scrollbar-width: none;
+        }
+        .cyr_city-scroll::-webkit-scrollbar {
+            display: none;
+        }
+        .cyr_city-pic {
+            flex: 0 0 150px;
+            height: 100px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        /* ── 未来几天：左图右文列表 ── */
+        .cyr_forecast {
+            margin-top: 15px;
+        }
+        .cyr_forecast-list {
+            list-style: none;
+            padding: 0 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .cyr_forecast-item {
+            display: flex;
+            align-items: center;
+            background: #fff;
+            border-radius: 8px;
+            padding: 12px;
+        }
+        .cyr_forecast-pic {
+            width: 50px;
+            height: 50px;
+            border-radius: 6px;
+            object-fit: cover;
+            flex: 0 0 auto;
+        }
+        .cyr_forecast-name {
+            font-size: 15px;
+            color: #333;
+            margin-left: 12px;
+        }
+        .cyr_forecast-desc {
+            font-size: 14px;
+            color: #666;
+            margin-left: 12px;
+        }
+
+        /* ── 天气小贴士 ── */
+        .cyr_tip {
+            background: #fff;
+            border-radius: 8px;
+            margin: 15px;
+            padding: 15px;
+        }
+        .cyr_tip-text {
+            font-size: 14px;
+            color: #666;
+            line-height: 22px;
+        }
+
+        /* ── 热搜面板 ── */
+        .cyr-hot-panel {
+            padding: 0 15px;
+        }
+        .cyr-hot-head {
+            font-size: 20px;
+            font-weight: 700;
+            padding: 15px 0;
+        }
+        .cyr-hot-card {
+            display: flex;
+            align-items: center;
+            background: #fff;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+        .cyr-hot-rank {
+            font-size: 18px;
+            font-weight: 700;
+        }
+        .cyr-hot-rank-1 {
+            color: #FF4D4F;
+        }
+        .cyr-hot-rank-2 {
+            color: #FF7A45;
+        }
+        .cyr-hot-rank-3 {
+            color: #FFC53D;
+        }
+        .cyr-hot-pic {
+            width: 60px;
+            height: 60px;
+            border-radius: 6px;
+            object-fit: cover;
+            margin-left: 12px;
+            flex: 0 0 auto;
+        }
+        .cyr-hot-info {
+            margin-left: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .cyr-hot-title {
+            font-size: 15px;
+            font-weight: 500;
+            color: #333;
+        }
+        .cyr-hot-num {
+            font-size: 12px;
+            color: #999;
+        }
+
+        /* ── 发布面板 ── */
+        .cyr-post-panel {
+            padding: 0 15px;
+        }
+        .cyr-post-head {
+            font-size: 20px;
+            font-weight: 700;
+            padding: 15px 0;
+        }
+        .cyr-post-pic {
+            width: 100%;
+            height: 200px;
+            border-radius: 12px;
+            object-fit: cover;
+            margin-top: 10px;
+        }
+        .cyr-post-slogan {
+            font-size: 14px;
+            color: #666;
+            margin-top: 15px;
+            text-align: center;
+        }
+        .cyr-post-author {
+            font-size: 13px;
+            color: #999;
+            margin-top: 8px;
+            text-align: center;
+        }
+        .cyr-post-btn {
+            display: block;
+            width: 80%;
+            margin: 30px auto 0;
+            height: 45px;
+            border: none;
+            border-radius: 22px;
+            background: #4CAF50;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        /* ── 我的面板 ── */
+        .cyr-mine-panel {
+            text-align: center;
+        }
+        .cyr-mine-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-top: 50px;
+        }
+        .cyr-mine-name {
+            font-size: 20px;
+            font-weight: 700;
+            margin-top: 15px;
+        }
+        .cyr-mine-id {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+        .cyr-mine-list {
+            list-style: none;
+            margin-top: 30px;
+            text-align: left;
+            background: #fff;
+        }
+        .cyr-mine-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 50px;
+            padding: 0 15px;
+            font-size: 15px;
+            border-bottom: 1px solid #f0f2f5;
+        }
+        .cyr-mine-row:last-child {
+            border-bottom: none;
+        }
+        .cyr-mine-arrow {
+            color: #999;
+        }
+
+        /* ── 底部导航 ── */
+        .cyr_tabbar {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 420px;
+            height: 60px;
+            background: #fff;
+            border-top: 1px solid #ececec;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+        .cyr_tab-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            font-size: 12px;
+            color: #999;
+            text-decoration: none;
+            cursor: pointer;
+            user-select: none;
+        }
+        .cyr_tab-item .iconfont {
+            font-size: 22px;
+        }
+        .cyr_tab-active {
+            color: #4A90E2;
+        }
+    </style>
+</head>
+<body>
+    <!-- 姓名：陈依然，日期：2026-10-29，功能：天气App网页元素设计四级项目1 -->
+    <a href="index.html" class="cyr_back-home">← 返回首页</a>
+
+    <div class="cyr_app">
+
+        <!-- ── 主页 Tab ── -->
+        <main id="cyr_tab-home" class="cyr_panel cyr_panel-active">
+            <!-- 顶部大背景天气图：上图下文 -->
+            <header class="cyr_hero">
+                <img class="cyr_hero-bg" src="image/weather_sunny.jpg" alt="晴空天气背景图">
+                <div class="cyr_hero-info">
+                    <h1 class="cyr_city">大连</h1>
+                    <p class="cyr_temp">24℃</p>
+                    <p class="cyr_cond">晴 空气优</p>
+                </div>
+            </header>
+
+            <!-- 逐小时预报：列表 -->
+            <section class="cyr_hourly">
+                <h2 class="cyr_title">逐小时预报</h2>
+                <ul class="cyr_hourly-list">
+                    <li class="cyr_hourly-item">现在<span class="cyr_hourly-cond">晴</span><span class="cyr_hourly-temp">24°</span></li>
+                    <li class="cyr_hourly-item">14时<span class="cyr_hourly-cond">晴</span><span class="cyr_hourly-temp">25°</span></li>
+                    <li class="cyr_hourly-item">15时<span class="cyr_hourly-cond">多云</span><span class="cyr_hourly-temp">25°</span></li>
+                    <li class="cyr_hourly-item">16时<span class="cyr_hourly-cond">多云</span><span class="cyr_hourly-temp">24°</span></li>
+                    <li class="cyr_hourly-item">17时<span class="cyr_hourly-cond">阴</span><span class="cyr_hourly-temp">23°</span></li>
+                </ul>
+            </section>
+
+            <!-- 城市天气：横向图片滚动 -->
+            <section class="cyr_city-weather">
+                <h2 class="cyr_title">城市天气</h2>
+                <div class="cyr_city-scroll">
+                    <img class="cyr_city-pic" src="image/weather_sunny.jpg" alt="大连晴空">
+                    <img class="cyr_city-pic" src="image/weather_rain.jpg" alt="城市雨天">
+                    <img class="cyr_city-pic" src="image/weather_sunset.jpg" alt="城市晚霞">
+                    <img class="cyr_city-pic" src="image/weather_snow1.jpg" alt="城市雪景">
+                </div>
+            </section>
+
+            <!-- 未来几天：左图右文列表 -->
+            <section class="cyr_forecast">
+                <h2 class="cyr_title">未来几天</h2>
+                <ul class="cyr_forecast-list">
+                    <li class="cyr_forecast-item">
+                        <img class="cyr_forecast-pic" src="image/weather_sunny.jpg" alt="晴天">
+                        <span class="cyr_forecast-name">明天</span>
+                        <span class="cyr_forecast-desc">晴 22~26°</span>
+                    </li>
+                    <li class="cyr_forecast-item">
+                        <img class="cyr_forecast-pic" src="image/weather_rain.jpg" alt="雨天">
+                        <span class="cyr_forecast-name">后天</span>
+                        <span class="cyr_forecast-desc">中雨 19~23°</span>
+                    </li>
+                    <li class="cyr_forecast-item">
+                        <img class="cyr_forecast-pic" src="image/weather_snow2.jpg" alt="雪天">
+                        <span class="cyr_forecast-name">周五</span>
+                        <span class="cyr_forecast-desc">小雪 15~18°</span>
+                    </li>
+                </ul>
+            </section>
+
+            <!-- 天气小贴士 -->
+            <section class="cyr_tip">
+                <h2 class="cyr_title">天气小贴士</h2>
+                <p class="cyr_tip-text">今日紫外线较强，出门注意防晒。早晚温差较大，建议带薄外套。</p>
+            </section>
+        </main>
+
+        <!-- ── 热搜 Tab ── -->
+        <section id="cyr_tab-hot" class="cyr_panel">
+            <div class="cyr-hot-panel">
+                <h2 class="cyr-hot-head">天气热搜</h2>
+
+                <div class="cyr-hot-card">
+                    <span class="cyr-hot-rank cyr-hot-rank-1">1</span>
+                    <img class="cyr-hot-pic" src="image/weather_sunny.jpg" alt="降温话题配图">
+                    <div class="cyr-hot-info">
+                        <p class="cyr-hot-title">南方多地迎来降温</p>
+                        <p class="cyr-hot-num">热度 128万</p>
+                    </div>
+                </div>
+
+                <div class="cyr-hot-card">
+                    <span class="cyr-hot-rank cyr-hot-rank-2">2</span>
+                    <img class="cyr-hot-pic" src="image/weather_rain.jpg" alt="降雨话题配图">
+                    <div class="cyr-hot-info">
+                        <p class="cyr-hot-title">华东地区今日有中雨</p>
+                        <p class="cyr-hot-num">热度 98万</p>
+                    </div>
+                </div>
+
+                <div class="cyr-hot-card">
+                    <span class="cyr-hot-rank cyr-hot-rank-3">3</span>
+                    <img class="cyr-hot-pic" src="image/weather_sunset.jpg" alt="晚霞话题配图">
+                    <div class="cyr-hot-info">
+                        <p class="cyr-hot-title">今日晚霞绝美上热搜</p>
+                        <p class="cyr-hot-num">热度 76万</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── 发布 Tab ── -->
+        <section id="cyr_tab-post" class="cyr_panel">
+            <div class="cyr-post-panel">
+                <h2 class="cyr-post-head">发布天气动态</h2>
+                <img class="cyr-post-pic" src="image/weather_sunny.jpg" alt="天气动态配图">
+                <p class="cyr-post-slogan">记录此刻的天气</p>
+                <p class="cyr-post-author">陈依然 24001010703</p>
+                <button class="cyr-post-btn" type="button">发布</button>
+            </div>
+        </section>
+
+        <!-- ── 我的 Tab ── -->
+        <section id="cyr_tab-mine" class="cyr_panel">
+            <div class="cyr-mine-panel">
+                <img class="cyr-mine-avatar" src="image/weather_sunset.jpg" alt="个人头像">
+                <p class="cyr-mine-name">陈依然</p>
+                <p class="cyr-mine-id">学号：24001010703</p>
+                <ul class="cyr-mine-list">
+                    <li class="cyr-mine-row"><span>我的收藏</span><span class="cyr-mine-arrow">›</span></li>
+                    <li class="cyr-mine-row"><span>浏览历史</span><span class="cyr-mine-arrow">›</span></li>
+                    <li class="cyr-mine-row"><span>设置</span><span class="cyr-mine-arrow">›</span></li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- ── 底部导航 ── -->
+        <nav class="cyr_tabbar">
+            <a class="cyr_tab-item cyr_tab-active" data-cyr-tab="home"><i class="iconfont icon-shouye"></i><span>主页</span></a>
+            <a class="cyr_tab-item" data-cyr-tab="hot"><i class="iconfont icon-resou"></i><span>热搜</span></a>
+            <a class="cyr_tab-item" data-cyr-tab="post"><i class="iconfont icon-fabu"></i><span>发布</span></a>
+            <a class="cyr_tab-item" data-cyr-tab="mine"><i class="iconfont icon-wode"></i><span>我的</span></a>
+        </nav>
+    </div>
+
+    <script>
+        // Tab 切换：cyr_ 前缀变量
+        const cyr_tabItems = document.querySelectorAll('.cyr_tab-item');
+        const cyr_panels = document.querySelectorAll('.cyr_panel');
+
+        function cyr_switchTab(cyr_tabName) {
+            cyr_panels.forEach(function (cyr_panel) {
+                cyr_panel.classList.toggle('cyr_panel-active', cyr_panel.id === 'cyr_tab-' + cyr_tabName);
+            });
+            cyr_tabItems.forEach(function (cyr_item) {
+                cyr_item.classList.toggle('cyr_tab-active', cyr_item.dataset.cyrTab === cyr_tabName);
+            });
+        }
+
+        cyr_tabItems.forEach(function (cyr_item) {
+            cyr_item.addEventListener('click', function () {
+                cyr_switchTab(cyr_item.dataset.cyrTab);
+            });
+        });
+    </script>
+</body>
+</html>
