@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>16-2 JavaScript 对象与字符串方法</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Microsoft YaHei", "Segoe UI", sans-serif;
+    background: linear-gradient(135deg, #2d1b69 0%, #11998e 50%, #38ef7d 100%);
+    background-attachment: fixed; color: #e8eaf0; line-height: 1.7;
+    padding: 28px 16px; min-height: 100vh;
+  }
+  .cyr_container { max-width: 1180px; margin: 0 auto; }
+  .cyr_back-home { display: inline-block; margin-bottom: 14px; color: #81d4fa; text-decoration: none; font-size: 0.9rem; font-weight: bold; }
+  .cyr_back-home:hover { color: #4fc3f7; text-decoration: underline; }
+  h1 { text-align: center; font-size: 1.9rem; margin-bottom: 6px;
+    background: linear-gradient(90deg, #ffd54f, #ff80ab); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .cyr_author { text-align: center; color: #b2dfdb; font-size: 0.9rem; margin-bottom: 6px; }
+
+  .cyr_tabs { display: flex; justify-content: center; gap: 10px; margin: 20px 0 22px; }
+  .cyr_tab {
+    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2);
+    color: #b0bec5; padding: 8px 22px; border-radius: 20px; cursor: pointer; font-size: 0.92rem; font-weight: bold;
+    transition: all 0.2s; font-family: inherit;
+  }
+  .cyr_tab:hover { background: rgba(255,255,255,0.15); color: #fff; }
+  .cyr_tab.cyr_active {
+    background: linear-gradient(135deg, #ffd54f, #ff80ab); color: #1a1a2e;
+    border-color: transparent; box-shadow: 0 4px 14px rgba(255,128,171,0.4);
+  }
+
+  .cyr_section-title { font-size: 1.25rem; color: #ffd54f; border-left: 4px solid #ffd54f; padding-left: 12px; margin: 30px 0 14px; }
+  .cyr_section-sub { color: #b2dfdb; font-size: 0.85rem; margin-bottom: 14px; }
+  .cyr_grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 16px; }
+  .cyr_card { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 16px 18px; backdrop-filter: blur(8px); transition: transform 0.2s, border-color 0.2s; }
+  .cyr_card:hover { transform: translateY(-3px); border-color: rgba(255,213,79,0.5); }
+  .cyr_card-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
+  .cyr_method-name { font-family: Consolas, monospace; font-size: 1.02rem; font-weight: bold; color: #fff; }
+  .cyr_desc { color: #b0bec5; font-size: 0.82rem; margin-bottom: 10px; line-height: 1.55; }
+  .cyr_desc code { background: rgba(255,213,79,0.15); color: #ffd54f; padding: 1px 5px; border-radius: 4px; font-family: Consolas, monospace; font-size: 0.78rem; }
+
+  /* 字符串可视化：每行一个字符胶囊 */
+  .cyr_str-box { background: #0f172a; border-radius: 8px; padding: 10px; margin-bottom: 10px; min-height: 52px; display: flex; flex-wrap: wrap; gap: 3px; align-items: center; }
+  .cyr_ch {
+    background: #1e293b; border: 1px solid #334155; border-radius: 5px;
+    min-width: 28px; padding: 3px 6px; text-align: center;
+    font-family: Consolas, monospace; font-size: 0.8rem; color: #e2e8f0;
+    position: relative;
+  }
+  .cyr_ch.cyr_ch-space { background: #374151; color: #64748b; }
+  .cyr_ch.cyr_ch-hit { background: #581c87; border-color: #a855f7; box-shadow: 0 0 8px rgba(168,85,247,0.6); color: #f0abfc; }
+  .cyr_ch.cyr_ch-match { background: #064e3b; border-color: #10b981; color: #86efac; }
+  .cyr_ch .cyr_ch-idx { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); font-size: 0.55rem; color: #64748b; }
+
+  /* 对象可视化：每个键值对一个条目 */
+  .cyr_obj-box { background: #0f172a; border-radius: 8px; padding: 12px 14px; margin-bottom: 10px; }
+  .cyr_obj-brace { color: #64748b; font-family: Consolas, monospace; font-weight: bold; }
+  .cyr_obj-line { font-family: Consolas, monospace; font-size: 0.82rem; padding: 2px 0; }
+  .cyr_obj-key { color: #81d4fa; }
+  .cyr_obj-colon { color: #64748b; margin: 0 4px; }
+  .cyr_obj-val { color: #f0abfc; }
+  .cyr_obj-val.cyr_obj-str { color: #86efac; }
+  .cyr_obj-val.cyr_obj-num { color: #fbbf24; }
+  .cyr_obj-val.cyr_obj-bool { color: #f87171; }
+  .cyr_obj-val.cyr_obj-null { color: #94a3b8; font-style: italic; }
+  .cyr_obj-line.cyr_obj-mod { background: rgba(255,183,77,0.2); border-radius: 3px; padding-left: 4px; }
+
+  .cyr_result-box { background: rgba(15,23,42,0.7); border-radius: 6px; padding: 6px 10px; font-family: Consolas, monospace; font-size: 0.78rem; color: #34d399; min-height: 22px; margin-bottom: 8px; white-space: pre-wrap; word-break: break-all; }
+  .cyr_ctrl-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .cyr_input { background: #0f172a; border: 1px solid #475569; border-radius: 6px; color: #e8eaf0; padding: 5px 10px; font-size: 0.82rem; font-family: Consolas, monospace; flex: 1; min-width: 120px; }
+  .cyr_input:focus { outline: none; border-color: #ffd54f; }
+  .cyr_btn { background: linear-gradient(135deg, #7c4dff, #ff80ab); color: #fff; border: none; border-radius: 6px; padding: 6px 14px; font-size: 0.82rem; font-weight: bold; cursor: pointer; transition: transform 0.15s; font-family: inherit; flex-shrink: 0; }
+  .cyr_btn:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(124,77,255,0.4); }
+  .cyr_btn-sm { padding: 4px 10px; font-size: 0.76rem; }
+
+  .cyr_hidden { display: none; }
+
+  footer { text-align: center; color: #90a4ae; font-size: 0.78rem; margin-top: 30px; }
+</style>
+</head>
+<body>
+<!-- 姓名：陈依然，日期：2026-10-29，功能：JavaScript 对象与字符串方法展示 -->
+<a href="index.html" class="cyr_back-home">← 返回首页</a>
+<div class="cyr_container">
+  <h1>JavaScript 对象 & 字符串</h1>
+  <p class="cyr_author">作者：陈依然 · 点击标签页切换主题，按钮即时体验</p>
+
+  <div class="cyr_tabs">
+    <button class="cyr_tab cyr_active" onclick="cyr_switch('obj')">📦 对象 Object</button>
+    <button class="cyr_tab" onclick="cyr_switch('str')">🔤 字符串 String</button>
+  </div>
+
+  <!-- ================ 对象面板 ================ -->
+  <div id="cyr_panel-obj">
+    <h2 class="cyr_section-title">一、创建与检测</h2>
+    <p class="cyr_section-sub">对象是 JS 的核心数据结构，属性可以是任何类型</p>
+    <div class="cyr_grid">
+      <div class="cyr_card">
+        <div class="cyr_card-head"><span class="cyr_method-name">字面量 / new Object()</span></div>
+        <p class="cyr_desc">推荐用字面量 <code>{ }</code> 创建对象。</p>
+        <div class="cyr_obj-box" id="cyr_obj-create"></div>
+        <div class="cyr_result-box" id="cyr_res-create">—</div>
+        <div class="cyr_ctrl-row">
+          <button class="cyr_btn cyr_btn-sm" onclick="cyr_obj('create')">▶ 查看</button>
+        </div>
+      </div>
+      <div class="cyr_card">
+        <div class="cyr_card-head"><span class="cyr_method-name">typeof / instanceof</span></div>
+        <p class="cyr_desc">检测类型。注意 <code>typeof null === 'object'</code> 是历史 Bug！</p>
+        <div class="cyr_obj-box" id="cyr_obj-instance"></div>
+        <div class="cyr_result-box" id="cyr_res-instance">—</div>
+        <div class="cyr_ctrl-row">
+          <button class="cyr_btn cyr_btn-sm" onclick="cyr_obj('instance')">▶ 检测</button>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="cyr_section-title">二、属性的增删改查</h2>
+    <p class="cyr_section-sub">用 <code>.</code> 或 <code>[ ]</code> 访问，<code>delete</code> 删除</p>
+    <div class="cyr_grid">
+      <div class="cyr_card">
+        <div class="cyr_card-head"><span class="cyr_method-name">点符号 .  /  方括号 [ ]</span></div>
+        <p class="cyr_desc">方括号支持<strong>变量</strong>作为键名、以及特殊字符/数字开头的键。</p>
+        <div class="cyr_obj-box" id="cyr_obj-access"></div>
+        <div class="cyr_result-box" id="cyr_res-access">—</div>
+        <div class="cyr_ctrl-row">
+          <button class="cyr_btn cyr_btn-sm" onclick="cyr_obj('access-dot')">user.name</button>
+          <button class="cyr_btn cyr_btn-sm" onclick="cyr_obj('access-bracket')">user['email']</button>
+          <button class="cyr_btn cyr_btn-sm" onclick="cyr_obj('access-var')">变量作键</button>
+        </div>
+      </div>
+      <div class="cyr_card">
+        <div class="cyr_card-head"><span class="cyr_method-name">增 / 改 / delete</span></div>
+        <p class="cyr_desc">直接赋值即可新增或覆盖属性。<code>delete obj.key</code> 彻底删除属性。</p>
+        <div class="cyr_obj-box" id="cyr_obj-delete"></div>
+        <div class="cyr_result-box" id="cyr_res-delete">—</div>
+        <div class="cyr_ctrl-row">
+          <button class="cyr_btn cyr_btn-sm" onclick="cyr_obj('delete-add')">添加 score</button>
+          <button class="cyr_btn cyr_btn-sm" onclick="cyr_obj('delete-del')">delete email</button>
+          <button class="cyr_btn cyr_btn-sm" onclick="cyr_obj('delete-reset')">重置</button>
+        </div>
+      </div>
+      <div class="cyr_card">
+        <div class="cyr_card-head"><span class="cyr_method-name">in / hasOwnProperty</span></div>
+        <p class="cyr_desc"><code>'key' in obj</code> 检测<strong>原型链</strong>上是否存在；<code>hasOwnProperty</code> 只检测<strong>自身</strong>。</p>
+        <div class="cyr_obj-box" id="cyr_obj-in"></div>
+        <div class="cyr_result-box" id="cyr_res-in">—</div>
+        <div class="cyr_ctrl-row">
+          <button class="cyr_btn cyr_btn-sm" onclick="cyr_obj('in-prop')">'name' in user</button>
+          <button class="cyr_btn cyr_btn-sm" onclick="cyr_obj('in-hasOwn')">user.hasOwnProperty('name')</button>
+          <button class="cyr_btn cyr_btn-sm" onclick="cyr_obj('in-inherit')">in 检测继承属性</button>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="cyr_section-title">三、静态方法 Object.*</h2>
+    <p class="cyr_section-sub">直接用 <code>Object.xxx(obj)</code> 调用</p>
+    <div class="cyr_grid">
+      <div class="cyr_card">
+        <div class="cyr_card-head"><span class="cyr_method-name">Object.keys(obj)</span></div>
+        <p class="cyr_desc">返回<strong>所有可枚举自身键</strong>组成的数组。最常用！</p>
+        <div class="cyr_obj-box" id="cyr_obj-keys"></div>
+        <div class="cyr_result-box" id="cyr_res-keys">—</div>
+        <div class="cyr_ctrl-row">
+          <button class="cyr_btn cyr_btn-sm" onclick="cyr_obj('keys')">▶ Object.keys(user)</button>
+        </div>
+      </div>
+      <div class="cyr_card">
+        <div class="cyr_card-head"><span class="cyr_method-name">Object.values(obj)</span></div>
+        <p class="cyr_desc">返回所有可枚举自身<strong>值</strong>组成的数组。ES2017+。</p>
+        <div class="cyr_obj-box" id="cyr_obj-values"></div>
+        <div class="cyr_result-box" id="cyr_res-values">—</div>
+        <div class="cyr_ctrl-row">
+          <button class="cyr_btn cyr_btn-sm" onclick="cyr_obj('values')">▶ Object.values(user)</button>
+        </div>
+      </div>
+      <div class="cyr_card">
+        <div class="cyr_card-head"><span class="cyr_method-name">Object.entries(obj)</span></div>
+        <p class="cyr_desc">返回键值对数组 <code>[['key','val'], ...]</code>，配合 for...of 遍历。</p>
+        <div class="cyr_obj-box" id="cyr_obj-entries"></div>
+        <div class="cyr_result-box" id="cyr_res-entries">—</div>
+        <div class="cyr_ctrl-row">
+          <button class="cyr_btn cyr_btn-sm" onclick="cyr_obj('entries')">▶ Object.entries(user)</button>
+        </div>
+      </div>
+      <div class="cyr_card">
+        <div class="cyr_card-head"><span class="cyr_method-name">Object.assign(tgt, ...src)</span></div>
+        <p class="cyr_desc">把多个源对象的<strong>可枚举属性</strong>拷贝到目标对象，修改 target。</p>
+        <div class="cyr_obj-box" id="cyr_obj-assign"></div>
+        <div class="cyr_result-box" id="cyr_res-assign">—</div>
+        <div class="cyr_ctrl-row">
+          <button class="cyr_btn cyr_btn-sm" onclick="cyr_obj('assign')">▶ Object.assign</button>
+        </div>
+      </div>
+      <div class="cyr_card">
+        <div class="cyr_card-head"><span class="cyr_method-name">Object.create(proto)</span></div>
+        <p class="cyr_desc">创建一个新对象，<strong>原型</strong>指向 proto。实现原型继承。</p>
+        <div class="cyr_obj-box" id="cyr_obj-create2"></div>
+        <div class="cyr_result-box" id="cyr_res-create2">—</div>
+        <div class="cyr_ctrl-row">
+          <button class="cyr_btn cyr_btn-sm" onclick="cyr_obj('create2')">▶ Object.create</button>
+        </div>
+      </div>
+      <div class="cyr_card">
+        <div class="cyr_card-head"><span class="cyr_method-name">Object.freeze(obj)</span></div>
+        <p class="cyr_desc"><strong>冻结</strong>对象：禁止增删改。<code>Object.isFrozen</code> 可检测。</p>
+        <div class="cyr_obj-box" id="cyr_obj-freeze"></div>
+        <div class="cyr_result-box" id="cyr_res-freeze">—</div>
+        <div class="cyr_ctrl-row">
+          <button class="cyr_btn cyr_btn-sm" onclick="cyr_obj('freeze-f')">freeze(user)</button>
+          <button class="cyr_btn cyr_btn-sm" onclick="cyr_obj('freeze-try')">尝试修改</button>
+          <button class="cyr_btn cyr_btn-sm" onclick="cyr_obj('freeze-reset')">重置</button>
+        </div>
+      </div>
+      <div class="cyr_card">
+        <div class="cyr_card-head"><span class="cyr_method-name">展开语法 ...obj</span></div>
+        <p class="cyr_desc">ES6+：<code>{...obj}</code> 创建对象浅拷贝；可合并多个对象（后面的覆盖前面）。</p>
+        <div class="cyr_obj-box" id="cyr_obj-spread"></div>
+        <div class="cyr_result-box" id="cyr_res-spread">—</div>
+        <div class="cyr_ctrl-row">
+          <button class="cyr_btn cyr_btn-sm" onclick="cyr_obj('spread')">▶ {...user, score: 95}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================ 字符串面板 ================ -->
+  <div id="cyr_panel-str" class="cyr_hidden">
+    <h2 class="cyr_section-title">一、基础属性与查找</h2>
+    <p class="cyr_section-sub">字符串是<strong>不可变</strong>的原始类型（primitive），所有方法都返回新字符串</p>
+    <div class="cyr_grid">
+      <div class="cyr_card">
+        <div class="cyr_card-head"><span class="cyr_method-name">.length</span></div>
+        <p class="cyr_desc">返回字符串长度（字符数，UTF-16 单位）。</p>
+        <div class="cyr_str-box" id="cyr_str-len"></div>
+        <div class="cyr_result-box" id="cyr_res-len">—</div>
+        <div class="cyr_ctrl-row">
+          <button class="cyr_btn cyr_btn-sm" onclick="cyr_str('len')">▶ 'Hello陈依然'.length</button>
+        </div>
+      </div>
+      <div class="cyr_card">
+        <div class="cyr_card-head"><span class="cyr_method-name">.includes() / .indexOf()</span></div>
+        <p class="cyr_desc">includes：是否包含（布尔）。indexOf：首次出现位置，找不到返回 -1。</p>
+        <div class="cyr_str-box" id="cyr_str-include"></div>
+        <div class="cyr_result-box" id="cyr_res-include">—</div>
+        <div class="cyr_ctrl-row">
+          <button class="cyr_btn cyr_btn-sm" onclick="cyr_str('include-includes')">includes('陈')</button>
+          <button class="cyr_btn cyr_btn-sm" onclick="cyr_str('include-indexOf')">indexOf('依')</button>
+          <button class="cyr_btn cyr_btn-sm" onclick="cyr_str('include-find')">找不存在的</button>
+        </div>
+      </div>
+      <div class="cyr_card">
+        <div class="cyr_card-head"><span class="cyr_method-name">.charAt(i) / [i]</span></div>
+        <p class="cyr_desc">获取指定位置的字符。<code>[i]</code> 是 ES6+ 推荐方式（<code>charAt</code> 返回空字符串更安全）。</p>
+        <div class="cyr_str-box" id="cyr_str-charAt"></div>
+        <div class="cyr_result-box" id="cyr_res-charAt">—</div>
+        <div class="cyr_ctrl-row">
+          <button class="cyr_btn cyr_btn-sm" onclick="cyr_str('charAt-first')">str[0]</button>
+          <button class="cyr_btn cyr_btn-sm" onclick="cyr_str('charAt-last')">str.at(-1)</button>
+          <button class="cyr_btn cyr_btn-sm" onclick="cyr_str('charAt-bad')">越界 str[99]</button>
+        </div>
+      </div>
+      <div class="cyr_card">
+        <div class="cyr_card-head"><span class="cyr_method-name">.startsWith() / .endsWith()</span></div>
+        <p class="cyr_desc">判断字符串是否以指定子串<strong>开头</strong>或<strong>结尾</strong>，返回布尔值。ES2015+。</p>
+        <div class="cyr_str-box" id="cyr_str-start"></div>
+        <div class="cyr_result-box" id="cyr_res-start">—</div>
+        <div class="cyr_ctrl-row">
+          <button class="cyr_btn cyr_btn-sm" onclick="cyr_str('start-sw')">startsWith('Hello')</button>
+          <button class="cyr_btn cyr_btn-sm" onclick="cyr_str('start-ew')">endsWith('依然')</button>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="cyr_section-title">二、截取与切片</h2>
+    <div class="cyr_grid">
+      <div class="cyr_card">
+        <div class="cyr_card-head"><span class="cyr_method-name">.slice(start, end)</span></div>
+        <p class="cyr_desc">最灵活的截取方法。start 到 end（不含），<strong>支持负数索引</strong>（从尾部数）。</p>
+        <div class="cyr_str-box" id="cyr_str-slice"></div>
+        <div class="cyr_result-box" id="cyr_res-slice">—</div>
+        <div class="cyr_ctrl-row">
+          <button class="cyr_btn cyr_btn-sm" onclick="cyr_str('slice-03')">slice(0,3)</button>
+          <button class="cyr_btn cyr_btn-sm" onclick="cyr_str('slice-neg')">slice(-3) 末尾3个</button>
+        </div>
+      </div>
+      <div class="cyr_card">
+        <div class="cyr_card-head"><span class="cyr_method-name">.substring(a, b)</span></div>
+        <p class="cyr_desc">类似 slice 但<strong>不支持负数</strong>（负数当作 0），会自动把小的当 start。</p>
+        <div class="cyr_str-box" id="cyr_str-sub"></div>
+        <div class="cyr_result-box" id="cyr_res-sub">—</div>
+        <div class="cyr_ctrl-row">
+          <button class="cyr_btn cyr_btn-sm" onclick="cyr_str('sub-26')">substring(2,6)</button>
+          <button class="cyr_btn cyr_btn-sm" onclick="cyr_str('sub-rev')">substring(6,2)</button>
+        </div>
+      </div>
+      <div class="cyr_card">
+        <div class="cyr_card-head"><span class="cyr_method-name">.substr(start, len)</span></div>
+        <p class="cyr_desc"><strong>已废弃（deprecated）</strong>，不推荐新代码使用。用 <code>slice</code> 或 <code>substring</code> 代替。</p>
+        <div class="cyr_str-box" id="cyr_str-substr"></div>
+        <div class="cyr_result-box" id="cyr_res-substr">—</div>
+        <div class="cyr_ctrl-row">
+          <button class="cyr_btn cyr_btn-sm" onclick="cyr_str('substr-demo')">⚠ substr(2,4)</button>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="cyr_section-title">三、变换方法</h2>
+    <div class="cyr_grid">
+      <div class="cyr_card">
+        <div class="cyr_card-head"><span class="cyr_method-name">.toUpperCase() / .toLowerCase()</span></div>
+        <p class="cyr_desc">转大写 / 小写，返回新字符串（原字符串不变！）。</p>
+        <div class="cyr_str-box" id="cyr_str-case"></div>
+        <div class="cyr_result-box" id="cyr_res-case">—</div>
+        <div class="cyr_ctrl-row">
+          <button class="cyr_btn cyr_btn-sm" onclick="cyr_str('case-up')">toUpperCase</button>
+          <button class="cyr_btn cyr_btn-sm" onclick="cyr_str('case-lo')">toLowerCase</button>
+        </div>
+      </div>
+      <div class="cyr_card">
+        <div class="cyr_card-head"><span class="cyr_method-name">.trim() / .trimStart() / .trimEnd()</span></div>
+        <p class="cyr_desc">去除<strong>首尾空白</strong>（空格、Tab、换行），常用于表单输入清理。</p>
+        <div class="cyr_str-box" id="cyr_str-trim"></div>
+        <div class="cyr_result-box" id="cyr_res-trim">—</div>
+        <div class="cyr_ctrl-row">
+          <button class="cyr_btn cyr_btn-sm" onclick="cyr_str('trim-full')">trim()</button>
+          <button class="cyr_btn cyr_btn-sm" onclick="cyr_str('trim-start')">trimStart()</button>
+        </div>
+      </div>
+      <div class="cyr_card">
+        <div class="cyr_card-head"><span class="cyr_method-name">.replace(search, replace)</span></div>
+        <p class="cyr_desc">替换匹配的子串。<strong>字符串搜索只替换首次</strong>，要全局替换必须用 <strong>正则表达式</strong> 加 g 标志。</p>
+        <div class="cyr_str-box" id="cyr_str-replace"></div>
+        <div class="cyr_result-box" id="cyr_res-replace">—</div>
+        <div class="cyr_ctrl-row">
+          <button class="cyr_btn cyr_btn-sm" onclick="cyr_str('replace-once')">replace('l','L')</button>
+          <button class="cyr_btn cyr_btn-sm" onclick="cyr_str('replace-all')">replace(/l/g,'L') 全局</button>
+        </div>
+      </div>
+      <div class="cyr_card">
+        <div class="cyr_card-head"><span class="cyr_method-name">.split(sep)</span></div>
+        <p class="cyr_desc">按分隔符拆分字符串为<strong>数组</strong>。配合 <code>.join()</code> 形成经典组合。</p>
+        <div class="cyr_str-box" id="cyr_str-split"></div>
+        <div class="cyr_result-box" id="cyr_res-split">—</div>
+        <div class="cyr_ctrl-row">
+          <button class="cyr_btn cyr_btn-sm" onclick="cyr_str('split-comma')">split(',')</button>
+          <button class="cyr_btn cyr_btn-sm" onclick="cyr_str('split-join')">split('').reverse().join('') 反转</button>
+        </div>
+      </div>
+      <div class="cyr_card">
+        <div class="cyr_card-head"><span class="cyr_method-name">.repeat(n)</span></div>
+        <p class="cyr_desc">把字符串重复 n 次后返回。ES2015+。<code>padStart / padEnd</code> 是填充版。</p>
+        <div class="cyr_str-box" id="cyr_str-repeat"></div>
+        <div class="cyr_result-box" id="cyr_res-repeat">—</div>
+        <div class="cyr_ctrl-row">
+          <button class="cyr_btn cyr_btn-sm" onclick="cyr_str('repeat-3')">repeat(3)</button>
+          <button class="cyr_btn cyr_btn-sm" onclick="cyr_str('padstart')">padStart(8,'_')</button>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="cyr_section-title">四、模板字符串</h2>
+    <div class="cyr_grid">
+      <div class="cyr_card" style="grid-column: span 2">
+        <div class="cyr_card-head"><span class="cyr_method-name">`Hello ${name}, age is ${20 + 5}`</span></div>
+        <p class="cyr_desc">用反引号 <code>`</code> 包裹，<code>${ }</code> 中可以写<strong>任何 JS 表达式</strong>（变量、运算、函数调用等）。支持多行！</p>
+        <div class="cyr_obj-box" id="cyr_str-template" style="font-family: Consolas,monospace;color:#f87171;"></div>
+        <div class="cyr_result-box" id="cyr_res-template">—</div>
+        <div class="cyr_ctrl-row">
+          <button class="cyr_btn cyr_btn-sm" onclick="cyr_str('template')">▶ 执行模板</button>
+          <button class="cyr_btn cyr_btn-sm" onclick="cyr_str('template-multi')">多行模板</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>16-2 · JavaScript 对象 & 字符串 · 陈依然</footer>
+</div>
+
+<script>
+  /* ============ 标签切换 ============ */
+  function cyr_switch(tab) {
+    document.getElementById('cyr_panel-obj').classList.toggle('cyr_hidden', tab !== 'obj');
+    document.getElementById('cyr_panel-str').classList.toggle('cyr_hidden', tab !== 'str');
+    var tabs = document.querySelectorAll('.cyr_tab');
+    tabs[0].classList.toggle('cyr_active', tab === 'obj');
+    tabs[1].classList.toggle('cyr_active', tab === 'str');
+  }
+
+  /* ============ 对象可视化 ============ */
+  function cyr_renderObj(boxId, obj, modifiedKeys) {
+    modifiedKeys = modifiedKeys || [];
+    var box = document.getElementById(boxId); if (!box) return;
+    box.innerHTML = '<span class="cyr_obj-brace">{</span>';
+    var keys = Object.keys(obj);
+    keys.forEach(function(k, i) {
+      var v = obj[k];
+      var cls = 'cyr_obj-val';
+      if (typeof v === 'string') cls += ' cyr_obj-str';
+      else if (typeof v === 'number') cls += ' cyr_obj-num';
+      else if (typeof v === 'boolean') cls += ' cyr_obj-bool';
+      else if (v === null) cls += ' cyr_obj-null';
+      var lineCls = modifiedKeys.indexOf(k) >= 0 ? 'cyr_obj-line cyr_obj-mod' : 'cyr_obj-line';
+      box.innerHTML += '<div class="' + lineCls + '">' +
+        '  <span class="cyr_obj-key">"' + k + '"</span>' +
+        '<span class="cyr_obj-colon">:</span>' +
+        '<span class="' + cls + '">' + (typeof v === 'string' ? '"' + v + '"' : v) + '</span>' +
+        (i < keys.length - 1 ? ',' : '') + '</div>';
+    });
+    box.innerHTML += '<span class="cyr_obj-brace">}</span>';
+  }
+
+  /* ============ 字符串可视化 ============ */
+  function cyr_renderStr(boxId, str, hitSet) {
+    hitSet = hitSet || [];
+    var box = document.getElementById(boxId); if (!box) return;
+    box.innerHTML = '';
+    for (var i = 0; i < str.length; i++) {
+      var ch = str[i];
+      var cell = document.createElement('div'); cell.className = 'cyr_ch';
+      if (ch === ' ') cell.classList.add('cyr_ch-space');
+      if (hitSet.indexOf(i) >= 0) cell.classList.add('cyr_ch-hit');
+      cell.innerHTML = '<span class="cyr_ch-idx">' + i + '</span>' + (ch === ' ' ? '␣' : ch);
+      box.appendChild(cell);
+    }
+  }
+
+  function cyr_setRes(key, text) { document.getElementById('cyr_res-' + key).textContent = text; }
+
+  /* ============ 对象逻辑 ============ */
+  var cyr_user = { name: '陈依然', age: 20, email: 'chen@test.com' };
+  var cyr_userFrozen = { name: '陈依然', age: 20, email: 'chen@test.com' };
+  Object.freeze(cyr_userFrozen);
+
+  function cyr_obj(action) {
+    switch (action) {
+      case 'create': {
+        cyr_renderObj('cyr_obj-create', cyr_user);
+        cyr_setRes('create', '创建方式：{} 字面量（推荐）或 new Object()');
+        break;
+      }
+      case 'instance': {
+        cyr_renderObj('cyr_obj-instance', { name: null, age: 20, data: new Date() });
+        var r = {
+          'typeof {}': typeof {},
+          'typeof null': typeof null,
+          'typeof new Date()': typeof new Date(),
+          'null === null': null === null
+        };
+        cyr_setRes('instance', JSON.stringify(r, null, 2));
+        break;
+      }
+      case 'access-dot': {
+        cyr_renderObj('cyr_obj-access', cyr_user);
+        cyr_setRes('access', 'user.name → ' + cyr_user.name);
+        break;
+      }
+      case 'access-bracket': {
+        cyr_renderObj('cyr_obj-access', cyr_user);
+        cyr_setRes('access', "user['email'] → " + cyr_user['email']);
+        break;
+      }
+      case 'access-var': {
+        var cyr_key = 'age';
+        cyr_renderObj('cyr_obj-access', cyr_user);
+        cyr_setRes('access', 'var k="age"; user[k] → ' + cyr_user[cyr_key]);
+        break;
+      }
+      case 'delete-add': {
+        cyr_user.score = 95;
+        cyr_renderObj('cyr_obj-delete', cyr_user, ['score']);
+        cyr_setRes('delete', 'user.score = 95 → 新增成功');
+        break;
+      }
+      case 'delete-del': {
+        var cyr_delOk = delete cyr_user.email;
+        cyr_renderObj('cyr_obj-delete', cyr_user);
+        cyr_setRes('delete', 'delete user.email → ' + cyr_delOk + '  剩余键：' + Object.keys(cyr_user).join(', '));
+        break;
+      }
+      case 'delete-reset': {
+        cyr_user = { name: '陈依然', age: 20, email: 'chen@test.com' };
+        cyr_renderObj('cyr_obj-delete', cyr_user);
+        cyr_setRes('delete', '已重置');
+        break;
+      }
+      case 'in-prop': {
+        cyr_renderObj('cyr_obj-in', cyr_user);
+        cyr_setRes('in', "'name' in user → " + ('name' in cyr_user));
+        break;
+      }
+      case 'in-hasOwn': {
+        cyr_renderObj('cyr_obj-in', cyr_user);
+        cyr_setRes('in', "user.hasOwnProperty('name') → " + cyr_user.hasOwnProperty('name'));
+        break;
+      }
+      case 'in-inherit': {
+        cyr_renderObj('cyr_obj-in', cyr_user);
+        cyr_setRes('in', "'toString' in user → " + ('toString' in cyr_user) + "（从原型继承）\nuser.hasOwnProperty('toString') → " + cyr_user.hasOwnProperty('toString') + "（自身没有）");
+        break;
+      }
+      case 'keys': {
+        cyr_renderObj('cyr_obj-keys', cyr_user);
+        cyr_setRes('keys', 'Object.keys(user) → ' + JSON.stringify(Object.keys(cyr_user)));
+        break;
+      }
+      case 'values': {
+        cyr_renderObj('cyr_obj-values', cyr_user);
+        cyr_setRes('values', 'Object.values(user) → ' + JSON.stringify(Object.values(cyr_user)));
+        break;
+      }
+      case 'entries': {
+        cyr_renderObj('cyr_obj-entries', cyr_user);
+        cyr_setRes('entries', 'Object.entries(user) → ' + JSON.stringify(Object.entries(cyr_user)));
+        break;
+      }
+      case 'assign': {
+        var cyr_target = { a: 1 };
+        var cyr_result = Object.assign(cyr_target, { b: 2, a: 99 });
+        cyr_renderObj('cyr_obj-assign', cyr_result, ['b']);
+        cyr_setRes('assign', 'Object.assign({a:1}, {b:2, a:99}) → ' + JSON.stringify(cyr_result) + '\n注意：a 被覆盖！');
+        break;
+      }
+      case 'create2': {
+        var cyr_proto = { sayHi: function() { return 'Hi!'; } };
+        var cyr_child = Object.create(cyr_proto);
+        cyr_child.name = '陈依然';
+        cyr_renderObj('cyr_obj-create2', cyr_child);
+        cyr_setRes('create2', "Object.create(proto).name='陈依然'\nproto.sayHi() → " + cyr_child.sayHi() + '\nname 是自有属性，sayHi 来自原型');
+        break;
+      }
+      case 'freeze-f': {
+        cyr_renderObj('cyr_obj-freeze', cyr_userFrozen);
+        cyr_setRes('freeze', 'Object.isFrozen(userFrozen) → ' + Object.isFrozen(cyr_userFrozen) + '\n已冻结，不可增删改');
+        break;
+      }
+      case 'freeze-try': {
+        cyr_userFrozen.age = 999;
+        cyr_setRes('freeze', '尝试 userFrozen.age = 999（已静默失败）\nage 仍然是 ' + cyr_userFrozen.age);
+        break;
+      }
+      case 'freeze-reset': {
+        cyr_userFrozen = { name: '陈依然', age: 20, email: 'chen@test.com' };
+        Object.freeze(cyr_userFrozen);
+        cyr_renderObj('cyr_obj-freeze', cyr_userFrozen);
+        cyr_setRes('freeze', '已重置并重新冻结');
+        break;
+      }
+      case 'spread': {
+        var cyr_copy = Object.assign({}, cyr_user);
+        cyr_copy.score = 95;
+        cyr_renderObj('cyr_obj-spread', cyr_copy, ['score']);
+        cyr_setRes('spread', '浅拷贝 + 新增属性 → ' + JSON.stringify(cyr_copy));
+        break;
+      }
+    }
+  }
+
+  /* ============ 字符串逻辑 ============ */
+  var cyr_str1 = 'Hello陈依然';
+  var cyr_str2 = 'Hello陈依然Hello';
+  var cyr_str3 = 'Hello World,JS,cool';
+  var cyr_str4 = '  Hello  World  ';
+
+  function cyr_str(action) {
+    switch (action) {
+      case 'len': {
+        cyr_renderStr('cyr_str-len', cyr_str1);
+        cyr_setRes('len', "'" + cyr_str1 + "'.length → " + cyr_str1.length + '\n注意：一个中文算 1 个字符');
+        break;
+      }
+      case 'include-includes': {
+        var idx = cyr_str2.indexOf('陈');
+        var hits = [];
+        for (var i = idx; i < idx + '陈'.length; i++) hits.push(i);
+        cyr_renderStr('cyr_str-include', cyr_str2, hits);
+        cyr_setRes('include', "str.includes('陈') → " + cyr_str2.includes('陈'));
+        break;
+      }
+      case 'include-indexOf': {
+        cyr_renderStr('cyr_str-include', cyr_str2);
+        cyr_setRes('include', "str.indexOf('依') → " + cyr_str2.indexOf('依'));
+        break;
+      }
+      case 'include-find': {
+        cyr_renderStr('cyr_str-include', cyr_str2);
+        cyr_setRes('include', "str.indexOf('X') → " + cyr_str2.indexOf('X') + '（-1 表示没找到）');
+        break;
+      }
+      case 'charAt-first': {
+        cyr_renderStr('cyr_str-charAt', cyr_str1, [0]);
+        cyr_setRes('charAt', 'str[0] → "' + cyr_str1[0] + '"');
+        break;
+      }
+      case 'charAt-last': {
+        var lastIdx = cyr_str1.length - 1;
+        cyr_renderStr('cyr_str-charAt', cyr_str1, [lastIdx]);
+        cyr_setRes('charAt', 'str.at(-1) → "' + cyr_str1.at(-1) + '"' + '\n.at() 是 ES2022 新方法，支持负数索引');
+        break;
+      }
+      case 'charAt-bad': {
+        cyr_renderStr('cyr_str-charAt', cyr_str1);
+        cyr_setRes('charAt', 'str[99] → ' + cyr_str1[99] + '（undefined）\nstr.charAt(99) → "' + cyr_str1.charAt(99) + '"（空字符串）');
+        break;
+      }
+      case 'start-sw': {
+        cyr_renderStr('cyr_str-start', cyr_str1, [0, 1, 2, 3, 4]);
+        cyr_setRes('start', "str.startsWith('Hello') → " + cyr_str1.startsWith('Hello'));
+        break;
+      }
+      case 'start-ew': {
+        var hits = [cyr_str1.length - 3, cyr_str1.length - 2, cyr_str1.length - 1];
+        cyr_renderStr('cyr_str-start', cyr_str1, hits);
+        cyr_setRes('start', "str.endsWith('依然') → " + cyr_str1.endsWith('依然'));
+        break;
+      }
+      case 'slice-03': {
+        cyr_renderStr('cyr_str-slice', cyr_str1);
+        cyr_setRes('slice', "str.slice(0,3) → '" + cyr_str1.slice(0, 3) + "'");
+        break;
+      }
+      case 'slice-neg': {
+        cyr_renderStr('cyr_str-slice', cyr_str1);
+        cyr_setRes('slice', "str.slice(-3) → '" + cyr_str1.slice(-3) + "'（最后3个字符）");
+        break;
+      }
+      case 'sub-26': {
+        cyr_renderStr('cyr_str-sub', cyr_str1);
+        cyr_setRes('sub', "str.substring(2,6) → '" + cyr_str1.substring(2, 6) + "'");
+        break;
+      }
+      case 'sub-rev': {
+        cyr_renderStr('cyr_str-sub', cyr_str1);
+        cyr_setRes('sub', "str.substring(6,2) → '" + cyr_str1.substring(6, 2) + "'（自动交换参数！）");
+        break;
+      }
+      case 'substr-demo': {
+        cyr_renderStr('cyr_str-substr', cyr_str1);
+        cyr_setRes('substr', "⚠ 已废弃  str.substr(2,4) → '" + cyr_str1.substr(2, 4) + "'\n建议用 slice 或 substring");
+        break;
+      }
+      case 'case-up': {
+        cyr_renderStr('cyr_str-case', cyr_str1);
+        cyr_setRes('case', "str.toUpperCase() → '" + cyr_str1.toUpperCase() + "'");
+        break;
+      }
+      case 'case-lo': {
+        cyr_renderStr('cyr_str-case', cyr_str1);
+        cyr_setRes('case', "str.toLowerCase() → '" + cyr_str1.toLowerCase() + "'");
+        break;
+      }
+      case 'trim-full': {
+        cyr_renderStr('cyr_str-trim', cyr_str4);
+        cyr_setRes('trim', "原始长度: " + cyr_str4.length + "  trim()后: '" + cyr_str4.trim() + "'  长度: " + cyr_str4.trim().length);
+        break;
+      }
+      case 'trim-start': {
+        cyr_renderStr('cyr_str-trim', cyr_str4);
+        cyr_setRes('trim', "trimStart() → '" + cyr_str4.trimStart() + "'\n（仅去开头空白）");
+        break;
+      }
+      case 'replace-once': {
+        cyr_renderStr('cyr_str-replace', cyr_str2);
+        cyr_setRes('replace', "str.replace('l','L') → '" + cyr_str2.replace('l', 'L') + "'\n⚠ 只替换第一个！");
+        break;
+      }
+      case 'replace-all': {
+        cyr_renderStr('cyr_str-replace', cyr_str2);
+        cyr_setRes('replace', "str.replace(/l/g,'L') → '" + cyr_str2.replace(/l/g, 'L') + "'\n正则 g 标志 = 全局替换");
+        break;
+      }
+      case 'split-comma': {
+        cyr_renderStr('cyr_str-split', cyr_str3);
+        cyr_setRes('split', "str.split(',') → " + JSON.stringify(cyr_str3.split(',')));
+        break;
+      }
+      case 'split-join': {
+        var r = cyr_str1.split('').reverse().join('');
+        cyr_renderStr('cyr_str-split', cyr_str1);
+        cyr_setRes('split', "split('').reverse().join('') → '" + r + "'" + '\n经典技巧：字符串反转');
+        break;
+      }
+      case 'repeat-3': {
+        cyr_renderStr('cyr_str-repeat', 'ab');
+        cyr_setRes('repeat', "'ab'.repeat(3) → '" + 'ab'.repeat(3) + "'");
+        break;
+      }
+      case 'padstart': {
+        cyr_renderStr('cyr_str-repeat', '42');
+        cyr_setRes('repeat', "'42'.padStart(8,'_') → '" + '42'.padStart(8, '_') + "'\n常用于数字对齐：___42___");
+        break;
+      }
+      case 'template': {
+        var cyr_tplName = '陈依然';
+        var cyr_tplAge = 25;
+        var cyr_result = '姓名：' + cyr_tplName + '，今年 ' + cyr_tplAge + ' 岁，明年 ' + (cyr_tplAge + 1) + ' 岁';
+        document.getElementById('cyr_str-template').innerHTML = '<div style="color:#f0abfc">' +
+          '`姓名：${name}，今年 ${age} 岁，明年 ${age + 1} 岁`' +
+          '</div>';
+        cyr_setRes('template', '实际输出：\n' + cyr_result + '\n\n${ } 里可以写任何 JS 表达式！');
+        break;
+      }
+      case 'template-multi': {
+        var cyr_list = ['苹果', '香蕉', '橙子'];
+        var cyr_multi = '<ul>\n' + cyr_list.map(function(x){ return '  <li>' + x + '</li>'; }).join('\n') + '\n</ul>';
+        cyr_setRes('template', '多行模板（配合 .map().join()）：\n' + cyr_multi + '\n\n模板字符串天然支持换行，非常适合拼 HTML！');
+        break;
+      }
+    }
+  }
+
+  /* 初始化 */
+  cyr_obj('create');
+  cyr_obj('keys');
+  cyr_str('len');
+  cyr_str('slice-03');
+</script>
+</body>
+</html>
