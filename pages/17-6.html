@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>17-6 Promise & async 包饺子流程</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Microsoft YaHei", Consolas, "Segoe UI", monospace;
+    background: linear-gradient(135deg, #1e1b4b 0%, #78350f 50%, #7c2d12 100%);
+    background-attachment: fixed; color: #e2e8f0; line-height: 1.7;
+    padding: 22px 14px; min-height: 100vh;
+  }
+  .cyr_back-home { color: #81d4fa; text-decoration: none; font-size: 0.88rem; font-weight: bold; }
+  .cyr_container { max-width: 960px; margin: 0 auto; }
+  h1 { text-align: center; font-size: 1.45rem; margin-bottom: 4px;
+    background: linear-gradient(90deg, #fbbf24, #fb923c, #f472b6);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .cyr_author { text-align: center; color: #a5b4fc; font-size: 0.82rem; margin-bottom: 14px; }
+
+  /* ============ 时间线 ============ */
+  .cyr_timeline {
+    position: relative; padding: 20px 0 10px 40px;
+  }
+  .cyr_timeline::before {
+    content: ''; position: absolute; left: 18px; top: 0; bottom: 0;
+    width: 3px; background: linear-gradient(180deg, #fbbf24, #f472b6);
+    border-radius: 3px;
+  }
+  .cyr_step {
+    position: relative; margin-bottom: 18px;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px; padding: 12px 16px;
+    opacity: 0.55; transition: all 0.3s;
+  }
+  .cyr_step::before {
+    content: ''; position: absolute; left: -30px; top: 16px;
+    width: 14px; height: 14px; border-radius: 50%;
+    background: #475569; border: 3px solid #1e293b;
+  }
+  .cyr_step.cyr_running {
+    opacity: 1; border-color: #fbbf24;
+    box-shadow: 0 0 16px rgba(251,191,36,0.25);
+  }
+  .cyr_step.cyr_running::before {
+    background: #fbbf24; animation: cyr_pulse 0.8s infinite;
+  }
+  .cyr_step.cyr_done {
+    opacity: 1; border-color: #10b981;
+    background: rgba(16,185,129,0.08);
+  }
+  .cyr_step.cyr_done::before {
+    background: #10b981; border-color: #064e3b;
+  }
+  @keyframes cyr_pulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(251,191,36,0.6); }
+    50%     { box-shadow: 0 0 0 10px rgba(251,191,36,0); }
+  }
+
+  /* 并行组 */
+  .cyr_parallel {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px;
+  }
+  .cyr_parallel-item {
+    background: rgba(129,212,250,0.08); border: 1px dashed rgba(129,212,250,0.35);
+    border-radius: 6px; padding: 8px 12px; font-size: 0.76rem;
+  }
+  .cyr_parallel-item.cyr_active {
+    background: rgba(129,212,250,0.2); border-color: #81d4fa;
+  }
+  .cyr_parallel-item.cyr_pdone {
+    background: rgba(16,185,129,0.12); border-color: #10b981; border-style: solid;
+  }
+
+  /* 标题 + 元信息 */
+  .cyr_step-title {
+    font-size: 0.95rem; font-weight: bold; color: #fff; margin-bottom: 4px;
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px;
+  }
+  .cyr_step-desc { color: #94a3b8; font-size: 0.76rem; line-height: 1.55; }
+  .cyr_step-time {
+    font-family: Consolas, monospace; font-size: 0.72rem; color: #81d4fa;
+    background: rgba(129,212,250,0.12); padding: 1px 8px; border-radius: 8px;
+  }
+  .cyr_badge { font-size: 0.7rem; padding: 1px 8px; border-radius: 10px; font-weight: bold; }
+  .cyr_badge-wait { background: rgba(71,85,105,0.4); color: #cbd5e1; }
+  .cyr_badge-run  { background: rgba(251,191,36,0.25); color: #fbbf24; animation: cyr_badgeBlink 0.6s infinite; }
+  .cyr_badge-done { background: rgba(16,185,129,0.25); color: #34d399; }
+  @keyframes cyr_badgeBlink { 50% { opacity: 0.6; } }
+
+  /* 进度条 */
+  .cyr_progress {
+    height: 4px; background: #1e293b; border-radius: 3px; margin-top: 8px; overflow: hidden;
+  }
+  .cyr_progress-fill {
+    height: 100%; background: linear-gradient(90deg, #fbbf24, #f472b6);
+    border-radius: 3px; width: 0%; transition: width 0.15s linear;
+  }
+
+  /* ============ 代码区 ============ */
+  .cyr_code-block {
+    background: rgba(13,17,23,0.6); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px; padding: 14px 16px; margin: 16px 0;
+  }
+  .cyr_code-block-title { color: #fbbf24; font-weight: bold; margin-bottom: 8px; font-size: 0.88rem; }
+  .cyr_code-block .cyr_code {
+    background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 12px 14px;
+    font-family: Consolas, monospace; font-size: 0.76rem; color: #c9d1d9;
+    white-space: pre; line-height: 1.55; overflow-x: auto; max-height: 260px; overflow-y: auto;
+  }
+  .cyr_code .k { color: #ff7b72; } .cyr_code .s { color: #a5d6ff; } .cyr_code .n { color: #79c0ff; }
+  .cyr_code .b { color: #7ee787; } .cyr_code .c { color: #8b949e; font-style: italic; } .cyr_code .f { color: #d2a8ff; }
+
+  /* ============ 控制 ============ */
+  .cyr_controls {
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px; padding: 14px 16px; text-align: center; margin-bottom: 14px;
+  }
+  .cyr_btn {
+    background: linear-gradient(135deg,#f59e0b,#dc2626); color: #fff; border: none; border-radius: 8px;
+    padding: 9px 24px; font-size: 0.9rem; font-weight: bold; cursor: pointer; font-family: inherit;
+    transition: transform 0.15s; margin: 0 6px;
+  }
+  .cyr_btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(245,158,11,0.35); }
+  .cyr_btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .cyr_btn-green { background: linear-gradient(135deg,#16a34a,#059669); }
+  .cyr_btn-blue  { background: linear-gradient(135deg,#2563eb,#1d4ed8); }
+
+  /* 总时间 */
+  .cyr_total { text-align: center; color: #fbbf24; font-family: Consolas, monospace; font-size: 0.85rem; margin-top: 6px; }
+
+  footer { text-align: center; color: #475569; font-size: 0.72rem; margin-top: 18px; }
+</style>
+</head>
+<body>
+<!-- 姓名：陈依然，日期：2026-11-02，功能：Promise & async 演示包饺子流程（race + all） -->
+<a href="index.html" class="cyr_back-home">← 返回首页</a>
+<div class="cyr_container">
+  <h1>🥟 Promise & async 包饺子</h1>
+  <p class="cyr_author">作者：陈依然 · setTimeout 模拟 · Promise.race 竞速 · Promise.all 并行 · async/await 串联</p>
+
+  <!-- ============ 可视化时间线 ============ -->
+  <div class="cyr_controls">
+    <button class="cyr_btn cyr_btn-green" onclick="cyr_start()" id="cyr_startBtn">🚀 开始包饺子</button>
+    <button class="cyr_btn cyr_btn-blue" onclick="cyr_showCode()" id="cyr_codeBtn">📖 查看源码</button>
+    <div class="cyr_total" id="cyr_total">等待开始…</div>
+  </div>
+
+  <div class="cyr_timeline">
+    <!-- 1. 买原料（race） -->
+    <div class="cyr_step" id="cyr-s1">
+      <div class="cyr_step-title">
+        <span>① 买原料（线上 🆚 线下）</span>
+        <span class="cyr_step-time">6s / 4s 谁先算谁 <code>Promise.race</code></span>
+      </div>
+      <div class="cyr_step-desc">同时发起「线上超市下单」和「楼下菜市场买菜」，谁先完成就用谁的原料继续（race 竞速）</div>
+      <div class="cyr_parallel">
+        <div class="cyr_parallel-item" id="cyr-s1-online">🛒 线上超市 · 预计 6s</div>
+        <div class="cyr_parallel-item" id="cyr-s1-offline">🏪 菜市场 · 预计 4s</div>
+      </div>
+      <div class="cyr_progress"><div class="cyr_progress-fill" id="cyr-p1"></div></div>
+      <div style="margin-top:6px"><span class="cyr_badge cyr_badge-wait" id="cyr-b1">⏸ 等待中</span></div>
+    </div>
+
+    <!-- 2. 取原料 -->
+    <div class="cyr_step" id="cyr-s2">
+      <div class="cyr_step-title">
+        <span>② 取原料</span>
+        <span class="cyr_step-time">2s</span>
+      </div>
+      <div class="cyr_step-desc">去快递柜 / 菜市场把原料拎回家</div>
+      <div class="cyr_progress"><div class="cyr_progress-fill" id="cyr-p2"></div></div>
+      <div style="margin-top:6px"><span class="cyr_badge cyr_badge-wait" id="cyr-b2">⏸ 等待中</span></div>
+    </div>
+
+    <!-- 3. 和面 + 和馅（all 并行） -->
+    <div class="cyr_step" id="cyr-s3">
+      <div class="cyr_step-title">
+        <span>③ 和面 ⏳ 等 和馅（<code>Promise.all</code>）</span>
+        <span class="cyr_step-time">5s + 3s 并行</span>
+      </div>
+      <div class="cyr_step-desc">两人分工并行干活，<strong>两个都完成</strong>才能进下一步（all 全部等完）</div>
+      <div class="cyr_parallel">
+        <div class="cyr_parallel-item" id="cyr-s3-dough">🍞 和面 · 预计 5s</div>
+        <div class="cyr_parallel-item" id="cyr-s3-filling">🥕 和馅 · 预计 3s</div>
+      </div>
+      <div class="cyr_progress"><div class="cyr_progress-fill" id="cyr-p3"></div></div>
+      <div style="margin-top:6px"><span class="cyr_badge cyr_badge-wait" id="cyr-b3">⏸ 等待中</span></div>
+    </div>
+
+    <!-- 4. 包饺子 -->
+    <div class="cyr_step" id="cyr-s4">
+      <div class="cyr_step-title">
+        <span>④ 包饺子</span>
+        <span class="cyr_step-time">8s</span>
+      </div>
+      <div class="cyr_step-desc">一双手速包饺子（最耗时的一步）</div>
+      <div class="cyr_progress"><div class="cyr_progress-fill" id="cyr-p4"></div></div>
+      <div style="margin-top:6px"><span class="cyr_badge cyr_badge-wait" id="cyr-b4">⏸ 等待中</span></div>
+    </div>
+
+    <!-- 5. 煮饺子 -->
+    <div class="cyr_step" id="cyr-s5">
+      <div class="cyr_step-title">
+        <span>⑤ 煮饺子</span>
+        <span class="cyr_step-time">4s</span>
+      </div>
+      <div class="cyr_step-desc">水开下饺子，三起三落煮熟</div>
+      <div class="cyr_progress"><div class="cyr_progress-fill" id="cyr-p5"></div></div>
+      <div style="margin-top:6px"><span class="cyr_badge cyr_badge-wait" id="cyr-b5">⏸ 等待中</span></div>
+    </div>
+
+    <!-- 6. 吃饺子 -->
+    <div class="cyr_step" id="cyr-s6">
+      <div class="cyr_step-title">
+        <span>⑥ 吃饺子 🎉</span>
+        <span class="cyr_step-time">3s 享受！</span>
+      </div>
+      <div class="cyr_step-desc">蒜酱配饺子，开造！</div>
+      <div class="cyr_progress"><div class="cyr_progress-fill" id="cyr-p6"></div></div>
+      <div style="margin-top:6px"><span class="cyr_badge cyr_badge-wait" id="cyr-b6">⏸ 等待中</span></div>
+    </div>
+  </div>
+
+  <!-- ============ 核心代码 ============ -->
+  <div class="cyr_code-block">
+    <div class="cyr_code-block-title">📖 核心代码（async/await + Promise.race + Promise.all）</div>
+    <div class="cyr_code" id="cyr_codeView" style="display:none"><span class="cyr_f">function</span> <span class="cyr_k">delay</span>(ms, label) {
+  <span class="cyr_f">return new Promise</span>(resolve =&gt; {
+    setTimeout(() =&gt; resolve(label), ms);
+  });
+}
+
+<span class="cyr_f">async function</span> <span class="cyr_k">makeDumplings</span>() {
+  <span class="cyr_c">// 1️⃣ Promise.race：同时线上线下买，谁先完成用谁</span>
+  <span class="cyr_f">const</span> bought = <span class="cyr_f">await</span> <span class="cyr_f">Promise</span>.<span class="cyr_k">race</span>([
+    <span class="cyr_k">delay</span>(<span class="cyr_n">6000</span>, <span class="cyr_s">'线上超市'</span>),
+    <span class="cyr_k">delay</span>(<span class="cyr_n">4000</span>, <span class="cyr_s">'菜市场'</span>)
+  ]);
+
+  <span class="cyr_c">// 2️⃣ 取原料</span>
+  <span class="cyr_f">await</span> <span class="cyr_k">delay</span>(<span class="cyr_n">2000</span>, <span class="cyr_s">'取原料'</span>);
+
+  <span class="cyr_c">// 3️⃣ Promise.all：和面 + 和馅 并行，两个都完成才继续</span>
+  <span class="cyr_f">const</span> [dough, filling] = <span class="cyr_f">await</span> <span class="cyr_f">Promise</span>.<span class="cyr_k">all</span>([
+    <span class="cyr_k">delay</span>(<span class="cyr_n">5000</span>, <span class="cyr_s">'和面'</span>),
+    <span class="cyr_k">delay</span>(<span class="cyr_n">3000</span>, <span class="cyr_s">'和馅'</span>)
+  ]);
+
+  <span class="cyr_c">// 4️⃣ 包饺子（串行）</span>
+  <span class="cyr_f">await</span> <span class="cyr_k">delay</span>(<span class="cyr_n">8000</span>, <span class="cyr_s">'包饺子'</span>);
+
+  <span class="cyr_c">// 5️⃣ 煮饺子</span>
+  <span class="cyr_f">await</span> <span class="cyr_k">delay</span>(<span class="cyr_n">4000</span>, <span class="cyr_s">'煮饺子'</span>);
+
+  <span class="cyr_c">// 6️⃣ 吃饺子！</span>
+  <span class="cyr_f">return await</span> <span class="cyr_k">delay</span>(<span class="cyr_n">3000</span>, <span class="cyr_s">'吃光光 🎉'</span>);
+}
+
+<span class="cyr_k">makeDumplings</span>().then(res =&gt; console.<span class="cyr_k">log</span>(res));</div>
+  </div>
+
+  <footer>17-6 · Promise & async 包饺子流程 · 陈依然</footer>
+</div>
+
+<script>
+  /* ============ 通用 Promise ============ */
+  function cyr_delay(ms, label, onProgress) {
+    return new Promise(function(resolve) {
+      var start = Date.now();
+      onProgress && onProgress(0);
+      var timer = setInterval(function() {
+        var pct = Math.min(100, ((Date.now() - start) / ms) * 100);
+        onProgress && onProgress(pct);
+        if (pct >= 100) { clearInterval(timer); resolve(label); }
+      }, 50);
+    });
+  }
+
+  /* ============ 状态工具 ============ */
+  function cyr_setStep(n, state) {
+    var step = document.getElementById('cyr-s' + n);
+    if (!step) return;
+    step.className = 'cyr_step';
+    if (state === 'running') step.classList.add('cyr_running');
+    if (state === 'done')   step.classList.add('cyr_done');
+
+    var badge = document.getElementById('cyr-b' + n);
+    if (state === 'running') { badge.className = 'cyr_badge cyr_badge-run';  badge.textContent = '⚡ 进行中'; }
+    if (state === 'done')    { badge.className = 'cyr_badge cyr_badge-done'; badge.textContent = '✅ 完成'; }
+    if (state === 'wait')    { badge.className = 'cyr_badge cyr_badge-wait'; badge.textContent = '⏸ 等待中'; }
+  }
+  function cyr_setPar(id, state, text) {
+    var el = document.getElementById(id); if (!el) return;
+    el.className = 'cyr_parallel-item';
+    if (state === 'active') el.classList.add('cyr_active');
+    if (state === 'done')   el.classList.add('cyr_pdone');
+    if (text) el.innerHTML = text;
+  }
+
+  /* ============ 主流程 ============ */
+  async function cyr_start() {
+    var btn = document.getElementById('cyr_startBtn');
+    btn.disabled = true; btn.textContent = '🥟 正在忙…';
+
+    var t0 = Date.now();
+    document.getElementById('cyr_total').textContent = '⏱ 开始计时…';
+
+    /* 重置所有步骤 */
+    for (var i = 1; i <= 6; i++) {
+      cyr_setStep(i, 'wait');
+      document.getElementById('cyr-p' + i).style.width = '0%';
+    }
+    cyr_setPar('cyr-s1-online', '', '🛒 线上超市 · 预计 6s');
+    cyr_setPar('cyr-s1-offline', '', '🏪 菜市场 · 预计 4s');
+    cyr_setPar('cyr-s3-dough', '', '🍞 和面 · 预计 5s');
+    cyr_setPar('cyr-s3-filling', '', '🥕 和馅 · 预计 3s');
+
+    // ============ 步骤 1：race ============
+    cyr_setStep(1, 'running');
+    cyr_setPar('cyr-s1-online', 'active');
+    cyr_setPar('cyr-s1-offline', 'active');
+
+    var bought = await Promise.race([
+      cyr_delay(6000, '线上超市', function(p) { document.getElementById('cyr-p1').style.width = p + '%'; }),
+      cyr_delay(4000, '菜市场',  function(p) {
+        cyr_setPar('cyr-s1-offline', 'active', '🏪 菜市场 · 进行中 ' + Math.round(p) + '%');
+      })
+    ]);
+
+    // 谁赢了标记谁
+    if (bought === '菜市场') {
+      cyr_setPar('cyr-s1-offline', 'done',  '🏪 菜市场 ✅ — 速度快！');
+      cyr_setPar('cyr-s1-online', '',        '🛒 线上超市 · 还在路上（被秒杀了）');
+    } else {
+      cyr_setPar('cyr-s1-online', 'done',    '🛒 线上超市 ✅');
+      cyr_setPar('cyr-s1-offline', '',        '🏪 菜市场 · 被抢先一步');
+    }
+    document.getElementById('cyr-p1').style.width = '100%';
+    cyr_setStep(1, 'done');
+
+    // ============ 步骤 2：取原料 ============
+    cyr_setStep(2, 'running');
+    await cyr_delay(2000, '取原料', function(p) { document.getElementById('cyr-p2').style.width = p + '%'; });
+    document.getElementById('cyr-p2').style.width = '100%';
+    cyr_setStep(2, 'done');
+
+    // ============ 步骤 3：all 并行 ============
+    cyr_setStep(3, 'running');
+    cyr_setPar('cyr-s3-dough',   'active');
+    cyr_setPar('cyr-s3-filling', 'active');
+
+    await Promise.all([
+      cyr_delay(5000, '和面', function(p) {
+        cyr_setPar('cyr-s3-dough', 'active', '🍞 和面 · ' + Math.round(p) + '%');
+      }),
+      cyr_delay(3000, '和馅', function(p) {
+        cyr_setPar('cyr-s3-filling', 'active', '🥕 和馅 · ' + Math.round(p) + '%');
+      })
+    ]);
+    cyr_setPar('cyr-s3-dough',   'done', '🍞 和面 ✅');
+    cyr_setPar('cyr-s3-filling', 'done', '🥕 和馅 ✅（等了 2s 等和面）');
+    document.getElementById('cyr-p3').style.width = '100%';
+    cyr_setStep(3, 'done');
+
+    // ============ 步骤 4：包饺子 ============
+    cyr_setStep(4, 'running');
+    await cyr_delay(8000, '包饺子', function(p) { document.getElementById('cyr-p4').style.width = p + '%'; });
+    document.getElementById('cyr-p4').style.width = '100%';
+    cyr_setStep(4, 'done');
+
+    // ============ 步骤 5：煮饺子 ============
+    cyr_setStep(5, 'running');
+    await cyr_delay(4000, '煮饺子', function(p) { document.getElementById('cyr-p5').style.width = p + '%'; });
+    document.getElementById('cyr-p5').style.width = '100%';
+    cyr_setStep(5, 'done');
+
+    // ============ 步骤 6：吃饺子 ============
+    cyr_setStep(6, 'running');
+    await cyr_delay(3000, '吃饺子', function(p) { document.getElementById('cyr-p6').style.width = p + '%'; });
+    document.getElementById('cyr-p6').style.width = '100%';
+    cyr_setStep(6, 'done');
+
+    var total = ((Date.now() - t0) / 1000).toFixed(1);
+    document.getElementById('cyr_total').textContent =
+      '🎉 全部完成！总耗时：' + total + 's（race 省了 2s，all 省了 3s！）';
+
+    btn.disabled = false; btn.textContent = '🔄 再来一盘';
+  }
+
+  function cyr_showCode() {
+    var el = document.getElementById('cyr_codeView');
+    el.style.display = el.style.display === 'none' ? 'block' : 'none';
+  }
+</script>
+</body>
+</html>
