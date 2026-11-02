@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>17-3 商品列表</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4ecf5 100%);
+    min-height: 100vh; padding: 22px 14px; color: #1a1a2e;
+  }
+  .cyr_back-home { display: inline-block; margin-bottom: 12px; color: #2563eb; text-decoration: none; font-size: 0.88rem; font-weight: bold; }
+  .cyr_container { max-width: 1100px; margin: 0 auto; }
+  h1 { font-size: 1.55rem; color: #1e293b; margin-bottom: 4px; }
+  .cyr_author { color: #64748b; font-size: 0.82rem; margin-bottom: 6px; }
+  .cyr_api { background: #fef3c7; border: 1px dashed #f59e0b; border-radius: 6px; padding: 8px 12px; font-family: Consolas, monospace; font-size: 0.75rem; color: #92400e; margin-bottom: 14px; word-break: break-all; }
+  .cyr_api code { color: #1d4ed8; }
+
+  .cyr_toolbar {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 14px; flex-wrap: wrap; gap: 8px;
+  }
+  .cyr_search {
+    background: #fff; border: 1px solid #cbd5e1; border-radius: 6px;
+    padding: 7px 12px; font-size: 0.82rem; width: 240px; font-family: inherit;
+  }
+  .cyr_search:focus { outline: none; border-color: #2563eb; }
+  .cyr_btn { background: linear-gradient(135deg, #2563eb, #7c3aed); color: #fff; border: none; border-radius: 6px; padding: 7px 14px; font-size: 0.82rem; font-weight: bold; cursor: pointer; transition: transform 0.15s; font-family: inherit; }
+  .cyr_btn:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(37,99,235,0.3); }
+  .cyr_btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .cyr_btn-outline { background: #fff; color: #2563eb; border: 1px solid #2563eb; }
+
+  .cyr_grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; }
+  .cyr_card {
+    background: #fff; border-radius: 10px; overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06); cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s; text-decoration: none; color: inherit; display: block;
+  }
+  .cyr_card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.12); }
+  .cyr_thumb { width: 100%; height: 160px; object-fit: cover; background: #f1f5f9; display: block; }
+  .cyr_body { padding: 12px 14px 14px; }
+  .cyr_title { font-size: 0.88rem; font-weight: 600; color: #1e293b; line-height: 1.4; height: 2.8em; overflow: hidden; margin-bottom: 6px; }
+  .cyr_cat { display: inline-block; background: #e0e7ff; color: #4338ca; padding: 2px 8px; border-radius: 10px; font-size: 0.68rem; font-weight: bold; text-transform: uppercase; }
+  .cyr_row { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+  .cyr_price { font-family: Consolas, monospace; font-size: 1.15rem; color: #ef4444; font-weight: bold; }
+  .cyr_disc { font-size: 0.7rem; color: #94a3b8; text-decoration: line-through; margin-left: 6px; }
+  .cyr_rating { font-size: 0.72rem; color: #f59e0b; }
+  .cyr_stock { font-size: 0.7rem; color: #10b981; margin-top: 2px; }
+
+  .cyr_loading {
+    grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: #64748b; font-size: 0.9rem;
+  }
+  .cyr_spinner { width: 36px; height: 36px; border: 3px solid #e2e8f0; border-top-color: #2563eb; border-radius: 50%; animation: cyr_spin 0.9s linear infinite; margin: 0 auto 12px; }
+  @keyframes cyr_spin { to { transform: rotate(360deg); } }
+  .cyr_empty { grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: #94a3b8; }
+
+  footer { text-align: center; color: #94a3b8; font-size: 0.72rem; margin-top: 20px; }
+</style>
+</head>
+<body>
+<!-- 姓名：陈依然，日期：2026-11-02，功能：商品列表（fetch + 详情联动） -->
+<a href="index.html" class="cyr_back-home">← 返回首页</a>
+<div class="cyr_container">
+  <h1>🛒 商品列表</h1>
+  <p class="cyr_author">点击商品卡片查看详情 · 数据来自 dummyjson.com</p>
+  <div class="cyr_api">GET <code>https://dummyjson.com/products?limit=8</code>（跨域支持 ✅）</div>
+
+  <div class="cyr_toolbar">
+    <input class="cyr_search" id="cyr_search" placeholder="🔍 搜索商品名称…" oninput="cyr_filter()">
+    <div>
+      <button class="cyr_btn-outline cyr_btn" onclick="cyr_load()">🔄 刷新</button>
+    </div>
+  </div>
+
+  <div class="cyr_grid" id="cyr_grid">
+    <div class="cyr_loading"><div class="cyr_spinner"></div>正在加载商品…</div>
+  </div>
+</div>
+
+<footer>17-3 · 商品列表 · 陈依然</footer>
+
+<script>
+  var cyr_allProducts = [];
+
+  async function cyr_load() {
+    document.getElementById('cyr_grid').innerHTML =
+      '<div class="cyr_loading"><div class="cyr_spinner"></div>正在加载商品…</div>';
+    try {
+      var res = await fetch('https://dummyjson.com/products?limit=8');
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      var data = await res.json();
+      cyr_allProducts = data.products;
+      cyr_render(cyr_allProducts);
+    } catch (err) {
+      document.getElementById('cyr_grid').innerHTML =
+        '<div class="cyr_loading" style="color:#ef4444">❌ 获取失败：' + err.message + '</div>';
+    }
+  }
+
+  function cyr_render(list) {
+    if (!list.length) {
+      document.getElementById('cyr_grid').innerHTML =
+        '<div class="cyr_empty">🔍 没有匹配的商品</div>'; return;
+    }
+    var html = '';
+    list.forEach(function(p) {
+      html +=
+        '<a class="cyr_card" href="17-3-detail.html?id=' + p.id + '">' +
+          '<img class="cyr_thumb" src="' + (p.thumbnail || p.images[0]) + '" alt="product">' +
+          '<div class="cyr_body">' +
+            '<div class="cyr_cat">' + p.category + '</div>' +
+            '<div class="cyr_title">' + p.title + '</div>' +
+            '<div class="cyr_row">' +
+              '<div>' +
+                '<span class="cyr_price">$' + p.price.toFixed(2) + '</span>' +
+                (p.discountPercentage ? '<span class="cyr_disc">$' + (p.price * (1 + p.discountPercentage / 100)).toFixed(2) + '</span>' : '') +
+              '</div>' +
+              '<div class="cyr_rating">★ ' + p.rating.toFixed(1) + '</div>' +
+            '</div>' +
+            '<div class="cyr_stock">库存：' + p.stock + ' | ' + p.availabilityStatus + '</div>' +
+          '</div>' +
+        '</a>';
+    });
+    document.getElementById('cyr_grid').innerHTML = html;
+  }
+
+  function cyr_filter() {
+    var q = document.getElementById('cyr_search').value.trim().toLowerCase();
+    if (!q) { cyr_render(cyr_allProducts); return; }
+    var filtered = cyr_allProducts.filter(function(p) {
+      return p.title.toLowerCase().indexOf(q) >= 0 || p.category.toLowerCase().indexOf(q) >= 0;
+    });
+    cyr_render(filtered);
+  }
+
+  cyr_load();
+</script>
+</body>
+</html>

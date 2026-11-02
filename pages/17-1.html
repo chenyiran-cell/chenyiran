@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>17-1 JSON 入门</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Microsoft YaHei", Consolas, "Segoe UI", monospace;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    background-attachment: fixed; color: #e2e8f0; line-height: 1.7;
+    padding: 24px 14px; min-height: 100vh;
+  }
+  .cyr_back-home { display: inline-block; margin-bottom: 12px; color: #81d4fa; text-decoration: none; font-size: 0.88rem; font-weight: bold; }
+  .cyr_container { max-width: 860px; margin: 0 auto; }
+  h1 { text-align: center; font-size: 1.6rem; margin-bottom: 4px;
+    background: linear-gradient(90deg, #81d4fa, #f0abfc); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .cyr_author { text-align: center; color: #64748b; font-size: 0.8rem; margin-bottom: 18px; }
+
+  .cyr_section-title { font-size: 1.1rem; color: #ffd54f; border-left: 4px solid #ffd54f; padding-left: 10px; margin: 26px 0 12px; }
+  .cyr_section-sub { color: #94a3b8; font-size: 0.82rem; margin-bottom: 10px; }
+
+  .cyr_card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 14px 16px; margin-bottom: 14px; }
+  .cyr_code {
+    background: #0d1117; border: 1px solid #30363d; border-radius: 8px;
+    padding: 12px 14px; font-family: Consolas, monospace; font-size: 0.82rem;
+    color: #c9d1d9; overflow-x: auto; white-space: pre; line-height: 1.55;
+  }
+  .cyr_code .cyr_k { color: #ff7b72; }
+  .cyr_code .cyr_s { color: #a5d6ff; }
+  .cyr_code .cyr_n { color: #79c0ff; }
+  .cyr_code .cyr_b { color: #7ee787; }
+  .cyr_code .cyr_c { color: #8b949e; font-style: italic; }
+  .cyr_code .cyr_f { color: #d2a8ff; }
+
+  .cyr_btn { background: linear-gradient(135deg, #2563eb, #7c3aed); color: #fff; border: none; border-radius: 6px; padding: 6px 14px; font-size: 0.82rem; font-weight: bold; cursor: pointer; margin: 6px 4px 0 0; transition: transform 0.15s; font-family: inherit; }
+  .cyr_btn:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(37,99,235,0.35); }
+  .cyr_btn-sm { padding: 4px 10px; font-size: 0.75rem; }
+  .cyr_result { background: rgba(15,52,96,0.6); border: 1px solid #1e40af; border-radius: 6px; padding: 8px 12px; font-family: Consolas, monospace; font-size: 0.8rem; color: #86efac; margin-top: 10px; white-space: pre-wrap; word-break: break-all; }
+
+  .cyr_grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  th, td { padding: 8px 12px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.08); }
+  th { color: #ffd54f; font-weight: bold; }
+  td code { background: rgba(255,255,255,0.1); color: #a5d6ff; padding: 1px 5px; border-radius: 4px; font-family: Consolas, monospace; font-size: 0.76rem; }
+
+  footer { text-align: center; color: #475569; font-size: 0.72rem; margin-top: 20px; }
+</style>
+</head>
+<body>
+<!-- 姓名：陈依然，日期：2026-11-02，功能：JSON 入门展示 -->
+<a href="index.html" class="cyr_back-home">← 返回首页</a>
+<div class="cyr_container">
+  <h1>JSON 入门</h1>
+  <p class="cyr_author">作者：陈依然 · 点击按钮即时体验</p>
+
+  <!-- ============ 一、什么是 JSON ============ -->
+  <h2 class="cyr_section-title">一、什么是 JSON</h2>
+  <div class="cyr_card">
+    <p class="cyr_section-sub"><strong>JSON</strong>（JavaScript Object Notation）是一种<strong>轻量级数据交换格式</strong>。长得像 JS 对象，但有严格语法：</p>
+    <div class="cyr_code">{
+  <span class="cyr_s">"name"</span>: <span class="cyr_s">"陈依然"</span>,
+  <span class="cyr_s">"age"</span>: <span class="cyr_n">21</span>,
+  <span class="cyr_s">"hobbies"</span>: [<span class="cyr_s">"编程"</span>, <span class="cyr_s">"音乐"</span>],
+  <span class="cyr_s">"address"</span>: {
+    <span class="cyr_s">"city"</span>: <span class="cyr_s">"大连"</span>,
+    <span class="cyr_s">"zip"</span>: <span class="cyr_s">"116000"</span>
+  }
+}</div>
+  </div>
+
+  <!-- ============ 二、语法规则 ============ -->
+  <h2 class="cyr_section-title">二、JSON 语法规则</h2>
+  <div class="cyr_card">
+    <table>
+      <tr><th>#</th><th>规则</th><th>示例</th></tr>
+      <tr><td>1</td><td>键名<strong>必须</strong>用<strong>双引号</strong></td><td><code>"name": "张三"</code> ✅</td></tr>
+      <tr><td>2</td><td>字符串也用双引号（不是单引号）</td><td><code>"hello"</code> ✅ / <code>'hello'</code> ❌</td></tr>
+      <tr><td>3</td><td>末尾<strong>不能</strong>有多余逗号</td><td><code>[1, 2,]</code> ❌</td></tr>
+      <tr><td>4</td><td>不允许注释（<code>//</code> 或 <code>/* */</code> 都不行）</td><td>被 JSON5 扩展支持</td></tr>
+      <tr><td>5</td><td>值类型：字符串、数字、布尔、null、对象、数组</td><td><code>undefined</code> ❌ <code>NaN</code> ❌ <code>函数</code> ❌</td></tr>
+    </table>
+  </div>
+
+  <!-- ============ 三、JSON.parse ============ -->
+  <h2 class="cyr_section-title">三、把 JSON 字符串 → JS 对象：<code style="color:#a5d6ff">JSON.parse()</code></h2>
+  <div class="cyr_grid">
+    <div class="cyr_card">
+      <div class="cyr_code"><span class="cyr_c">// JSON 字符串（从后端来的）</span>
+<span class="cyr_f">const</span> <span class="cyr_k">jsonStr</span> = <span class="cyr_s">'{"name":"陈依然","age":21}'</span>;
+
+<span class="cyr_c">// 解析成 JS 对象</span>
+<span class="cyr_f">const</span> <span class="cyr_k">obj</span> = <span class="cyr_f">JSON</span>.<span class="cyr_k">parse</span>(<span class="cyr_k">jsonStr</span>);
+<span class="cyr_f">console</span>.<span class="cyr_k">log</span>(<span class="cyr_k">obj</span>.<span class="cyr_k">name</span>); <span class="cyr_c">// "陈依然"</span></div>
+      <button class="cyr_btn" onclick="cyr_parse()">▶ 运行</button>
+      <div class="cyr_result" id="cyr_res-parse">—</div>
+    </div>
+    <div class="cyr_card">
+      <div class="cyr_code"><span class="cyr_c">// 非法 JSON 会报错！</span>
+<span class="cyr_f">try</span> {
+  <span class="cyr_f">JSON</span>.<span class="cyr_k">parse</span>(<span class="cyr_s">'{name: 123}'</span>);
+} <span class="cyr_f">catch</span>(<span class="cyr_k">e</span>) {
+  <span class="cyr_f">console</span>.<span class="cyr_k">error</span>(<span class="cyr_s">"解析失败"</span>, <span class="cyr_k">e</span>.<span class="cyr_k">message</span>);
+}</div>
+      <button class="cyr_btn" onclick="cyr_parseError()">▶ 测试错误</button>
+      <div class="cyr_result" id="cyr_res-parseErr">—</div>
+    </div>
+  </div>
+
+  <!-- ============ 四、JSON.stringify ============ -->
+  <h2 class="cyr_section-title">四、把 JS 对象 → JSON 字符串：<code style="color:#a5d6ff">JSON.stringify()</code></h2>
+  <div class="cyr_grid">
+    <div class="cyr_card">
+      <div class="cyr_code"><span class="cyr_f">const</span> <span class="cyr_k">user</span> = { <span class="cyr_k">name</span>: <span class="cyr_s">"陈依然"</span>, <span class="cyr_k">age</span>: <span class="cyr_n">21</span>, <span class="cyr_k">email</span>: <span class="cyr_s">"chen@test.com"</span> };
+
+<span class="cyr_f">const</span> <span class="cyr_k">json</span> = <span class="cyr_f">JSON</span>.<span class="cyr_k">stringify</span>(<span class="cyr_k">user</span>);
+<span class="cyr_f">console</span>.<span class="cyr_k">log</span>(<span class="cyr_k">json</span>);
+<span class="cyr_c">// {"name":"陈依然","age":21,"email":"chen@test.com"}</span>
+
+<span class="cyr_c">// 美化输出（2 空格缩进）</span>
+<span class="cyr_f">const</span> <span class="cyr_k">pretty</span> = <span class="cyr_f">JSON</span>.<span class="cyr_k">stringify</span>(<span class="cyr_k">user</span>, <span class="cyr_f">null</span>, <span class="cyr_n">2</span>);</div>
+      <button class="cyr_btn" onclick="cyr_stringify()">▶ 运行（含美化）</button>
+      <div class="cyr_result" id="cyr_res-stringify">—</div>
+    </div>
+    <div class="cyr_card">
+      <div class="cyr_code"><span class="cyr_c">// 自定义序列化：replacer 函数</span>
+<span class="cyr_f">const</span> <span class="cyr_k">withFunc</span> = { <span class="cyr_k">a</span>: <span class="cyr_n">1</span>, <span class="cyr_k">b</span>: <span class="cyr_n">2</span>, <span class="cyr_k">fn</span>: () =&gt; <span class="cyr_n">3</span> };
+
+<span class="cyr_f">JSON</span>.<span class="cyr_k">stringify</span>(<span class="cyr_k">withFunc</span>);
+<span class="cyr_c">// 函数直接被忽略！输出 {"a":1,"b":2}</span>
+
+<span class="cyr_c">// undefined 也会被忽略</span>
+<span class="cyr_f">JSON</span>.<span class="cyr_k">stringify</span>({ <span class="cyr_k">x</span>: <span class="cyr_n">1</span>, <span class="cyr_k">y</span>: <span class="cyr_f">undefined</span> });
+<span class="cyr_c">// {"x":1}</span></div>
+      <button class="cyr_btn" onclick="cyr_special()">▶ 测试特殊值</button>
+      <div class="cyr_result" id="cyr_res-special">—</div>
+    </div>
+  </div>
+
+  <!-- ============ 五、深拷贝 ============ -->
+  <h2 class="cyr_section-title">五、经典用法：用 JSON 实现<strong>深拷贝</strong></h2>
+  <div class="cyr_card">
+    <div class="cyr_code"><span class="cyr_f">const</span> <span class="cyr_k">original</span> = { <span class="cyr_k">a</span>: { <span class="cyr_k">b</span>: <span class="cyr_n">1</span> } };
+
+<span class="cyr_c">// 浅拷贝（只拷贝一层）</span>
+<span class="cyr_f">const</span> <span class="cyr_k">shallow</span> = <span class="cyr_f">Object</span>.<span class="cyr_k">assign</span>({}, <span class="cyr_k">original</span>);
+<span class="cyr_k">shallow</span>.<span class="cyr_k">a</span>.<span class="cyr_k">b</span> = <span class="cyr_n">999</span>;
+<span class="cyr_f">console</span>.<span class="cyr_k">log</span>(<span class="cyr_k">original</span>.<span class="cyr_k">a</span>.<span class="cyr_k">b</span>); <span class="cyr_c">// 999 ← 被污染了！</span>
+
+<span class="cyr_c">// JSON 深拷贝（先序列化再解析）</span>
+<span class="cyr_f">const</span> <span class="cyr_k">deep</span> = <span class="cyr_f">JSON</span>.<span class="cyr_k">parse</span>(<span class="cyr_f">JSON</span>.<span class="cyr_k">stringify</span>(<span class="cyr_k">original</span>));
+<span class="cyr_k">deep</span>.<span class="cyr_k">a</span>.<span class="cyr_k">b</span> = <span class="cyr_n">999</span>;
+<span class="cyr_f">console</span>.<span class="cyr_k">log</span>(<span class="cyr_k">original</span>.<span class="cyr_k">a</span>.<span class="cyr_k">b</span>); <span class="cyr_c">// 1 ← 独立副本 ✅</span></div>
+    <button class="cyr_btn" onclick="cyr_deep()">▶ 运行</button>
+    <div class="cyr_result" id="cyr_res-deep">—</div>
+  </div>
+
+  <!-- ============ 六、完整流程 ============ -->
+  <h2 class="cyr_section-title">六、完整流程：从后端 fetch JSON → 解析 → 使用</h2>
+  <div class="cyr_card">
+    <div class="cyr_code"><span class="cyr_c">// 1. fetch 拿到响应</span>
+<span class="cyr_f">fetch</span>(<span class="cyr_s">'https://dummyjson.com/products/1'</span>)
+  <span class="cyr_c">// 2. 调用 .json() 自动 parse</span>
+  .<span class="cyr_k">then</span>(res =&gt; res.<span class="cyr_k">json</span>())
+  <span class="cyr_c">// 3. 拿到 JS 对象，随意用</span>
+  .<span class="cyr_k">then</span>(data =&gt; {
+    <span class="cyr_f">console</span>.<span class="cyr_k">log</span>(<span class="cyr_k">data</span>.<span class="cyr_k">title</span>);
+    <span class="cyr_f">console</span>.<span class="cyr_k">log</span>(<span class="cyr_k">JSON</span>.<span class="cyr_k">stringify</span>(<span class="cyr_k">data</span>, <span class="cyr_f">null</span>, <span class="cyr_n">2</span>));
+  })
+  .<span class="cyr_k">catch</span>(err =&gt; <span class="cyr_f">console</span>.<span class="cyr_k">error</span>(<span class="cyr_k">err</span>));</div>
+    <button class="cyr_btn" onclick="cyr_fetchDemo()">▶ fetch 演示</button>
+    <div class="cyr_result" id="cyr_res-fetch">—</div>
+  </div>
+
+  <footer>17-1 · JSON 入门 · 陈依然</footer>
+</div>
+
+<script>
+  function cyr_parse() {
+    var str = '{"name":"陈依然","age":21,"skills":["JS","CSS","HTML"]}';
+    var obj = JSON.parse(str);
+    document.getElementById('cyr_res-parse').textContent =
+      'obj.name = "' + obj.name + '"\nobj.age = ' + obj.age + '\nobj.skills = ' + JSON.stringify(obj.skills);
+  }
+  function cyr_parseError() {
+    try {
+      JSON.parse('{name: 123}');
+      document.getElementById('cyr_res-parseErr').textContent = '❌ 不应走到这里';
+    } catch (e) {
+      document.getElementById('cyr_res-parseErr').textContent = '✅ 捕获到错误：' + e.message;
+    }
+  }
+  function cyr_stringify() {
+    var user = { name: '陈依然', age: 21, email: 'chen@test.com' };
+    var json = JSON.stringify(user);
+    var pretty = JSON.stringify(user, null, 2);
+    document.getElementById('cyr_res-stringify').textContent =
+      '压缩版：\n' + json + '\n\n美化版（缩进 2）：\n' + pretty;
+  }
+  function cyr_special() {
+    var withFn = { a: 1, b: 2, fn: function(){return 3;}, x: undefined, y: null };
+    var arr = [1, undefined, function(){}, null];
+    document.getElementById('cyr_res-special').textContent =
+      '对象 {a:1, b:2, fn:fn, x:undefined, y:null}  →  ' + JSON.stringify(withFn) + '\n' +
+      '数组 [1, undefined, fn, null]  →  ' + JSON.stringify(arr) + '\n\n' +
+      '⚠ 函数、undefined 在对象中被忽略；在数组中被转成 null';
+  }
+  function cyr_deep() {
+    var original = { a: { b: 1 } };
+    var shallow = Object.assign({}, original);
+    shallow.a.b = 999;
+    var shallowResult = 'Object.assign 浅拷贝后，修改 shallow.a.b = 999，original.a.b → ' + original.a.b + ' ← 被污染！';
+
+    var original2 = { a: { b: 1 } };
+    var deep = JSON.parse(JSON.stringify(original2));
+    deep.a.b = 999;
+    var deepResult = '\nJSON 深拷贝后，修改 deep.a.b = 999，original2.a.b → ' + original2.a.b + ' ← 独立副本 ✅';
+
+    document.getElementById('cyr_res-deep').textContent = shallowResult + deepResult;
+  }
+  function cyr_fetchDemo() {
+    fetch('https://dummyjson.com/products/1')
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        var mini = { id: data.id, title: data.title, price: data.price, brand: data.brand };
+        document.getElementById('cyr_res-fetch').textContent =
+          '✅ 成功获取商品 #' + data.id + '\n\n' + JSON.stringify(mini, null, 2);
+      })
+      .catch(function(err) {
+        document.getElementById('cyr_res-fetch').textContent = '❌ fetch 失败：' + err.message;
+      });
+  }
+
+  /* 初始运行一次核心演示 */
+  cyr_parse();
+  cyr_stringify();
+</script>
+</body>
+</html>

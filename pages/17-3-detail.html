@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>17-3 商品详情</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4ecf5 100%);
+    min-height: 100vh; padding: 22px 14px; color: #1a1a2e; }
+  .cyr_back-home { display: inline-block; margin-bottom: 12px; color: #2563eb; text-decoration: none; font-size: 0.88rem; font-weight: bold; }
+  .cyr_container { max-width: 900px; margin: 0 auto; }
+
+  .cyr_loading { text-align: center; padding: 80px 20px; color: #64748b; font-size: 0.9rem; }
+  .cyr_spinner { width: 40px; height: 40px; border: 3px solid #e2e8f0; border-top-color: #2563eb; border-radius: 50%; animation: cyr_spin 0.9s linear infinite; margin: 0 auto 12px; }
+  @keyframes cyr_spin { to { transform: rotate(360deg); } }
+
+  /* 顶部返回 */
+  .cyr_topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .cyr_back-list { background: #fff; color: #2563eb; border: 1px solid #2563eb; border-radius: 6px; padding: 6px 14px; font-size: 0.82rem; font-weight: bold; text-decoration: none; display: inline-block; transition: transform 0.15s; }
+  .cyr_back-list:hover { transform: translateY(-1px); box-shadow: 0 2px 8px rgba(37,99,235,0.2); }
+
+  /* 详情两栏 */
+  .cyr_detail { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+  .cyr_hero { padding: 20px; background: #f8fafc; display: flex; flex-direction: column; gap: 10px; }
+  .cyr_main-img { width: 100%; max-height: 320px; object-fit: contain; border-radius: 8px; background: #fff; padding: 10px; }
+  .cyr_thumbs { display: flex; gap: 8px; overflow-x: auto; }
+  .cyr_thumb { width: 60px; height: 60px; object-fit: cover; border-radius: 6px; cursor: pointer; border: 2px solid transparent; flex-shrink: 0; background: #fff; padding: 4px; transition: border-color 0.2s; }
+  .cyr_thumb.cyr_active { border-color: #2563eb; }
+  .cyr_thumb:hover { border-color: #93c5fd; }
+
+  .cyr_info { padding: 22px 24px; display: flex; flex-direction: column; gap: 10px; }
+  .cyr_cat-tag { display: inline-block; background: #e0e7ff; color: #4338ca; padding: 3px 10px; border-radius: 12px; font-size: 0.72rem; font-weight: bold; text-transform: uppercase; align-self: flex-start; }
+  .cyr_title { font-size: 1.45rem; font-weight: bold; color: #1e293b; line-height: 1.35; }
+  .cyr_brand { color: #64748b; font-size: 0.82rem; }
+  .cyr_brand strong { color: #1e293b; }
+  .cyr_desc { color: #475569; font-size: 0.85rem; line-height: 1.6; }
+
+  .cyr_price-row { display: flex; align-items: baseline; gap: 10px; }
+  .cyr_price { font-family: Consolas, monospace; font-size: 2rem; color: #ef4444; font-weight: bold; }
+  .cyr_old-price { font-family: Consolas, monospace; font-size: 0.95rem; color: #94a3b8; text-decoration: line-through; }
+  .cyr_discount { background: #fef2f2; color: #dc2626; padding: 2px 8px; border-radius: 4px; font-size: 0.72rem; font-weight: bold; }
+
+  .cyr_meta { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; margin-top: 6px; }
+  .cyr_meta-item { font-size: 0.78rem; color: #475569; }
+  .cyr_meta-item span { color: #94a3b8; }
+
+  .cyr_rating-block { background: #fef3c7; border-radius: 8px; padding: 10px 14px; }
+  .cyr_stars { color: #f59e0b; font-size: 0.95rem; }
+  .cyr_review-count { font-size: 0.78rem; color: #92400e; margin-left: 6px; }
+
+  .cyr_actions { display: flex; gap: 10px; margin-top: 8px; }
+  .cyr_btn { flex: 1; padding: 10px; border-radius: 8px; font-size: 0.88rem; font-weight: bold; cursor: pointer; border: none; font-family: inherit; transition: transform 0.15s; }
+  .cyr_btn:hover { transform: translateY(-1px); }
+  .cyr_btn-cart { background: linear-gradient(135deg, #f59e0b, #ea580c); color: #fff; }
+  .cyr_btn-buy { background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; }
+
+  /* 规格表 */
+  .cyr_spec { background: #fff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-top: 16px; padding: 18px 20px; }
+  .cyr_spec h3 { font-size: 1.05rem; color: #1e293b; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #f1f5f9; }
+  .cyr_spec-row { display: grid; grid-template-columns: 140px 1fr; padding: 8px 0; border-bottom: 1px dashed #e2e8f0; font-size: 0.82rem; }
+  .cyr_spec-row:last-child { border-bottom: none; }
+  .cyr_spec-label { color: #94a3b8; }
+  .cyr_spec-val { color: #374151; }
+
+  /* 评论区 */
+  .cyr_reviews { background: #fff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-top: 16px; padding: 18px 20px; }
+  .cyr_reviews h3 { font-size: 1.05rem; color: #1e293b; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #f1f5f9; }
+  .cyr_review { padding: 12px 0; border-bottom: 1px dashed #e2e8f0; }
+  .cyr_review:last-child { border-bottom: none; }
+  .cyr_review-head { display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 4px; }
+  .cyr_reviewer { font-weight: bold; color: #1e293b; }
+  .cyr_review-date { color: #94a3b8; font-size: 0.72rem; }
+  .cyr_review-stars { color: #f59e0b; font-size: 0.82rem; }
+  .cyr_review-body { color: #475569; font-size: 0.82rem; line-height: 1.55; }
+
+  footer { text-align: center; color: #94a3b8; font-size: 0.72rem; margin-top: 20px; }
+
+  /* 响应式 */
+  @media (max-width: 640px) {
+    .cyr_detail { grid-template-columns: 1fr; }
+    .cyr_price { font-size: 1.6rem; }
+  }
+</style>
+</head>
+<body>
+<!-- 姓名：陈依然，日期：2026-11-02，功能：商品详情页（fetch + URL 参数） -->
+<a href="index.html" class="cyr_back-home">← 返回首页</a>
+<div class="cyr_container">
+  <div class="cyr_topbar">
+    <a class="cyr_back-list" href="17-3.html">← 返回列表</a>
+    <div style="color:#94a3b8;font-size:0.78rem" id="cyr_urlHint">—</div>
+  </div>
+
+  <div id="cyr_content">
+    <div class="cyr_loading"><div class="cyr_spinner"></div>正在加载商品详情…</div>
+  </div>
+</div>
+
+<footer>17-3-detail · 商品详情 · 陈依然</footer>
+
+<script>
+  /* ============ 1. 从 URL 读参数 ============ */
+  var cyr_urlParams = new URLSearchParams(window.location.search);
+  var cyr_id = cyr_urlParams.get('id') || '1';
+  document.getElementById('cyr_urlHint').textContent = 'URL: ?id=' + cyr_id;
+
+  /* ============ 2. fetch 详情 ============ */
+  async function cyr_loadDetail() {
+    document.getElementById('cyr_content').innerHTML =
+      '<div class="cyr_loading"><div class="cyr_spinner"></div>正在加载商品详情 #' + cyr_id + '…</div>';
+    try {
+      var res = await fetch('https://dummyjson.com/products/' + cyr_id);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      var p = await res.json();
+      cyr_render(p);
+    } catch (err) {
+      document.getElementById('cyr_content').innerHTML =
+        '<div class="cyr_loading" style="color:#ef4444">❌ 获取失败：' + err.message + '<br><a href="17-3.html" class="cyr_back-list" style="margin-top:10px;display:inline-block">← 返回列表</a></div>';
+    }
+  }
+
+  /* ============ 3. 渲染 ============ */
+  function cyr_render(p) {
+    var html =
+      '<div class="cyr_detail">' +
+        '<div class="cyr_hero">' +
+          '<img id="cyr_mainImg" class="cyr_main-img" src="' + (p.thumbnail || p.images[0]) + '" alt="">' +
+          '<div class="cyr_thumbs">' +
+            (p.images || []).map(function(img, i) {
+              return '<img class="cyr_thumb ' + (i === 0 ? 'cyr_active' : '') + '" src="' + img + '" alt="" onclick="cyr_switchImg(this, \'' + img + '\')">';
+            }).join('') +
+          '</div>' +
+        '</div>' +
+        '<div class="cyr_info">' +
+          '<span class="cyr_cat-tag">' + p.category + '</span>' +
+          '<h1 class="cyr_title">' + p.title + '</h1>' +
+          '<div class="cyr_brand">品牌：<strong>' + (p.brand || 'N/A') + '</strong> | SKU：' + (p.sku || '—') + '</div>' +
+          '<div class="cyr_desc">' + p.description + '</div>' +
+          '<div class="cyr_price-row">' +
+            '<span class="cyr_price">$' + p.price.toFixed(2) + '</span>' +
+            (p.discountPercentage ?
+              '<span class="cyr_old-price">$' + (p.price * (1 + p.discountPercentage / 100)).toFixed(2) + '</span>' +
+              '<span class="cyr_discount">-' + p.discountPercentage.toFixed(0) + '%</span>'
+            : '') +
+          '</div>' +
+          '<div class="cyr_meta">' +
+            '<div class="cyr_meta-item"><span>库存：</span>' + p.stock + ' 件</div>' +
+            '<div class="cyr_meta-item"><span>状态：</span>' + p.availabilityStatus + '</div>' +
+            '<div class="cyr_meta-item"><span>重量：</span>' + p.weight + ' g</div>' +
+            '<div class="cyr_meta-item"><span>最低起订：</span>' + (p.minimumOrderQuantity || 1) + ' 件</div>' +
+          '</div>' +
+          '<div class="cyr_rating-block">' +
+            '<span class="cyr_stars">' + cyr_stars(p.rating) + '</span>' +
+            '<span class="cyr_review-count">' + p.rating.toFixed(1) + ' / 5.0</span>' +
+          '</div>' +
+          '<div class="cyr_actions">' +
+            '<button class="cyr_btn cyr_btn-cart" onclick="alert(\'🛒 已加入购物车\')">加入购物车</button>' +
+            '<button class="cyr_btn cyr_btn-buy" onclick="alert(\'🛍️ 立即购买！\')">立即购买</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+
+    /* 规格表 */
+    html +=
+      '<div class="cyr_spec">' +
+        '<h3>📋 规格参数</h3>' +
+        '<div class="cyr_spec-row"><div class="cyr_spec-label">宽度 × 高度 × 深度</div><div class="cyr_spec-val">' + (p.dimensions ? p.dimensions.width + ' × ' + p.dimensions.height + ' × ' + p.dimensions.depth + ' cm' : '—') + '</div></div>' +
+        '<div class="cyr_spec-row"><div class="cyr_spec-label">保修</div><div class="cyr_spec-val">' + (p.warrantyInformation || '—') + '</div></div>' +
+        '<div class="cyr_spec-row"><div class="cyr_spec-label">发货</div><div class="cyr_spec-val">' + (p.shippingInformation || '—') + '</div></div>' +
+        '<div class="cyr_spec-row"><div class="cyr_spec-label">退换政策</div><div class="cyr_spec-val">' + (p.returnPolicy || '—') + '</div></div>' +
+        '<div class="cyr_spec-row"><div class="cyr_spec-label">条码</div><div class="cyr_spec-val">' + (p.meta && p.meta.barcode ? p.meta.barcode : '—') + '</div></div>' +
+        '<div class="cyr_spec-row"><div class="cyr_spec-label">上架时间</div><div class="cyr_spec-val">' + (p.meta && p.meta.createdAt ? p.meta.createdAt.slice(0,10) : '—') + '</div></div>' +
+      '</div>';
+
+    /* 评论 */
+    if (p.reviews && p.reviews.length) {
+      html += '<div class="cyr_reviews"><h3>💬 买家评价（' + p.reviews.length + '）</h3>';
+      p.reviews.forEach(function(r) {
+        html +=
+          '<div class="cyr_review">' +
+            '<div class="cyr_review-head">' +
+              '<div><span class="cyr_reviewer">' + r.reviewerName + '</span> <span class="cyr_review-stars">' + cyr_stars(r.rating) + '</span></div>' +
+              '<div class="cyr_review-date">' + r.date.slice(0,10) + '</div>' +
+            '</div>' +
+            '<div class="cyr_review-body">' + r.comment + '</div>' +
+          '</div>';
+      });
+      html += '</div>';
+    }
+
+    document.getElementById('cyr_content').innerHTML = html;
+  }
+
+  function cyr_stars(rating) {
+    var full = Math.round(rating);
+    return '★★★★★'.slice(0, full) + '☆☆☆☆☆'.slice(0, 5 - full);
+  }
+  function cyr_switchImg(thumb, src) {
+    document.querySelectorAll('.cyr_thumb').forEach(function(t) { t.classList.remove('cyr_active'); });
+    thumb.classList.add('cyr_active');
+    document.getElementById('cyr_mainImg').src = src;
+  }
+
+  cyr_loadDetail();
+</script>
+</body>
+</html>
