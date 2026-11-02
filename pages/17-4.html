@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>17-4 API 接口测试工具</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Microsoft YaHei", Consolas, "Segoe UI", Arial, sans-serif;
+    background: linear-gradient(135deg, #0b1026 0%, #1c1a4e 50%, #2d1b69 100%);
+    background-attachment: fixed; color: #e2e8f0; line-height: 1.7;
+    padding: 20px 14px; min-height: 100vh;
+  }
+  .cyr_back-home { color: #81d4fa; text-decoration: none; font-size: 0.88rem; font-weight: bold; }
+  .cyr_container { max-width: 960px; margin: 0 auto; }
+  h1 { text-align: center; font-size: 1.5rem; margin-bottom: 4px;
+    background: linear-gradient(90deg, #f0abfc, #81d4fa); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .cyr_author { text-align: center; color: #64748b; font-size: 0.82rem; margin-bottom: 14px; }
+
+  .cyr_panel {
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px; padding: 18px 20px; margin-bottom: 14px;
+  }
+  .cyr_panel-title { font-size: 1rem; color: #fbbf24; font-weight: bold; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px dashed rgba(255,255,255,0.1); }
+
+  /* Method selector */
+  .cyr_method-row { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+  .cyr_method-btn {
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+    color: #cbd5e1; padding: 5px 12px; border-radius: 6px; font-size: 0.78rem;
+    cursor: pointer; font-family: Consolas, monospace; font-weight: bold; transition: all 0.2s;
+  }
+  .cyr_method-btn:hover { background: rgba(255,255,255,0.12); }
+  .cyr_method-btn.cyr_active { color: #fff; border-color: transparent; }
+  .cyr_method-btn[data-m="GET"].cyr_active    { background: linear-gradient(135deg,#10b981,#059669); }
+  .cyr_method-btn[data-m="POST"].cyr_active   { background: linear-gradient(135deg,#f59e0b,#d97706); }
+  .cyr_method-btn[data-m="PUT"].cyr_active    { background: linear-gradient(135deg,#3b82f6,#2563eb); }
+  .cyr_method-btn[data-m="DELETE"].cyr_active { background: linear-gradient(135deg,#ef4444,#dc2626); }
+  .cyr_method-btn[data-m="PATCH"].cyr_active  { background: linear-gradient(135deg,#8b5cf6,#7c3aed); }
+
+  /* URL row */
+  .cyr_url-row { display: flex; gap: 8px; margin-bottom: 10px; }
+  .cyr_url {
+    flex: 1; background: #0d1117; border: 1px solid #30363d; border-radius: 8px;
+    color: #e2e8f0; padding: 10px 12px; font-size: 0.85rem; font-family: Consolas, monospace;
+  }
+  .cyr_url:focus { outline: none; border-color: #81d4fa; }
+  .cyr_send {
+    background: linear-gradient(135deg,#0ea5e9,#6366f1); color: #fff; border: none;
+    border-radius: 8px; padding: 0 22px; font-size: 0.9rem; font-weight: bold; cursor: pointer;
+    font-family: inherit; transition: transform 0.15s; white-space: nowrap;
+  }
+  .cyr_send:hover { transform: translateY(-1px); }
+  .cyr_send:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  /* Body area */
+  .cyr_body-area { display: none; }
+  .cyr_body-area.cyr_show { display: block; }
+  .cyr_body-area label { font-size: 0.78rem; color: #94a3b8; display: block; margin-bottom: 6px; }
+  .cyr_body-text {
+    width: 100%; background: #0d1117; border: 1px solid #30363d; border-radius: 8px;
+    color: #c9d1d9; padding: 10px 12px; font-size: 0.82rem; font-family: Consolas, monospace;
+    min-height: 110px; resize: vertical;
+  }
+  .cyr_body-text:focus { outline: none; border-color: #81d4fa; }
+
+  /* Quick presets */
+  .cyr_presets { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+  .cyr_preset {
+    background: rgba(129,212,250,0.1); border: 1px solid rgba(129,212,250,0.3);
+    color: #81d4fa; padding: 4px 10px; border-radius: 12px; font-size: 0.72rem;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .cyr_preset:hover { background: rgba(129,212,250,0.2); color: #fff; }
+
+  /* Response */
+  .cyr_resp-meta {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px;
+    margin-bottom: 10px; display: none;
+  }
+  .cyr_resp-meta.cyr_show { display: grid; }
+  .cyr_meta-item {
+    background: #0d1117; border-radius: 6px; padding: 8px 10px; font-size: 0.75rem;
+  }
+  .cyr_meta-label { color: #64748b; font-size: 0.68rem; }
+  .cyr_meta-val { color: #fbbf24; font-weight: bold; font-family: Consolas, monospace; font-size: 0.8rem; }
+  .cyr_meta-val.cyr_ok { color: #34d399; }
+  .cyr_meta-val.cyr_err { color: #f87171; }
+
+  .cyr_resp-body {
+    background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 12px 14px;
+    font-family: Consolas, monospace; font-size: 0.78rem; color: #c9d1d9;
+    max-height: 400px; overflow-y: auto; white-space: pre-wrap; word-break: break-all;
+    display: none;
+  }
+  .cyr_resp-body.cyr_show { display: block; }
+
+  .cyr_resp-body.cyr_ok { border-left: 3px solid #10b981; }
+  .cyr_resp-body.cyr_err { border-left: 3px solid #ef4444; }
+
+  /* History */
+  .cyr_history-item {
+    display: grid; grid-template-columns: 54px 1fr 70px; gap: 8px; align-items: center;
+    padding: 8px 12px; border-radius: 6px; cursor: pointer; transition: background 0.15s;
+    font-size: 0.78rem; margin-bottom: 4px; background: rgba(255,255,255,0.03);
+  }
+  .cyr_history-item:hover { background: rgba(255,255,255,0.08); }
+  .cyr_history-method { font-family: Consolas, monospace; font-weight: bold; text-align: center; padding: 3px 0; border-radius: 4px; }
+  .cyr_history-url { color: #cbd5e1; font-family: Consolas, monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cyr_history-status { font-family: Consolas, monospace; font-size: 0.7rem; text-align: right; }
+  .cyr_m-GET    .cyr_history-method { background: #059669; color: #fff; }
+  .cyr_m-POST   .cyr_history-method { background: #d97706; color: #fff; }
+  .cyr_m-PUT    .cyr_history-method { background: #2563eb; color: #fff; }
+  .cyr_m-DELETE .cyr_history-method { background: #dc2626; color: #fff; }
+  .cyr_m-PATCH  .cyr_history-method { background: #7c3aed; color: #fff; }
+
+  footer { text-align: center; color: #475569; font-size: 0.72rem; margin-top: 18px; }
+</style>
+</head>
+<body>
+<!-- 姓名：陈依然，日期：2026-11-02，功能：API 接口测试工具（GET/POST/PUT/DELETE/PATCH） -->
+<a href="index.html" class="cyr_back-home">← 返回首页</a>
+<div class="cyr_container">
+  <h1>🔧 API 接口测试工具</h1>
+  <p class="cyr_author">作者：陈依然 · 支持 GET / POST / PUT / DELETE / PATCH · 自动 JSON 美化 · 错误提示</p>
+
+  <!-- ============ 请求构建 ============ -->
+  <div class="cyr_panel">
+    <div class="cyr_panel-title">① 构建请求</div>
+
+    <div class="cyr_presets">
+      <div class="cyr_preset" onclick="cyr_usePreset('dog')">🐕 随机狗图 GET</div>
+      <div class="cyr_preset" onclick="cyr_usePreset('users')">👥 用户列表 GET</div>
+      <div class="cyr_preset" onclick="cyr_usePreset('post-create')">📝 新建帖子 POST</div>
+      <div class="cyr_preset" onclick="cyr_usePreset('post-update')">✏️ 更新帖子 PUT</div>
+      <div class="cyr_preset" onclick="cyr_usePreset('post-del')">🗑 删除帖子 DELETE</div>
+      <div class="cyr_preset" onclick="cyr_usePreset('dj')">🛒 DummyJSON GET</div>
+    </div>
+
+    <div class="cyr_method-row">
+      <button class="cyr_method-btn cyr_active" data-m="GET" onclick="cyr_setMethod('GET')">GET</button>
+      <button class="cyr_method-btn" data-m="POST" onclick="cyr_setMethod('POST')">POST</button>
+      <button class="cyr_method-btn" data-m="PUT" onclick="cyr_setMethod('PUT')">PUT</button>
+      <button class="cyr_method-btn" data-m="DELETE" onclick="cyr_setMethod('DELETE')">DELETE</button>
+      <button class="cyr_method-btn" data-m="PATCH" onclick="cyr_setMethod('PATCH')">PATCH</button>
+    </div>
+
+    <div class="cyr_url-row">
+      <input class="cyr_url" id="cyr_url" value="https://jsonplaceholder.typicode.com/posts/1" placeholder="https://api.example.com/endpoint">
+      <button class="cyr_send" id="cyr_sendBtn" onclick="cyr_send()">📤 发送</button>
+    </div>
+
+    <div class="cyr_body-area" id="cyr_body-area">
+      <label>Request Body（JSON 格式）</label>
+      <textarea class="cyr_body-text" id="cyr_body">{
+  "title": "我的帖子",
+  "body": "这是正文",
+  "userId": 1
+}</textarea>
+    </div>
+  </div>
+
+  <!-- ============ 响应 ============ -->
+  <div class="cyr_panel">
+    <div class="cyr_panel-title">② 响应结果</div>
+    <div class="cyr_resp-meta" id="cyr_meta">
+      <div class="cyr_meta-item"><div class="cyr_meta-label">状态码</div><div class="cyr_meta-val" id="cyr_status">—</div></div>
+      <div class="cyr_meta-item"><div class="cyr_meta-label">耗时</div><div class="cyr_meta-val" id="cyr_time">—</div></div>
+      <div class="cyr_meta-item"><div class="cyr_meta-label">Content-Type</div><div class="cyr_meta-val" id="cyr_ct">—</div></div>
+      <div class="cyr_meta-item"><div class="cyr_meta-label">大小</div><div class="cyr_meta-val" id="cyr_size">—</div></div>
+    </div>
+    <div class="cyr_resp-body" id="cyr_body">点击上面的「发送」按钮开始测试 🚀</div>
+  </div>
+
+  <!-- ============ 历史 ============ -->
+  <div class="cyr_panel">
+    <div class="cyr_panel-title">③ 历史记录（点击可复用）</div>
+    <div id="cyr_history">
+      <div style="color:#64748b;font-size:0.8rem">还没有请求记录…</div>
+    </div>
+  </div>
+
+  <footer>17-4 · API 接口测试工具 · 陈依然</footer>
+</div>
+
+<script>
+  var cyr_method = 'GET';
+  var cyr_historyList = [];
+
+  function cyr_setMethod(m) {
+    cyr_method = m;
+    document.querySelectorAll('.cyr_method-btn').forEach(function(b) {
+      b.classList.toggle('cyr_active', b.dataset.m === m);
+    });
+    var needBody = ['POST','PUT','PATCH'].indexOf(m) >= 0;
+    document.getElementById('cyr_body-area').classList.toggle('cyr_show', needBody);
+  }
+
+  function cyr_usePreset(key) {
+    var presets = {
+      'dog':         { m:'GET',    u:'https://dog.ceo/api/breeds/image/random' },
+      'users':       { m:'GET',    u:'https://jsonplaceholder.typicode.com/users' },
+      'post-create': { m:'POST',   u:'https://jsonplaceholder.typicode.com/posts',
+                       b:'{\n  "title": "Hello API",\n  "body": "这是我发的第一条",\n  "userId": 1\n}' },
+      'post-update': { m:'PUT',    u:'https://jsonplaceholder.typicode.com/posts/1',
+                       b:'{\n  "id": 1,\n  "title": "更新后的标题",\n  "body": "新的正文",\n  "userId": 1\n}' },
+      'post-del':    { m:'DELETE', u:'https://jsonplaceholder.typicode.com/posts/1' },
+      'dj':          { m:'GET',    u:'https://dummyjson.com/products?limit=3' }
+    };
+    var p = presets[key];
+    cyr_setMethod(p.m);
+    document.getElementById('cyr_url').value = p.u;
+    if (p.b) document.getElementById('cyr_body').value = p.b;
+  }
+
+  async function cyr_send() {
+    var url = document.getElementById('cyr_url').value.trim();
+    if (!url) { cyr_showErr('请输入 URL'); return; }
+
+    var btn = document.getElementById('cyr_sendBtn');
+    btn.disabled = true; btn.textContent = '⏳ 请求中…';
+
+    var startTime = Date.now();
+    var body = null;
+    var headers = {};
+    var needBody = ['POST','PUT','PATCH'].indexOf(cyr_method) >= 0;
+    if (needBody) {
+      var rawBody = document.getElementById('cyr_body').value.trim();
+      try {
+        JSON.parse(rawBody); // 验证 JSON 合法性
+        headers['Content-Type'] = 'application/json';
+        body = rawBody;
+      } catch (e) {
+        btn.disabled = false; btn.textContent = '📤 发送';
+        cyr_showErr('❌ Body 不是合法 JSON：' + e.message);
+        return;
+      }
+    }
+
+    try {
+      var res = await fetch(url, { method: cyr_method, headers: headers, body: body });
+      var elapsed = Date.now() - startTime;
+      var ct = res.headers.get('content-type') || '—';
+      var size = res.headers.get('content-length') || '—';
+      var text = await res.text();
+
+      var pretty = text;
+      try { pretty = JSON.stringify(JSON.parse(text), null, 2); } catch (e) { /* 不是 JSON 就原样 */ }
+
+      cyr_showResp({
+        ok: res.ok, status: res.status, statusText: res.statusText,
+        time: elapsed, ct: ct, size: size, body: pretty, raw: text
+      });
+
+      cyr_addHistory(cyr_method, url, res.status);
+    } catch (err) {
+      cyr_showErr('❌ fetch 失败：' + err.message + '\n\n可能原因：\n· 网络不通\n· 接口不支持跨域 CORS\n· URL 写错');
+      cyr_addHistory(cyr_method, url, 'ERR');
+    } finally {
+      btn.disabled = false; btn.textContent = '📤 发送';
+    }
+  }
+
+  function cyr_showResp(info) {
+    var meta = document.getElementById('cyr_meta');
+    meta.classList.add('cyr_show');
+    document.getElementById('cyr_status').textContent = info.status + ' ' + info.statusText;
+    document.getElementById('cyr_status').className = 'cyr_meta-val ' + (info.ok ? 'cyr_ok' : 'cyr_err');
+    document.getElementById('cyr_time').textContent = info.time + ' ms';
+    document.getElementById('cyr_ct').textContent = info.ct.split(';')[0];
+    document.getElementById('cyr_size').textContent = info.size + ' B';
+
+    var body = document.getElementById('cyr_body');
+    body.className = 'cyr_resp-body cyr_show ' + (info.ok ? 'cyr_ok' : 'cyr_err');
+    body.textContent = info.body;
+  }
+
+  function cyr_showErr(msg) {
+    var meta = document.getElementById('cyr_meta');
+    meta.classList.add('cyr_show');
+    document.getElementById('cyr_status').textContent = 'NETWORK ERR';
+    document.getElementById('cyr_status').className = 'cyr_meta-val cyr_err';
+    document.getElementById('cyr_time').textContent = '—';
+    document.getElementById('cyr_ct').textContent = '—';
+    document.getElementById('cyr_size').textContent = '—';
+
+    var body = document.getElementById('cyr_body');
+    body.className = 'cyr_resp-body cyr_show cyr_err';
+    body.textContent = msg;
+  }
+
+  function cyr_addHistory(method, url, status) {
+    cyr_historyList.unshift({ m: method, u: url, s: status, time: new Date() });
+    if (cyr_historyList.length > 8) cyr_historyList.pop();
+    var box = document.getElementById('cyr_history');
+    if (!cyr_historyList.length) {
+      box.innerHTML = '<div style="color:#64748b;font-size:0.8rem">还没有请求记录…</div>'; return;
+    }
+    box.innerHTML = cyr_historyList.map(function(h, i) {
+      return '<div class="cyr_history-item cyr_m-' + h.m + '" onclick="cyr_reuse(' + i + ')">' +
+        '<div class="cyr_history-method">' + h.m + '</div>' +
+        '<div class="cyr_history-url">' + h.u + '</div>' +
+        '<div class="cyr_history-status" style="color:' + (String(h.s).startsWith('2') ? '#34d399' : h.s === 'ERR' ? '#f87171' : '#fbbf24') + '">' + h.s + '</div>' +
+      '</div>';
+    }).join('');
+  }
+  function cyr_reuse(i) {
+    var h = cyr_historyList[i];
+    cyr_setMethod(h.m);
+    document.getElementById('cyr_url').value = h.u;
+    cyr_send();
+  }
+
+  /* 默认 GET */
+  cyr_setMethod('GET');
+</script>
+</body>
+</html>

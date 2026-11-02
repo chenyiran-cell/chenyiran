@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>17-5 setTimeout vs setInterval</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Microsoft YaHei", Consolas, "Segoe UI", monospace;
+    background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #581c87 100%);
+    background-attachment: fixed; color: #e2e8f0; line-height: 1.7;
+    padding: 22px 14px; min-height: 100vh;
+  }
+  .cyr_back-home { color: #81d4fa; text-decoration: none; font-size: 0.88rem; font-weight: bold; }
+  .cyr_container { max-width: 960px; margin: 0 auto; }
+  h1 { text-align: center; font-size: 1.5rem; margin-bottom: 4px;
+    background: linear-gradient(90deg, #fbbf24, #f472b6); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .cyr_author { text-align: center; color: #a5b4fc; font-size: 0.82rem; margin-bottom: 14px; }
+
+  /* ============ 定义 ============ */
+  .cyr_def {
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px; padding: 16px 18px; margin-bottom: 14px;
+  }
+  .cyr_def h2 { font-size: 1.05rem; color: #fbbf24; margin-bottom: 6px; }
+  .cyr_def p { color: #cbd5e1; font-size: 0.84rem; margin-bottom: 4px; line-height: 1.65; }
+  .cyr_def code { background: rgba(255,255,255,0.1); color: #a5d6ff; padding: 1px 6px; border-radius: 4px; font-family: Consolas, monospace; font-size: 0.78rem; }
+
+  /* ============ 卡片 ============ */
+  .cyr_grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(440px, 1fr)); gap: 14px; }
+  .cyr_card {
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px; padding: 18px 20px;
+  }
+  .cyr_card-title { font-size: 1rem; font-weight: bold; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+  .cyr_card-title .cyr_badge { font-size: 0.68rem; padding: 2px 8px; border-radius: 8px; font-weight: bold; }
+  .cyr_badge-single { background: rgba(16,185,129,0.25); color: #34d399; }
+  .cyr_badge-loop   { background: rgba(244,114,182,0.25); color: #f472b6; }
+
+  .cyr_live-box {
+    background: #0d1117; border-radius: 10px; padding: 14px;
+    margin: 12px 0; text-align: center; border: 1px solid #30363d;
+  }
+  .cyr_big-number { font-size: 3rem; font-weight: 200; color: #fbbf24; font-family: Consolas, monospace; line-height: 1; }
+  .cyr_big-number.cyr_countdown { color: #f87171; }
+  .cyr_big-number.cyr_countup   { color: #34d399; }
+  .cyr_big-label { font-size: 0.72rem; color: #64748b; margin-top: 6px; }
+
+  .cyr_code { background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 10px 12px; font-size: 0.76rem; color: #c9d1d9; font-family: Consolas, monospace; white-space: pre; line-height: 1.55; margin-bottom: 10px; overflow-x: auto; }
+  .cyr_code .k { color: #ff7b72; } .cyr_code .s { color: #a5d6ff; } .cyr_code .n { color: #79c0ff; }
+  .cyr_code .b { color: #7ee787; } .cyr_code .c { color: #8b949e; font-style: italic; } .cyr_code .f { color: #d2a8ff; }
+
+  .cyr_controls { display: flex; gap: 8px; flex-wrap: wrap; }
+  .cyr_btn {
+    background: #2563eb; color: #fff; border: none; border-radius: 6px;
+    padding: 7px 14px; font-size: 0.82rem; font-weight: bold; cursor: pointer;
+    font-family: inherit; transition: transform 0.15s;
+  }
+  .cyr_btn:hover { transform: translateY(-1px); }
+  .cyr_btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .cyr_btn-red   { background: #dc2626; }
+  .cyr_btn-green { background: #16a34a; }
+  .cyr_btn-pink  { background: #db2777; }
+  .cyr_btn-outline { background: transparent; border: 1px solid #64748b; color: #cbd5e1; }
+
+  .cyr_input { background: #0d1117; border: 1px solid #30363d; border-radius: 6px; color: #e2e8f0; padding: 6px 10px; font-size: 0.82rem; font-family: Consolas, monospace; width: 80px; }
+  .cyr_input:focus { outline: none; border-color: #81d4fa; }
+
+  /* ============ 日志 ============ */
+  .cyr_log {
+    background: #0d1117; border: 1px solid #30363d; border-radius: 6px; padding: 10px 12px;
+    height: 140px; overflow-y: auto; font-family: Consolas, monospace; font-size: 0.74rem;
+    color: #c9d1d9; line-height: 1.55; white-space: pre-wrap;
+  }
+  .cyr_log .cyr_log-line { margin: 2px 0; }
+  .cyr_log .cyr_log-ts { color: #8b949e; }
+  .cyr_log .cyr_log-green { color: #7ee787; }
+  .cyr_log .cyr_log-red { color: #f87171; }
+  .cyr_log .cyr_log-pink { color: #f472b6; }
+
+  footer { text-align: center; color: #475569; font-size: 0.72rem; margin-top: 18px; }
+</style>
+</head>
+<body>
+<!-- 姓名：陈依然，日期：2026-11-02，功能：setTimeout vs setInterval 两种定时器 -->
+<a href="index.html" class="cyr_back-home">← 返回首页</a>
+<div class="cyr_container">
+  <h1>⏱️ setTimeout vs setInterval</h1>
+  <p class="cyr_author">作者：陈依然 · 两种定时器 · 实时演示 + 代码对照</p>
+
+  <!-- ============ 定义 ============ -->
+  <div class="cyr_def">
+    <h2>📖 一句话区分</h2>
+    <p><code>setTimeout(fn, delay)</code> —— <strong>一次性</strong>定时器，delay 毫秒后<strong>只执行一次</strong>就结束。像 <code>sleep(1000)</code>。</p>
+    <p><code>setInterval(fn, delay)</code> —— <strong>循环</strong>定时器，每隔 delay 毫秒<strong>反复执行</strong>，直到手动 <code>clearInterval</code>。像<strong>闹钟</strong>。</p>
+    <p style="color:#f87171;font-size:0.78rem;margin-top:6px">⚠ 两个都是<strong>异步</strong>的，不会阻塞主线程；返回一个定时器 ID 给 clearTimeout / clearInterval 取消。</p>
+  </div>
+
+  <!-- ============ 演示 ============ -->
+  <div class="cyr_grid">
+    <!-- setTimeout 演示 -->
+    <div class="cyr_card">
+      <div class="cyr_card-title">
+        <span>⏰ setTimeout</span>
+        <span class="cyr_badge cyr_badge-single">一次性</span>
+      </div>
+
+      <div class="cyr_live-box">
+        <div class="cyr_big-number" id="cyr_st-msg">等待触发…</div>
+        <div class="cyr_big-label" id="cyr_st-sub">设置 delay 后点「开始」，倒计时到 0 触发</div>
+      </div>
+
+      <div class="cyr_code"><span class="cyr_f">let</span> timerId;
+<span class="cyr_f">function</span> <span class="cyr_k">start</span>() {
+  timerId = <span class="cyr_f">setTimeout</span>(() =&gt; {
+    <span class="cyr_f">console</span>.<span class="cyr_k">log</span>(<span class="cyr_s">"时间到！"</span>);
+  }, <span class="cyr_n">3000</span>); <span class="cyr_c">// 3 秒后执行一次</span>
+}
+<span class="cyr_f">function</span> <span class="cyr_k">stop</span>() {
+  <span class="cyr_f">clearTimeout</span>(timerId); <span class="cyr_c">// 取消</span>
+}</div>
+
+      <div class="cyr_controls">
+        延迟
+        <input class="cyr_input" id="cyr_st-delay" type="number" value="3" min="1">
+        秒
+        <button class="cyr_btn cyr_btn-green" onclick="cyr_stStart()">▶ 开始倒计时</button>
+        <button class="cyr_btn cyr_btn-red" onclick="cyr_stStop()" disabled>■ 取消</button>
+      </div>
+      <div style="margin-top:8px">
+        <button class="cyr_btn cyr_btn-pink" onclick="cyr_stChain()">🔗 链式 setTimeout（代替 setInterval）</button>
+      </div>
+      <div class="cyr_log" id="cyr_st-log"></div>
+    </div>
+
+    <!-- setInterval 演示 -->
+    <div class="cyr_card">
+      <div class="cyr_card-title">
+        <span>⏱️ setInterval</span>
+        <span class="cyr_badge cyr_badge-loop">循环</span>
+      </div>
+
+      <div class="cyr_live-box">
+        <div class="cyr_big-number cyr_countup" id="cyr_si-count">0</div>
+        <div class="cyr_big-label">累计触发次数（每秒 +1）</div>
+      </div>
+
+      <div class="cyr_code"><span class="cyr_f">let</span> counter = <span class="cyr_n">0</span>;
+<span class="cyr_f">let</span> timerId2;
+<span class="cyr_f">function</span> <span class="cyr_k">startCount</span>() {
+  timerId2 = <span class="cyr_f">setInterval</span>(() =&gt; {
+    counter++;
+    <span class="cyr_f">console</span>.<span class="cyr_k">log</span>(<span class="cyr_s">"tick"</span>, counter);
+  }, <span class="cyr_n">1000</span>); <span class="cyr_c">// 每秒重复</span>
+}
+<span class="cyr_f">function</span> <span class="cyr_k">stopCount</span>() {
+  <span class="cyr_f">clearInterval</span>(timerId2); <span class="cyr_c">// 停止循环</span>
+}</div>
+
+      <div class="cyr_controls">
+        间隔
+        <input class="cyr_input" id="cyr_si-delay" type="number" value="1" min="0.1" step="0.1">
+        秒
+        <button class="cyr_btn cyr_btn-green" onclick="cyr_siStart()">▶ 开始</button>
+        <button class="cyr_btn cyr_btn-red" onclick="cyr_siStop()" disabled>■ 停止</button>
+        <button class="cyr_btn cyr_btn-outline" onclick="cyr_siReset()">🔄 归零</button>
+      </div>
+
+      <div class="cyr_log" id="cyr_si-log"></div>
+    </div>
+  </div>
+
+  <!-- ============ 经典对比 ============ -->
+  <div class="cyr_card" style="margin-top:14px">
+    <div class="cyr_card-title">⚖️ 经典对比：用 setTimeout 代替 setInterval</div>
+    <div class="cyr_code" style="margin-bottom:0"><span class="cyr_c">// ❌ setInterval 版（如果 fn 里有耗时操作，下一次触发会"堆积"）</span>
+<span class="cyr_f">setInterval</span>(fn, <span class="cyr_n">1000</span>);
+
+<span class="cyr_c">// ✅ setTimeout 递归版（等上次执行完再触发下次，永不堆积）</span>
+<span class="cyr_f">function</span> <span class="cyr_k">loop</span>() {
+  <span class="cyr_f">doHeavyWork</span>();              <span class="cyr_c">// 先干活（哪怕花了 1.5 秒）</span>
+  <span class="cyr_f">setTimeout</span>(loop, <span class="cyr_n">1000</span>); <span class="cyr_c">// 干完再等 1 秒</span>
+}
+<span class="cyr_k">loop</span>(); <span class="cyr_c">// 启动</span>
+
+<span class="cyr_c">// 💡 实战口诀：要循环干活，别用 setInterval，用递归 setTimeout！</span></div>
+  </div>
+
+  <footer>17-5 · setTimeout vs setInterval · 陈依然</footer>
+</div>
+
+<script>
+  function cyr_log(id, text, color) {
+    var box = document.getElementById(id);
+    var ts = new Date().toLocaleTimeString();
+    var cls = 'cyr_log-line cyr_log-' + (color || '');
+    box.innerHTML += '<div class="' + cls + '"><span class="cyr_log-ts">[' + ts + ']</span> ' + text + '</div>';
+    box.scrollTop = box.scrollHeight;
+    while (box.children.length > 30) box.removeChild(box.firstChild);
+  }
+
+  /* ============ setTimeout ============ */
+  var cyr_stTimer = null;
+  var cyr_stChain = null;
+
+  function cyr_stStart() {
+    var sec = Math.max(1, parseInt(document.getElementById('cyr_st-delay').value) || 3);
+    document.getElementById('cyr_st-msg').textContent = sec + '…';
+    document.getElementById('cyr_st-msg').className = 'cyr_big-number cyr_countdown';
+    document.getElementById('cyr_st-sub').textContent = '正在计时…';
+    document.getElementById('cyr_stStop').disabled = false;
+    document.getElementById('cyr_stChain').disabled = true;
+
+    /* 内部用 setInterval 做倒计时显示，触发那一刻用 setTimeout */
+    var count = sec;
+    var countTimer = setInterval(function() {
+      count--;
+      document.getElementById('cyr_st-msg').textContent = count > 0 ? count + '…' : '💥 BOOM!';
+      if (count <= 0) clearInterval(countTimer);
+    }, 1000);
+
+    cyr_stTimer = setTimeout(function() {
+      document.getElementById('cyr_st-msg').textContent = '✅ 触发！';
+      document.getElementById('cyr_st-msg').className = 'cyr_big-number';
+      document.getElementById('cyr_st-sub').textContent = 'setTimeout 执行完毕，自动结束';
+      cyr_log('cyr_st-log', '🎉 setTimeout 触发了！执行一次后结束', 'green');
+      document.getElementById('cyr_stStop').disabled = true;
+      document.getElementById('cyr_stChain').disabled = false;
+      clearInterval(countTimer);
+    }, sec * 1000);
+
+    cyr_log('cyr_st-log', '⏳ setTimeout 设置：' + sec + ' 秒后执行（ID: ' + cyr_stTimer + '）', '');
+  }
+  function cyr_stStop() {
+    if (cyr_stTimer) { clearTimeout(cyr_stTimer); cyr_stTimer = null; }
+    document.getElementById('cyr_st-msg').textContent = '已取消';
+    document.getElementById('cyr_st-msg').className = 'cyr_big-number';
+    document.getElementById('cyr_st-sub').textContent = 'clearTimeout() 成功';
+    document.getElementById('cyr_stStop').disabled = true;
+    document.getElementById('cyr_stChain').disabled = false;
+    cyr_log('cyr_st-log', '🛑 clearTimeout() 成功，定时器被取消', 'red');
+  }
+  function cyr_stChain() {
+    var count = 0;
+    document.getElementById('cyr_st-sub').textContent = '递归 setTimeout（永不堆积）';
+    cyr_log('cyr_st-log', '🔗 启动递归 setTimeout 链…', 'pink');
+
+    function tick() {
+      count++;
+      document.getElementById('cyr_st-msg').textContent = '#' + count;
+      document.getElementById('cyr_st-msg').className = 'cyr_big-number cyr_countup';
+      cyr_log('cyr_st-log', '🔗 chain tick #' + count, 'pink');
+      if (count < 8) {
+        cyr_stChain = setTimeout(tick, 600);
+      } else {
+        cyr_log('cyr_st-log', '✅ 链式执行完毕（共 8 次）', 'green');
+        document.getElementById('cyr_st-sub').textContent = '链式执行完毕 ✅';
+        document.getElementById('cyr_stChain').disabled = false;
+      }
+    }
+    if (cyr_stChain) clearTimeout(cyr_stChain);
+    tick();
+    document.getElementById('cyr_stChain').disabled = true;
+  }
+
+  /* ============ setInterval ============ */
+  var cyr_siTimer = null;
+  var cyr_siCount = 0;
+
+  function cyr_siStart() {
+    var delay = Math.max(100, parseFloat(document.getElementById('cyr_si-delay').value) * 1000 || 1000);
+    document.getElementById('cyr_siStart').disabled = true;
+    document.getElementById('cyr_siStop').disabled = false;
+
+    cyr_siTimer = setInterval(function() {
+      cyr_siCount++;
+      document.getElementById('cyr_si-count').textContent = cyr_siCount;
+      if (cyr_siCount % 5 === 0) {
+        cyr_log('cyr_si-log', '🔔 tick #' + cyr_siCount + ' （已触发 ' + cyr_siCount + ' 次）', 'green');
+      } else {
+        cyr_log('cyr_si-log', 'tick #' + cyr_siCount, '');
+      }
+    }, delay);
+
+    cyr_log('cyr_si-log', '▶ setInterval 启动，间隔 ' + (delay / 1000) + 's（ID: ' + cyr_siTimer + '）', 'pink');
+  }
+  function cyr_siStop() {
+    if (cyr_siTimer) { clearInterval(cyr_siTimer); cyr_siTimer = null; }
+    document.getElementById('cyr_siStart').disabled = false;
+    document.getElementById('cyr_siStop').disabled = true;
+    cyr_log('cyr_si-log', '🛑 clearInterval() 停止，共触发 ' + cyr_siCount + ' 次', 'red');
+  }
+  function cyr_siReset() {
+    if (cyr_siTimer) cyr_siStop();
+    cyr_siCount = 0;
+    document.getElementById('cyr_si-count').textContent = '0';
+    document.getElementById('cyr_siStart').disabled = false;
+    document.getElementById('cyr_siStop').disabled = true;
+    document.getElementById('cyr_log').parentNode.querySelector('.cyr_log').innerHTML = '';
+    document.getElementById('cyr_si-log').innerHTML = '';
+  }
+
+  /* 初始化 */
+  document.getElementById('cyr_stChain').disabled = false;
+</script>
+</body>
+</html>
