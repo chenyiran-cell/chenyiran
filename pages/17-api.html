@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>17-api 免费跨域 API 综合演示</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Microsoft YaHei", Consolas, "Segoe UI", Arial, sans-serif;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+    background-attachment: fixed; color: #e2e8f0; line-height: 1.7;
+    padding: 20px 12px; min-height: 100vh;
+  }
+  .cyr_back-home { color: #81d4fa; text-decoration: none; font-size: 0.88rem; font-weight: bold; }
+  .cyr_container { max-width: 1100px; margin: 0 auto; }
+  h1 { text-align: center; font-size: 1.45rem; margin-bottom: 4px;
+    background: linear-gradient(90deg, #f0abfc, #81d4fa, #fbbf24);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .cyr_author { text-align: center; color: #64748b; font-size: 0.82rem; margin-bottom: 16px; }
+
+  /* Tab */
+  .cyr_tabs { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin-bottom: 16px; }
+  .cyr_tab {
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+    color: #cbd5e1; padding: 7px 14px; border-radius: 20px; font-size: 0.78rem;
+    cursor: pointer; transition: all 0.2s; font-family: inherit; font-weight: 500;
+  }
+  .cyr_tab:hover { background: rgba(255,255,255,0.12); color: #fff; }
+  .cyr_tab.cyr_active {
+    background: linear-gradient(135deg, #0ea5e9, #7c3aed); color: #fff; border-color: transparent;
+    box-shadow: 0 3px 12px rgba(124,58,237,0.35);
+  }
+  .cyr_api-box {
+    background: rgba(0,0,0,0.25); border: 1px dashed #fbbf24; border-radius: 6px;
+    padding: 8px 12px; font-family: Consolas, monospace; font-size: 0.72rem;
+    color: #fbbf24; margin-bottom: 12px; word-break: break-all;
+  }
+  .cyr_api-box code { color: #a5d6ff; }
+  .cyr_panel { display: none; }
+  .cyr_panel.cyr_active { display: block; animation: cyr_fade 0.35s; }
+  @keyframes cyr_fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  /* Cards */
+  .cyr_card {
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px; padding: 14px 16px; margin-bottom: 12px;
+  }
+  .cyr_card-title { font-size: 0.95rem; font-weight: bold; color: #fbbf24; margin-bottom: 8px; }
+  .cyr_btn {
+    background: linear-gradient(135deg, #0ea5e9, #6366f1); color: #fff; border: none;
+    border-radius: 6px; padding: 7px 14px; font-size: 0.82rem; font-weight: bold; cursor: pointer;
+    font-family: inherit; transition: transform 0.15s; margin: 4px 6px 0 0;
+  }
+  .cyr_btn:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(14,165,233,0.3); }
+  .cyr_btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .cyr_btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626); }
+  .cyr_btn-outline { background: transparent; color: #81d4fa; border: 1px solid #81d4fa; }
+
+  .cyr_result {
+    background: #0d1117; border: 1px solid #30363d; border-radius: 6px; padding: 10px 12px;
+    font-family: Consolas, monospace; font-size: 0.75rem; color: #c9d1d9;
+    margin-top: 10px; max-height: 260px; overflow-y: auto; white-space: pre-wrap; word-break: break-all;
+  }
+  .cyr_result.cyr_ok { border-left: 3px solid #10b981; }
+  .cyr_result.cyr_err { border-left: 3px solid #ef4444; color: #fca5a5; }
+
+  /* Skeleton / loading */
+  .cyr_loading { text-align: center; padding: 24px; color: #94a3b8; font-size: 0.85rem; }
+  .cyr_spinner { width: 30px; height: 30px; border: 3px solid #334155; border-top-color: #81d4fa; border-radius: 50%; animation: cyr_rot 0.9s linear infinite; margin: 0 auto 10px; }
+  @keyframes cyr_rot { to { transform: rotate(360deg); } }
+
+  /* Dog */
+  .cyr_dog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; margin-top: 10px; }
+  .cyr_dog { aspect-ratio: 1; border-radius: 8px; object-fit: cover; background: #1e293b; cursor: pointer; transition: transform 0.2s; }
+  .cyr_dog:hover { transform: scale(1.05); }
+
+  /* Users */
+  .cyr_user-row {
+    display: grid; grid-template-columns: 36px 1fr auto; gap: 10px;
+    padding: 10px 0; border-bottom: 1px dashed rgba(255,255,255,0.1); align-items: center; font-size: 0.78rem;
+  }
+  .cyr_user-row:last-child { border-bottom: none; }
+  .cyr_avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg,#8b5cf6,#ec4899); color:#fff; font-weight:bold;
+    display:flex; align-items:center; justify-content:center; font-size:0.85rem; }
+  .cyr_user-name { color: #fff; font-weight: bold; }
+  .cyr_user-sub { color: #94a3b8; font-size: 0.7rem; }
+  .cyr_user-company { color: #86efac; font-size: 0.7rem; }
+
+  /* Posts */
+  .cyr_post {
+    padding: 12px; border-radius: 8px; background: rgba(255,255,255,0.04);
+    margin-bottom: 10px; border-left: 3px solid #f0abfc; font-size: 0.8rem; cursor: pointer;
+    transition: background 0.2s;
+  }
+  .cyr_post:hover { background: rgba(255,255,255,0.08); }
+  .cyr_post-title { color: #fbbf24; font-weight: bold; margin-bottom: 4px; font-size: 0.85rem; }
+  .cyr_post-body { color: #cbd5e1; }
+  .cyr_post-meta { color: #64748b; font-size: 0.7rem; margin-top: 6px; }
+
+  /* Product grid */
+  .cyr_prod-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+  .cyr_prod {
+    background: rgba(255,255,255,0.04); border-radius: 10px; overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.08); cursor: pointer; transition: transform 0.2s;
+  }
+  .cyr_prod:hover { transform: translateY(-2px); border-color: #81d4fa; }
+  .cyr_prod-img { width: 100%; height: 140px; object-fit: cover; background: #1e293b; }
+  .cyr_prod-body { padding: 10px 12px; }
+  .cyr_prod-title { color: #fff; font-size: 0.8rem; font-weight: 600; height: 2.2em; overflow: hidden; line-height: 1.4; }
+  .cyr_prod-price { font-family: Consolas, monospace; color: #ef4444; font-weight: bold; font-size: 1rem; margin-top: 4px; }
+  .cyr_prod-cat { background: #1e3a5f; color: #81d4fa; padding: 2px 8px; border-radius: 8px; font-size: 0.65rem; margin-top: 4px; display: inline-block; }
+
+  /* Compare */
+  .cyr_compare { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 640px) { .cyr_compare { grid-template-columns: 1fr; } }
+
+  /* POST form */
+  .cyr_form { display: flex; flex-direction: column; gap: 8px; }
+  .cyr_form label { font-size: 0.78rem; color: #94a3b8; }
+  .cyr_form input, .cyr_form textarea {
+    background: #0d1117; border: 1px solid #30363d; border-radius: 6px; color: #e2e8f0;
+    padding: 8px 12px; font-size: 0.82rem; font-family: inherit; width: 100%;
+  }
+  .cyr_form textarea { resize: vertical; min-height: 70px; }
+  .cyr_form input:focus, .cyr_form textarea:focus { outline: none; border-color: #81d4fa; }
+
+  footer { text-align: center; color: #475569; font-size: 0.72rem; margin-top: 18px; }
+</style>
+</head>
+<body>
+<!-- 姓名：陈依然，日期：2026-11-02，功能：免费跨域 API 综合演示（7 个接口） -->
+<a href="index.html" class="cyr_back-home">← 返回首页</a>
+<div class="cyr_container">
+  <h1>🌐 免费跨域 API 综合演示</h1>
+  <p class="cyr_author">作者：陈依然 · 7 个公开 API · fetch + 原生代码 · 全部支持 CORS ✅</p>
+
+  <!-- ============ Tabs ============ -->
+  <div class="cyr_tabs">
+    <button class="cyr_tab cyr_active" onclick="cyr_switch('dog')">🐕 狗狗图片</button>
+    <button class="cyr_tab" onclick="cyr_switch('users')">👥 用户列表</button>
+    <button class="cyr_tab" onclick="cyr_switch('posts')">📝 帖子列表</button>
+    <button class="cyr_tab" onclick="cyr_switch('dj')">🛒 DummyJSON</button>
+    <button class="cyr_tab" onclick="cyr_switch('fs')">🛍️ FakeStore</button>
+    <button class="cyr_tab" onclick="cyr_switch('compare')">⚖️ 对比</button>
+    <button class="cyr_tab" onclick="cyr_switch('post-create')">📤 POST 请求</button>
+  </div>
+
+  <!-- ============ 1. 狗狗图片 ============ -->
+  <div id="cyr_panel-dog" class="cyr_panel cyr_active">
+    <div class="cyr_card">
+      <div class="cyr_card-title">🐕 随机狗狗图片 · dog.ceo</div>
+      <div class="cyr_api-box">GET <code>https://dog.ceo/api/breeds/image/random</code> &nbsp;|&nbsp; 多图 <code>https://dog.ceo/api/breed/hound/images/random/3</code></div>
+      <button class="cyr_btn" onclick="cyr_fetch('dog')">🔄 随机 1 只</button>
+      <button class="cyr_btn" onclick="cyr_fetch('dog-hound')">🐶 3 只猎犬</button>
+      <div class="cyr_dog-grid" id="cyr_dog-grid"><div class="cyr_loading"><div class="cyr_spinner"></div>点上面按钮开始 fetch 🐾</div></div>
+    </div>
+  </div>
+
+  <!-- ============ 2. 用户列表 ============ -->
+  <div id="cyr_panel-users" class="cyr_panel">
+    <div class="cyr_card">
+      <div class="cyr_card-title">👥 用户名册 · JSONPlaceholder</div>
+      <div class="cyr_api-box">GET <code>https://jsonplaceholder.typicode.com/users</code></div>
+      <button class="cyr_btn" onclick="cyr_fetch('users')">📥 获取 10 个用户</button>
+      <div id="cyr_users-box"><div class="cyr_loading"><div class="cyr_spinner"></div>等待请求…</div></div>
+    </div>
+  </div>
+
+  <!-- ============ 3. 帖子列表 ============ -->
+  <div id="cyr_panel-posts" class="cyr_panel">
+    <div class="cyr_card">
+      <div class="cyr_card-title">📝 帖子列表 · JSONPlaceholder</div>
+      <div class="cyr_api-box">GET <code>https://jsonplaceholder.typicode.com/posts?_limit=5</code></div>
+      <button class="cyr_btn" onclick="cyr_fetch('posts')">📥 加载 5 条帖子</button>
+      <div id="cyr_posts-box"><div class="cyr_loading"><div class="cyr_spinner"></div>等待请求…</div></div>
+    </div>
+  </div>
+
+  <!-- ============ 4. DummyJSON 商品 ============ -->
+  <div id="cyr_panel-dj" class="cyr_panel">
+    <div class="cyr_card">
+      <div class="cyr_card-title">🛒 DummyJSON 商品（带搜索）</div>
+      <div class="cyr_api-box">GET <code>https://dummyjson.com/products?limit=8</code> &nbsp;|&nbsp; 详情 <code>/products/{id}</code></div>
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <input class="cyr_form" style="flex:1" id="cyr_dj-search" placeholder="🔍 搜索商品…" oninput="cyr_djFilter()">
+        <button class="cyr_btn" onclick="cyr_fetch('dj')">🔄 刷新</button>
+      </div>
+      <div id="cyr_dj-box"><div class="cyr_loading"><div class="cyr_spinner"></div>等待请求…</div></div>
+    </div>
+  </div>
+
+  <!-- ============ 5. FakeStore ============ -->
+  <div id="cyr_panel-fs" class="cyr_panel">
+    <div class="cyr_card">
+      <div class="cyr_card-title">🛍️ FakeStore API 商品</div>
+      <div class="cyr_api-box">GET <code>https://fakestoreapi.com/products?limit=8</code></div>
+      <button class="cyr_btn" onclick="cyr_fetch('fs')">📥 加载</button>
+      <div id="cyr_fs-box"><div class="cyr_loading"><div class="cyr_spinner"></div>等待请求…</div></div>
+    </div>
+  </div>
+
+  <!-- ============ 6. 对比 ============ -->
+  <div id="cyr_panel-compare" class="cyr_panel">
+    <div class="cyr_card">
+      <div class="cyr_card-title">⚖️ DummyJSON vs FakeStore 同时加载对比</div>
+      <button class="cyr_btn" onclick="cyr_fetch('compare')">🔄 两边同时 fetch</button>
+      <div class="cyr_compare" style="margin-top:12px">
+        <div><div style="color:#ffd54f;font-weight:bold;margin-bottom:6px">DummyJSON</div><div id="cyr_cmp-dj"><div class="cyr_loading">—</div></div></div>
+        <div><div style="color:#f0abfc;font-weight:bold;margin-bottom:6px">FakeStore</div><div id="cyr_cmp-fs"><div class="cyr_loading">—</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 7. POST 请求 ============ -->
+  <div id="cyr_panel-post-create" class="cyr_panel">
+    <div class="cyr_card">
+      <div class="cyr_card-title">📤 POST 创建新帖子</div>
+      <div class="cyr_api-box">POST <code>https://jsonplaceholder.typicode.com/posts</code>（接口会"假"创建，返回 id: 101）</div>
+      <div class="cyr_form">
+        <label>title（标题）</label>
+        <input id="cyr_p-title" placeholder="我的新帖子" value="Hello API 世界！">
+        <label>body（正文）</label>
+        <textarea id="cyr_p-body" placeholder="帖子正文…">这是用 fetch POST 发送的第一条消息。</textarea>
+        <label>userId（作者 ID，1-10）</label>
+        <input id="cyr_p-uid" type="number" min="1" max="10" value="1">
+        <button class="cyr_btn cyr_btn-danger" onclick="cyr_fetch('post-create')">🚀 发送 POST</button>
+      </div>
+      <div id="cyr_post-res"></div>
+    </div>
+  </div>
+
+  <footer>17-api · 免费跨域 API 综合演示 · 陈依然</footer>
+</div>
+
+<script>
+  /* ============ Tab 切换 ============ */
+  function cyr_switch(key) {
+    document.querySelectorAll('.cyr_panel').forEach(function(p) { p.classList.toggle('cyr_active', p.id === 'cyr_panel-' + key); });
+    document.querySelectorAll('.cyr_tab').forEach(function(t) { t.classList.toggle('cyr_active', t.textContent.indexOf({
+      dog:'狗狗', users:'用户', posts:'帖子', dj:'DummyJSON', fs:'FakeStore', compare:'对比', 'post-create':'POST'
+    }[key]) >= 0); });
+  }
+
+  /* ============ fetch 调度 ============ */
+  async function cyr_fetch(type) {
+    try {
+      if (type === 'dog') return cyr_dog('https://dog.ceo/api/breeds/image/random');
+      if (type === 'dog-hound') return cyr_dog('https://dog.ceo/api/breed/hound/images/random/3');
+      if (type === 'users') return cyr_users();
+      if (type === 'posts') return cyr_posts();
+      if (type === 'dj') return cyr_dj();
+      if (type === 'fs') return cyr_fs();
+      if (type === 'compare') return cyr_compare();
+      if (type === 'post-create') return cyr_postCreate();
+    } catch (e) {
+      document.getElementById('cyr_post-res').innerHTML =
+        '<div class="cyr_result cyr_err">❌ ' + e.message + '</div>';
+    }
+  }
+
+  /* ============ Dog ============ */
+  async function cyr_dog(url) {
+    document.getElementById('cyr_dog-grid').innerHTML = '<div class="cyr_loading"><div class="cyr_spinner"></div>狗狗赶来中 🐕</div>';
+    var res = await fetch(url);
+    var d = await res.json();
+    var imgs = Array.isArray(d.message) ? d.message : [d.message];
+    var html = '';
+    imgs.forEach(function(src) {
+      html += '<img class="cyr_dog" src="' + src + '" alt="dog" onclick="window.open(\'' + src + '\')">';
+    });
+    document.getElementById('cyr_dog-grid').innerHTML = html;
+  }
+
+  /* ============ Users ============ */
+  async function cyr_users() {
+    var box = document.getElementById('cyr_users-box');
+    box.innerHTML = '<div class="cyr_loading"><div class="cyr_spinner"></div>加载用户…</div>';
+    var res = await fetch('https://jsonplaceholder.typicode.com/users');
+    var list = await res.json();
+    var html = '';
+    list.forEach(function(u) {
+      var initial = (u.name || '?').charAt(0).toUpperCase();
+      html +=
+        '<div class="cyr_user-row">' +
+          '<div class="cyr_avatar">' + initial + '</div>' +
+          '<div>' +
+            '<div class="cyr_user-name">' + u.name + ' <span class="cyr_user-sub">@' + u.username + '</span></div>' +
+            '<div class="cyr_user-sub">📧 ' + u.email + ' | 📞 ' + u.phone + '</div>' +
+            '<div class="cyr_user-company">🏢 ' + u.company.name + '</div>' +
+          '</div>' +
+          '<div class="cyr_user-sub" style="text-align:right">ID ' + u.id + '</div>' +
+        '</div>';
+    });
+    box.innerHTML = html;
+  }
+
+  /* ============ Posts ============ */
+  async function cyr_posts() {
+    var box = document.getElementById('cyr_posts-box');
+    box.innerHTML = '<div class="cyr_loading"><div class="cyr_spinner"></div>加载帖子…</div>';
+    var res = await fetch('https://jsonplaceholder.typicode.com/posts?_limit=5');
+    var list = await res.json();
+    var html = '';
+    list.forEach(function(p) {
+      html +=
+        '<div class="cyr_post" onclick="alert(\'用户 ' + p.userId + ' 发布的帖子 #' + p.id + '\\n\\n' + p.body + '\')">' +
+          '<div class="cyr_post-title">#' + p.id + ' · ' + p.title + '</div>' +
+          '<div class="cyr_post-body">' + p.body + '</div>' +
+          '<div class="cyr_post-meta">👤 userId: ' + p.userId + ' · 点击查看详情</div>' +
+        '</div>';
+    });
+    box.innerHTML = html;
+  }
+
+  /* ============ DummyJSON ============ */
+  var cyr_djRaw = [];
+  async function cyr_dj() {
+    var box = document.getElementById('cyr_dj-box');
+    box.innerHTML = '<div class="cyr_loading"><div class="cyr_spinner"></div>加载商品…</div>';
+    var res = await fetch('https://dummyjson.com/products?limit=8');
+    var d = await res.json();
+    cyr_djRaw = d.products;
+    cyr_renderProdGrid(box, cyr_djRaw, 'dj');
+  }
+  function cyr_djFilter() {
+    var q = document.getElementById('cyr_dj-search').value.trim().toLowerCase();
+    var list = q ? cyr_djRaw.filter(function(p){ return p.title.toLowerCase().indexOf(q)>=0 || p.category.toLowerCase().indexOf(q)>=0; }) : cyr_djRaw;
+    var box = document.getElementById('cyr_dj-box');
+    if (!list.length) { box.innerHTML = '<div class="cyr_loading">🔍 没找到</div>'; return; }
+    cyr_renderProdGrid(box, list, 'dj');
+  }
+
+  /* ============ FakeStore ============ */
+  async function cyr_fs() {
+    var box = document.getElementById('cyr_fs-box');
+    box.innerHTML = '<div class="cyr_loading"><div class="cyr_spinner"></div>加载商品…</div>';
+    var res = await fetch('https://fakestoreapi.com/products?limit=8');
+    var list = await res.json();
+    cyr_renderProdGrid(box, list, 'fs');
+  }
+
+  /* ============ 对比 ============ */
+  async function cyr_compare() {
+    document.getElementById('cyr_cmp-dj').innerHTML = '<div class="cyr_loading"><div class="cyr_spinner"></div></div>';
+    document.getElementById('cyr_cmp-fs').innerHTML = '<div class="cyr_loading"><div class="cyr_spinner"></div></div>';
+    var [djRes, fsRes] = await Promise.all([
+      fetch('https://dummyjson.com/products?limit=5').then(function(r){return r.json()}),
+      fetch('https://fakestoreapi.com/products?limit=5').then(function(r){return r.json()})
+    ]);
+    cyr_renderProdGrid(document.getElementById('cyr_cmp-dj'), djRes.products, 'dj');
+    cyr_renderProdGrid(document.getElementById('cyr_cmp-fs'), fsRes, 'fs');
+  }
+
+  /* ============ 通用渲染 ============ */
+  function cyr_renderProdGrid(container, list, source) {
+    if (!list.length) { container.innerHTML = '<div class="cyr_loading">—</div>'; return; }
+    var html = '<div class="cyr_prod-grid">';
+    list.forEach(function(p) {
+      var img = (p.thumbnail || p.image || (p.images && p.images[0]) || '');
+      html +=
+        '<div class="cyr_prod" onclick="' + (source === 'dj'
+          ? "window.open('17-3-detail.html?id=" + p.id + "', '_blank')"
+          : "alert('FakeStore 详情页请访问 fakestoreapi.com/product/" + p.id + "')") + '">' +
+          '<img class="cyr_prod-img" src="' + img + '" alt="" onerror="this.style.display=\'none\'">' +
+          '<div class="cyr_prod-body">' +
+            '<div class="cyr_prod-cat">' + (p.category || '—') + '</div>' +
+            '<div class="cyr_prod-title">' + (p.title || p.name || '—') + '</div>' +
+            '<div class="cyr_prod-price">$' + (p.price != null ? p.price.toFixed(2) : '—') + '</div>' +
+          '</div>' +
+        '</div>';
+    });
+    html += '</div>';
+    container.innerHTML = html;
+  }
+
+  /* ============ POST ============ */
+  async function cyr_postCreate() {
+    var title = document.getElementById('cyr_p-title').value.trim();
+    var body  = document.getElementById('cyr_p-body').value.trim();
+    var uid   = parseInt(document.getElementById('cyr_p-uid').value) || 1;
+    var resBox = document.getElementById('cyr_post-res');
+    if (!title || !body) {
+      resBox.innerHTML = '<div class="cyr_result cyr_err">⚠ 标题和正文都必填</div>'; return;
+    }
+    var payload = JSON.stringify({ title: title, body: body, userId: uid });
+    resBox.innerHTML = '<div class="cyr_result">⏳ 发送 POST 请求…</div>';
+    var res = await fetch('https://jsonplaceholder.typicode.com/posts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: payload
+    });
+    var data = await res.json();
+    resBox.innerHTML =
+      '<div class="cyr_result cyr_ok">✅ POST 成功！HTTP ' + res.status + '\n\n' +
+      '请求体（我发给服务器的）：\n' + payload + '\n\n' +
+      '响应（服务器回我的）：\n' + JSON.stringify(data, null, 2) + '\n\n' +
+      '📌 注意：JSONPlaceholder 是"假"后端，返回的 id=101 不会真写入数据库。\n真实后端会有持久化存储。</div>';
+  }
+</script>
+</body>
+</html>
