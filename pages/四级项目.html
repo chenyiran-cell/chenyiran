@@ -36,6 +36,142 @@
             color: #1d4f91;
         }
 
+        /* ── 图标增强（图像解决方案实验：21 个 iconfont 图标全应用） ── */
+        .cyr_back-home .iconfont {
+            font-size: 14px;
+            margin-right: 2px;
+            vertical-align: -1px;
+        }
+        .cyr_notice {
+            position: absolute;
+            top: 14px;
+            right: 16px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #4A90E2;
+            font-size: 18px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+        .cyr_title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .cyr_title-act {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            font-size: 13px;
+            color: #999;
+            padding-right: 15px;
+        }
+        .cyr_title-act .iconfont {
+            font-size: 14px;
+        }
+        .cyr-hot-head .iconfont {
+            color: #FF4D4F;
+            margin-right: 4px;
+        }
+        .cyr-hot-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+            color: #999;
+            margin-top: 2px;
+        }
+        .cyr-hot-stats .iconfont {
+            font-size: 13px;
+            margin-right: 2px;
+            vertical-align: -1px;
+        }
+        .cyr-post-imgbox {
+            position: relative;
+        }
+        .cyr-post-del {
+            position: absolute;
+            top: 18px;
+            right: 10px;
+            width: 30px;
+            height: 30px;
+            border: none;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.45);
+            color: #fff;
+            font-size: 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .cyr-post-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .cyr-post-act-btn {
+            flex: 1;
+            height: 40px;
+            border: 1px dashed #d0d5dd;
+            border-radius: 8px;
+            background: #fff;
+            color: #666;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            cursor: pointer;
+        }
+        .cyr-post-btn .iconfont {
+            margin-right: 4px;
+            vertical-align: -1px;
+        }
+        .cyr-mine-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .cyr-mine-left .iconfont {
+            font-size: 16px;
+            color: #4A90E2;
+        }
+        .cyr-mine-dot {
+            font-size: 12px;
+            color: #FF4D4F;
+            margin-right: 6px;
+        }
+        .cyr-mine-login {
+            margin: 20px 15px 0;
+            background: #fff;
+            border-radius: 8px;
+            padding: 12px 15px;
+        }
+        .cyr-mine-login-title {
+            font-size: 13px;
+            color: #999;
+            margin-bottom: 10px;
+        }
+        .cyr-mine-login-row {
+            display: flex;
+            justify-content: space-between;
+        }
+        .cyr-mine-login-item {
+            font-size: 13px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .cyr-mine-login-item .iconfont {
+            font-size: 16px;
+            color: #4A90E2;
+        }
+
         /* 手机 App 容器 */
         .cyr_app {
             max-width: 420px;
@@ -372,7 +508,7 @@
 </head>
 <body>
     <!-- 姓名：陈依然，日期：2026-10-29，功能：天气App网页元素设计四级项目 -->
-    <a href="index.html" class="cyr_back-home">← 返回首页</a>
+    <a href="index.html" class="cyr_back-home"><i class="iconfont icon-fanhui"></i> 返回首页</a>
 
     <!-- ═══════════════════════ 截图标记1：Tabs整体结构 + 主页上下滚动容器 ═══════════════════════ -->
     <div class="cyr_app">
@@ -384,6 +520,7 @@
             <!-- 顶部大背景天气图：上图下文 -->
             <header class="cyr_hero">
                 <img class="cyr_hero-bg" src="四级项目image/weather_sunny.jpg" alt="晴空天气背景图">
+                <span class="cyr_notice"><i class="iconfont icon-tongzhi"></i></span>
                 <div class="cyr_hero-info">
                     <h1 class="cyr_city">大连</h1>
                     <p class="cyr_temp">24℃</p>
@@ -395,7 +532,10 @@
             <!-- ═══════════════════════ 截图标记3：逐小时预报 + 城市天气横向滑动 ═══════════════════════ -->
             <!-- 逐小时预报：列表 -->
             <section class="cyr_hourly">
-                <h2 class="cyr_title">逐小时预报</h2>
+                <div class="cyr_title-row">
+                    <h2 class="cyr_title">逐小时预报</h2>
+                    <span class="cyr_title-act">更多<i class="iconfont icon-gengduo"></i></span>
+                </div>
                 <ul class="cyr_hourly-list">
                     <li class="cyr_hourly-item">现在<span class="cyr_hourly-cond">晴</span><span class="cyr_hourly-temp">24°</span></li>
                     <li class="cyr_hourly-item">14时<span class="cyr_hourly-cond">晴</span><span class="cyr_hourly-temp">25°</span></li>
@@ -407,7 +547,10 @@
 
             <!-- 城市天气：横向图片滚动 -->
             <section class="cyr_city-weather">
-                <h2 class="cyr_title">城市天气</h2>
+                <div class="cyr_title-row">
+                    <h2 class="cyr_title">城市天气</h2>
+                    <span class="cyr_title-act">刷新<i class="iconfont icon-shuaxin"></i></span>
+                </div>
                 <div class="cyr_city-scroll">
                     <img class="cyr_city-pic" src="四级项目image/weather_sunny.jpg" alt="大连晴空">
                     <img class="cyr_city-pic" src="四级项目image/weather_rain.jpg" alt="城市雨天">
@@ -452,7 +595,7 @@
         <!-- ── 热搜 Tab ── -->
         <section id="cyr_tab-hot" class="cyr_panel">
             <div class="cyr-hot-panel">
-                <h2 class="cyr-hot-head">天气热搜</h2>
+                <h2 class="cyr-hot-head"><i class="iconfont icon-resou"></i> 天气热搜</h2>
 
                 <div class="cyr-hot-card">
                     <span class="cyr-hot-rank cyr-hot-rank-1">1</span>
@@ -460,6 +603,7 @@
                     <div class="cyr-hot-info">
                         <p class="cyr-hot-title">南方多地迎来降温</p>
                         <p class="cyr-hot-num">热度 128万</p>
+                        <p class="cyr-hot-stats"><span><i class="iconfont icon-dianzan"></i>12万</span><span><i class="iconfont icon-pinglun"></i>8600</span></p>
                     </div>
                 </div>
 
@@ -469,6 +613,7 @@
                     <div class="cyr-hot-info">
                         <p class="cyr-hot-title">华东地区今日有中雨</p>
                         <p class="cyr-hot-num">热度 98万</p>
+                        <p class="cyr-hot-stats"><span><i class="iconfont icon-dianzan"></i>8万</span><span><i class="iconfont icon-pinglun"></i>5200</span></p>
                     </div>
                 </div>
 
@@ -478,6 +623,7 @@
                     <div class="cyr-hot-info">
                         <p class="cyr-hot-title">今日晚霞绝美上热搜</p>
                         <p class="cyr-hot-num">热度 76万</p>
+                        <p class="cyr-hot-stats"><span><i class="iconfont icon-dianzan"></i>5万</span><span><i class="iconfont icon-pinglun"></i>3100</span></p>
                     </div>
                 </div>
             </div>
@@ -489,10 +635,17 @@
         <section id="cyr_tab-post" class="cyr_panel">
             <div class="cyr-post-panel">
                 <h2 class="cyr-post-head">发布天气动态</h2>
-                <img class="cyr-post-pic" src="四级项目image/weather_sunny.jpg" alt="天气动态配图">
+                <div class="cyr-post-imgbox">
+                    <img class="cyr-post-pic" src="四级项目image/weather_sunny.jpg" alt="天气动态配图">
+                    <button class="cyr-post-del" type="button"><i class="iconfont icon-shanchu"></i></button>
+                </div>
+                <div class="cyr-post-actions">
+                    <button class="cyr-post-act-btn" type="button"><i class="iconfont icon-jia"></i>添加图片</button>
+                    <button class="cyr-post-act-btn" type="button"><i class="iconfont icon-fabu"></i>公开可见</button>
+                </div>
                 <p class="cyr-post-slogan">记录此刻的天气</p>
                 <p class="cyr-post-author">陈依然 24001010703</p>
-                <button class="cyr-post-btn" type="button">发布</button>
+                <button class="cyr-post-btn" type="button"><i class="iconfont icon-fabu"></i> 发布</button>
             </div>
         </section>
 
@@ -503,10 +656,24 @@
                 <p class="cyr-mine-name">陈依然</p>
                 <p class="cyr-mine-id">学号：24001010703</p>
                 <ul class="cyr-mine-list">
-                    <li class="cyr-mine-row"><span>我的收藏</span><span class="cyr-mine-arrow">›</span></li>
-                    <li class="cyr-mine-row"><span>浏览历史</span><span class="cyr-mine-arrow">›</span></li>
-                    <li class="cyr-mine-row"><span>设置</span><span class="cyr-mine-arrow">›</span></li>
+                    <li class="cyr-mine-row"><span class="cyr-mine-left"><i class="iconfont icon-shoucangxuanzhong"></i><span>我的收藏</span></span><span class="cyr-mine-arrow">›</span></li>
+                    <li class="cyr-mine-row"><span class="cyr-mine-left"><i class="iconfont icon-dianzan"></i><span>我的点赞</span></span><span class="cyr-mine-arrow">›</span></li>
+                    <li class="cyr-mine-row"><span class="cyr-mine-left"><i class="iconfont icon-guanzhu"></i><span>关注动态</span></span><span class="cyr-mine-arrow">›</span></li>
+                    <li class="cyr-mine-row"><span class="cyr-mine-left"><i class="iconfont icon-pinglun"></i><span>我的评论</span></span><span class="cyr-mine-arrow">›</span></li>
+                    <li class="cyr-mine-row"><span class="cyr-mine-left"><i class="iconfont icon-sixin"></i><span>私信</span></span><span class="cyr-mine-arrow">›</span></li>
+                    <li class="cyr-mine-row"><span class="cyr-mine-left"><i class="iconfont icon-tongzhi"></i><span>消息通知</span></span><i class="iconfont icon-hongdianxiaoxi cyr-mine-dot"></i><span class="cyr-mine-arrow">›</span></li>
+                    <li class="cyr-mine-row"><span class="cyr-mine-left"><i class="iconfont icon-fanhui"></i><span>浏览历史</span></span><span class="cyr-mine-arrow">›</span></li>
+                    <li class="cyr-mine-row"><span class="cyr-mine-left"><i class="iconfont icon-wentifankui"></i><span>问题反馈</span></span><span class="cyr-mine-arrow">›</span></li>
+                    <li class="cyr-mine-row"><span class="cyr-mine-left"><i class="iconfont icon-shenglvehao"></i><span>设置</span></span><span class="cyr-mine-arrow">›</span></li>
                 </ul>
+                <div class="cyr-mine-login">
+                    <p class="cyr-mine-login-title">其他登录方式</p>
+                    <div class="cyr-mine-login-row">
+                        <span class="cyr-mine-login-item"><i class="iconfont icon-denglu-weixindenglu"></i>微信登录</span>
+                        <span class="cyr-mine-login-item"><i class="iconfont icon-qqdenglu"></i>QQ登录</span>
+                        <span class="cyr-mine-login-item"><i class="iconfont icon-zhuce"></i>注册账号</span>
+                    </div>
+                </div>
             </div>
         </section>
 
