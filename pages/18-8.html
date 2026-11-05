@@ -48,6 +48,22 @@
     position: relative;
   }
   .cyr_time { color: #22d3ee; font-family: Consolas, monospace; font-size: 0.9rem; position: relative; }
+  .cyr_topbar-left, .cyr_topbar-right { display: flex; align-items: center; gap: 14px; position: relative; }
+  .cyr_status-dot {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 0.78rem; color: #94a3b8;
+  }
+  .cyr_status-dot::before {
+    content: ''; width: 10px; height: 10px; border-radius: 50%;
+    background: #10b981; box-shadow: 0 0 8px #10b981;
+    animation: cyr_pulse 2s infinite;
+  }
+  @keyframes cyr_pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+  .cyr_node-info {
+    font-family: Consolas, monospace; font-size: 0.78rem; color: #a78bfa;
+    background: rgba(167,139,250,0.15); padding: 3px 10px; border-radius: 4px;
+    border: 1px solid rgba(167,139,250,0.3);
+  }
 
   /* 三列主体 */
   .cyr_body {
@@ -69,6 +85,31 @@
   .cyr_panel::before {
     content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
     background: linear-gradient(90deg, transparent, #22d3ee, transparent);
+  }
+  /* 四角装饰 */
+  .cyr_panel::after {
+    content: ''; position: absolute; top: -1px; left: -1px; right: -1px; bottom: -1px;
+    pointer-events: none; border-radius: 10px;
+    background:
+      linear-gradient(#22d3ee, #22d3ee) 0 0 / 14px 2px no-repeat,
+      linear-gradient(#22d3ee, #22d3ee) 0 0 / 2px 14px no-repeat,
+      linear-gradient(#22d3ee, #22d3ee) 100% 0 / 14px 2px no-repeat,
+      linear-gradient(#22d3ee, #22d3ee) 100% 0 / 2px 14px no-repeat,
+      linear-gradient(#22d3ee, #22d3ee) 0 100% / 14px 2px no-repeat,
+      linear-gradient(#22d3ee, #22d3ee) 0 100% / 2px 14px no-repeat,
+      linear-gradient(#22d3ee, #22d3ee) 100% 100% / 14px 2px no-repeat,
+      linear-gradient(#22d3ee, #22d3ee) 100% 100% / 2px 14px no-repeat;
+    opacity: 0.5;
+  }
+  /* 扫光 */
+  .cyr_panel > .cyr_sweep {
+    position: absolute; top: 0; left: -50%; width: 40%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(34,211,238,0.08), transparent);
+    animation: cyr_sweep 6s linear infinite; pointer-events: none;
+  }
+  @keyframes cyr_sweep {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(400%); }
   }
   .cyr_panel-title {
     font-size: 0.85rem; color: #22d3ee; font-weight: bold;
@@ -155,8 +196,15 @@
 <div class="cyr_dash">
   <!-- 顶部栏 -->
   <div class="cyr_topbar">
+    <div class="cyr_topbar-left">
+      <div class="cyr_status-dot">系统运行中</div>
+      <div class="cyr_node-info">⚡ 在线节点 7/8</div>
+    </div>
     <h1>🧠 智能客服系统运营数据大屏</h1>
-    <div class="cyr_time" id="cyr_time">--:--:--</div>
+    <div class="cyr_topbar-right">
+      <div class="cyr_node-info">📡 QPS <span id="cyr_qps">342</span>/s</div>
+      <div class="cyr_time" id="cyr_time">--:--:--</div>
+    </div>
   </div>
 
   <!-- 三列主体 -->
@@ -166,23 +214,28 @@
     <div class="cyr_col cyr_col-left">
       <!-- 实时指标 -->
       <div class="cyr_panel">
+        <div class="cyr_sweep"></div>
         <div class="cyr_panel-title">📈 实时运营指标 <small>Real-time</small></div>
-        <div class="cyr_stat-row">
+        <div class="cyr_stat-row" style="grid-template-columns: 1fr 1fr 1fr;">
           <div class="cyr_stat"><div class="cyr_stat-label">今日会话</div><div class="cyr_stat-val" id="cyr_sessions">12,436</div></div>
           <div class="cyr_stat"><div class="cyr_stat-label">平均响应</div><div class="cyr_stat-val">0.85s</div></div>
           <div class="cyr_stat"><div class="cyr_stat-label">解决率</div><div class="cyr_stat-val cyr_warm">94.2%</div></div>
           <div class="cyr_stat"><div class="cyr_stat-label">满意度</div><div class="cyr_stat-val">4.68/5</div></div>
+          <div class="cyr_stat"><div class="cyr_stat-label">排队等待</div><div class="cyr_stat-val cyr_warm">12人</div></div>
+          <div class="cyr_stat"><div class="cyr_stat-label">KB 命中率</div><div class="cyr_stat-val">87.5%</div></div>
         </div>
       </div>
 
       <!-- 24h 会话趋势 -->
       <div class="cyr_panel cyr_half">
+        <div class="cyr_sweep"></div>
         <div class="cyr_panel-title">📉 24h 会话趋势</div>
         <div id="cyr_trend" class="cyr_chart" style="height: calc(100% - 28px);"></div>
       </div>
 
       <!-- 意图分布 -->
       <div class="cyr_panel cyr_half">
+        <div class="cyr_sweep"></div>
         <div class="cyr_panel-title">🎯 意图分布</div>
         <div id="cyr_pie" class="cyr_chart" style="height: calc(100% - 28px);"></div>
       </div>
@@ -192,12 +245,14 @@
     <div class="cyr_col cyr_col-mid">
       <!-- 地理信息（effectScatter 模拟） -->
       <div class="cyr_panel" style="flex: 1.2;">
+        <div class="cyr_sweep"></div>
         <div class="cyr_panel-title">🌐 全国客服请求分布（地理信息） <small>Geo Heatmap</small></div>
         <div id="cyr_geo" class="cyr_chart" style="height: calc(100% - 28px);"></div>
       </div>
 
       <!-- Three.js 3D 客服状态 -->
       <div class="cyr_panel" style="flex: 0.8;">
+        <div class="cyr_sweep"></div>
         <div class="cyr_panel-title">🧊 3D 客服节点状态</div>
         <canvas id="cyr_threeDash" style="width:100%; height: calc(100% - 28px); display:block;"></canvas>
       </div>
@@ -205,24 +260,37 @@
 
     <!-- ============ 右列 ============ -->
     <div class="cyr_col cyr_col-right">
+      <!-- 实时会话 -->
+      <div class="cyr_panel" style="flex: 0.8;">
+        <div class="cyr_sweep"></div>
+        <div class="cyr_panel-title">💬 实时会话 <small>Live</small></div>
+        <div id="cyr_liveChat"></div>
+      </div>
+
       <!-- FAQ 热门 -->
       <div class="cyr_panel" style="flex: 1;">
+        <div class="cyr_sweep"></div>
         <div class="cyr_panel-title">🏆 FAQ 热门 TOP10</div>
         <div id="cyr_rank" style="height: calc(100% - 28px); overflow-y: auto;"></div>
       </div>
 
       <!-- 实时日志 -->
       <div class="cyr_panel" style="flex: 1;">
+        <div class="cyr_sweep"></div>
         <div class="cyr_panel-title">📜 实时日志 <small>Live Stream</small></div>
         <div class="cyr_log" id="cyr_log"></div>
       </div>
 
       <!-- 告警 -->
-      <div class="cyr_panel" style="flex: 0.7;">
-        <div class="cyr_panel-title">⚠️ 告警中心</div>
-        <div class="cyr_alarm-item cyr_e"><span>14:38:21</span>Redis 连接池接近上限</div>
-        <div class="cyr_alarm-item cyr_w"><span>14:35:12</span>向量库召回耗时 820ms（阈值 500）</div>
-        <div class="cyr_alarm-item"><span>14:30:08</span>Rerank 模型加载完成 v2.3.1</div>
+      <div class="cyr_panel" style="flex: 0.9;">
+        <div class="cyr_sweep"></div>
+        <div class="cyr_panel-title">⚠️ 告警中心 <span style="color:#f472b6;">● 2 条活跃</span></div>
+        <div class="cyr_alarm-item cyr_e"><span>14:38:21</span>Redis 连接池接近上限（85%）</div>
+        <div class="cyr_alarm-item cyr_e"><span>14:36:55</span>推理节点 GPU-03 温度 78℃</div>
+        <div class="cyr_alarm-item cyr_w"><span>14:35:12</span>向量库召回耗时 820ms（阈值 500ms）</div>
+        <div class="cyr_alarm-item cyr_w"><span>14:32:40</span>告警：今日转人工率上升 8%</div>
+        <div class="cyr_alarm-item"><span>14:30:08</span>Rerank 模型加载完成 v2.3.1 ✅</div>
+        <div class="cyr_alarm-item"><span>14:28:15</span>知识库增量更新 · +128 条文档</div>
       </div>
     </div>
 
@@ -230,7 +298,7 @@
 </div>
 
 <script>
-/* ============ 时间 ============ */
+/* ============ 时间 + 数字跳动 ============ */
 (function(){
   function tick(){
     var d = new Date();
@@ -241,8 +309,60 @@
             String(d.getMinutes()).padStart(2,'0') + ':' +
             String(d.getSeconds()).padStart(2,'0');
     document.getElementById('cyr_time').textContent = s;
+
+    // QPS 跳动
+    var qps = document.getElementById('cyr_qps');
+    if (qps) {
+      var v = 300 + Math.round(Math.sin(Date.now() / 2000) * 60 + Math.random() * 40);
+      qps.textContent = v;
+    }
   }
   tick(); setInterval(tick, 1000);
+
+  // 今日会话数字跳动
+  (function(){
+    var el = document.getElementById('cyr_sessions');
+    var base = 12436;
+    setInterval(function(){
+      base += Math.round(Math.random() * 3);
+      el.textContent = base.toLocaleString();
+    }, 3000);
+  })();
+})();
+
+/* ============ 右列：实时会话面板 ============ */
+(function(){
+  var users = ['北京-用户A', '上海-用户B', '广州-用户C', '深圳-用户D', '成都-用户E', '杭州-用户F', '武汉-用户G', '西安-用户H'];
+  var questions = [
+    '退款多久到账？', '订单怎么取消？', '快递到哪了？', '会员怎么开通？',
+    '能开发票吗？', '有优惠券吗？', '怎么修改收货地址？', '商品能退换吗？'
+  ];
+  var intents = ['FAQ', '业务', '闲聊', '转人工'];
+  var colors = { 'FAQ':'#22d3ee', '业务':'#a78bfa', '闲聊':'#fbbf24', '转人工':'#f472b6' };
+
+  function addRow() {
+    var box = document.getElementById('cyr_liveChat');
+    var name = users[Math.floor(Math.random() * users.length)];
+    var q = questions[Math.floor(Math.random() * questions.length)];
+    var it = intents[Math.floor(Math.random() * intents.length)];
+    var c = colors[it];
+    var now = new Date();
+    var ts = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0') + ':' + String(now.getSeconds()).padStart(2,'0');
+
+    var row = document.createElement('div');
+    row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(148,163,184,0.1);font-size:0.75rem;';
+    row.innerHTML =
+      '<span style="color:#94a3b8;font-family:Consolas,monospace;margin-right:6px;">' + ts + '</span>' +
+      '<span style="color:#e2e8f0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + name + ': ' + q + '</span>' +
+      '<span style="color:' + c + ';font-weight:bold;padding:1px 6px;border-radius:3px;background:' + c + '22;border:1px solid ' + c + '40;font-size:0.68rem;">' + it + '</span>';
+
+    box.insertBefore(row, box.firstChild);
+    while (box.children.length > 8) box.removeChild(box.lastChild);
+  }
+
+  // 初始 4 条
+  for (var i = 0; i < 4; i++) addRow();
+  setInterval(addRow, 2500);
 })();
 
 /* ============ 左列：趋势图 ============ */
