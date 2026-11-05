@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>18-7 Three.js 四个 3D 图表</title>
+<script src="../cdn/three.min.js"></script>
+<script src="../cdn/OrbitControls.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Microsoft YaHei", sans-serif;
+    background: radial-gradient(ellipse at center, #020617 0%, #0f172a 100%);
+    color: #e2e8f0; min-height: 100vh; padding: 20px;
+  }
+  .cyr_back-home {
+    color: #81d4fa; text-decoration: none; font-size: 0.88rem; font-weight: bold;
+  }
+  .cyr_header { text-align: center; margin-bottom: 16px; }
+  .cyr_header h1 {
+    font-size: 1.5rem;
+    background: linear-gradient(90deg, #fbbf24, #f472b6, #22d3ee);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .cyr_header p { font-size: 0.85rem; color: #94a3b8; margin-top: 4px; }
+
+  .cyr_grid {
+    max-width: 1400px; margin: 0 auto;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+  }
+  .cyr_card {
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid rgba(148, 163, 184, 0.1);
+    border-radius: 14px; overflow: hidden;
+    backdrop-filter: blur(6px);
+  }
+  .cyr_card-header {
+    padding: 12px 16px;
+    background: rgba(30, 41, 59, 0.6);
+    border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .cyr_card-title { font-size: 1rem; color: #fbbf24; font-weight: bold; }
+  .cyr_card-sub { font-size: 0.72rem; color: #64748b; margin-top: 2px; }
+  .cyr_chart { width: 100%; height: 380px; display: block; }
+
+  footer { text-align: center; color: #475569; font-size: 0.75rem; margin-top: 16px; }
+
+  @media (max-width: 900px) {
+    .cyr_grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<!-- 姓名：陈依然，日期：2026-11-05，功能：Three.js 四个 3D 图表 -->
+<a href="index.html" class="cyr_back-home">← 返回首页</a>
+<div class="cyr_header">
+  <h1>🧊 Three.js 3D 数据可视化</h1>
+  <p>陈依然 · 动态柱状图 · 散点云 · 环形星球 · 粒子波动</p>
+</div>
+
+<div class="cyr_grid">
+  <div class="cyr_card">
+    <div class="cyr_card-header">
+      <div>
+        <div class="cyr_card-title">① 3D 柱状图</div>
+        <div class="cyr_card-sub">年度销售额 · 季度 · 地区</div>
+      </div>
+    </div>
+    <canvas id="cyr_chart1" class="cyr_chart"></canvas>
+  </div>
+
+  <div class="cyr_card">
+    <div class="cyr_card-header">
+      <div>
+        <div class="cyr_card-title">② 3D 散点云</div>
+        <div class="cyr_card-sub">三维数据点分布 · 客户画像聚类</div>
+      </div>
+    </div>
+    <canvas id="cyr_chart2" class="cyr_chart"></canvas>
+  </div>
+
+  <div class="cyr_card">
+    <div class="cyr_card-header">
+      <div>
+        <div class="cyr_card-title">③ 环形星球</div>
+        <div class="cyr_card-sub">各地区营收占比</div>
+      </div>
+    </div>
+    <canvas id="cyr_chart3" class="cyr_chart"></canvas>
+  </div>
+
+  <div class="cyr_card">
+    <div class="cyr_card-header">
+      <div>
+        <div class="cyr_card-title">④ 波动粒子场</div>
+        <div class="cyr_card-sub">时间序列 · 粒子波动</div>
+      </div>
+    </div>
+    <canvas id="cyr_chart4" class="cyr_chart"></canvas>
+  </div>
+</div>
+
+<footer>18-7 · Three.js r128 + OrbitControls · 本地 CDN · 陈依然</footer>
+
+<script>
+(function(){
+
+  /* ============ 通用工厂 ============ */
+  function cyr_makeScene(canvasId) {
+    var canvas = document.getElementById(canvasId);
+    var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+    renderer.setPixelRatio(window.devicePixelRatio);
+
+    var scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0f172a);
+
+    var w = canvas.clientWidth || 600;
+    var h = canvas.clientHeight || 380;
+    renderer.setSize(w, h, false);
+
+    var camera = new THREE.PerspectiveCamera(55, w / h, 0.1, 1000);
+    camera.position.set(0, 12, 22);
+
+    var controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.08;
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 0.6;
+
+    scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+    var dir = new THREE.DirectionalLight(0xffffff, 0.8);
+    dir.position.set(10, 20, 15);
+    scene.add(dir);
+    var point = new THREE.PointLight(0x22d3ee, 0.6, 50);
+    point.position.set(-10, 15, -10);
+    scene.add(point);
+
+    // 网格地板
+    var grid = new THREE.GridHelper(40, 20, 0x1e3a8a, 0x1e293b);
+    grid.position.y = -0.01;
+    scene.add(grid);
+
+    function onResize() {
+      var nw = canvas.clientWidth;
+      var nh = canvas.clientHeight;
+      renderer.setSize(nw, nh, false);
+      camera.aspect = nw / nh;
+      camera.updateProjectionMatrix();
+    }
+    window.addEventListener('resize', onResize);
+
+    return { scene: scene, camera: camera, renderer: renderer, controls: controls, canvas: canvas };
+  }
+
+  /* ============ ① 3D 柱状图 ============ */
+  (function(){
+    var ctx = cyr_makeScene('cyr_chart1');
+    var ROWS = 4, COLS = 6;
+    var bars = [];
+    var colors = [0x22d3ee, 0xa78bfa, 0xf472b6, 0xfbbf24, 0x10b981, 0x60a5fa];
+
+    for (var r = 0; r < ROWS; r++) {
+      for (var c = 0; c < COLS; c++) {
+        var h = 0.3 + Math.random() * 3;
+        var geo = new THREE.BoxGeometry(0.9, h, 0.9);
+        var mat = new THREE.MeshPhongMaterial({
+          color: colors[c], transparent: true, opacity: 0.85, shininess: 80
+        });
+        var bar = new THREE.Mesh(geo, mat);
+        bar.position.set(
+          (c - COLS / 2 + 0.5) * 1.1,
+          h / 2,
+          (r - ROWS / 2 + 0.5) * 1.1
+        );
+        bar.userData = { baseH: h, row: r, col: c };
+        ctx.scene.add(bar);
+        bars.push(bar);
+      }
+    }
+    ctx.camera.position.set(14, 12, 16);
+
+    function animate(t){
+      var time = t * 0.001;
+      for (var i = 0; i < bars.length; i++) {
+        var b = bars[i];
+        var dh = b.userData.baseH * (0.7 + 0.3 * Math.sin(time + i * 0.3));
+        b.scale.y = dh / b.userData.baseH;
+        b.position.y = dh / 2;
+      }
+      ctx.controls.update();
+      ctx.renderer.render(ctx.scene, ctx.camera);
+      requestAnimationFrame(animate);
+    }
+    requestAnimationFrame(animate);
+  })();
+
+  /* ============ ② 3D 散点云 ============ */
+  (function(){
+    var ctx = cyr_makeScene('cyr_chart2');
+    var N = 1200;
+    var positions = new Float32Array(N * 3);
+    var colors = new Float32Array(N * 3);
+    var colorA = new THREE.Color(0x22d3ee);
+    var colorB = new THREE.Color(0xf472b6);
+    var tmp = new THREE.Color();
+
+    for (var i = 0; i < N; i++) {
+      var x = (Math.random() - 0.5) * 20;
+      var y = (Math.random() - 0.5) * 12;
+      var z = (Math.random() - 0.5) * 20;
+      positions[i*3] = x; positions[i*3+1] = y; positions[i*3+2] = z;
+
+      // 根据到中心距离混色
+      var d = Math.sqrt(x*x + y*y + z*z) / 14;
+      tmp.copy(colorA).lerp(colorB, Math.min(1, d));
+      colors[i*3] = tmp.r; colors[i*3+1] = tmp.g; colors[i*3+2] = tmp.b;
+    }
+
+    var geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+    var mat = new THREE.PointsMaterial({
+      size: 0.22, vertexColors: true, transparent: true, opacity: 0.9,
+      blending: THREE.AdditiveBlending, depthWrite: false
+    });
+    var points = new THREE.Points(geo, mat);
+    ctx.scene.add(points);
+    ctx.camera.position.set(0, 0, 18);
+
+    var orig = positions.slice();
+    function animate(t){
+      var time = t * 0.0005;
+      var arr = geo.attributes.position.array;
+      for (var i = 0; i < N; i++) {
+        arr[i*3]   = orig[i*3]   + Math.sin(time + orig[i*3+1]) * 0.3;
+        arr[i*3+1] = orig[i*3+1] + Math.cos(time + orig[i*3])   * 0.3;
+        arr[i*3+2] = orig[i*3+2] + Math.sin(time + orig[i*3+2]) * 0.3;
+      }
+      geo.attributes.position.needsUpdate = true;
+      ctx.controls.update();
+      ctx.renderer.render(ctx.scene, ctx.camera);
+      requestAnimationFrame(animate);
+    }
+    requestAnimationFrame(animate);
+  })();
+
+  /* ============ ③ 环形星球 ============ */
+  (function(){
+    var ctx = cyr_makeScene('cyr_chart3');
+
+    // 核心球体
+    var sphereGeo = new THREE.SphereGeometry(3, 64, 64);
+    var sphereMat = new THREE.MeshPhongMaterial({
+      color: 0x1e3a8a, emissive: 0x1e40af, emissiveIntensity: 0.4,
+      shininess: 80, transparent: true, opacity: 0.9
+    });
+    var sphere = new THREE.Mesh(sphereGeo, sphereMat);
+    ctx.scene.add(sphere);
+
+    // 环数据（模拟占比）
+    var rings = [
+      { color: 0x22d3ee, value: 35, r: 4.5 },
+      { color: 0xf472b6, value: 25, r: 5.8 },
+      { color: 0xfbbf24, value: 20, r: 7.1 },
+      { color: 0x10b981, value: 15, r: 8.4 },
+      { color: 0xa78bfa, value: 5,  r: 9.7 }
+    ];
+
+    var ringMeshes = [];
+    for (var i = 0; i < rings.length; i++) {
+      var ring = rings[i];
+      var tubeGeo = new THREE.TorusGeometry(ring.r, 0.55, 16, 100);
+      var tubeMat = new THREE.MeshPhongMaterial({
+        color: ring.color, emissive: ring.color, emissiveIntensity: 0.4
+      });
+      var torus = new THREE.Mesh(tubeGeo, tubeMat);
+      torus.rotation.x = Math.PI / 2 + i * 0.2;
+      torus.rotation.z = i * 0.3;
+      torus.userData = { speed: 0.003 + i * 0.001 };
+      ctx.scene.add(torus);
+      ringMeshes.push(torus);
+    }
+
+    // 星球表面粒子
+    var starsGeo = new THREE.BufferGeometry();
+    var starCount = 400;
+    var starPos = new Float32Array(starCount * 3);
+    for (var j = 0; j < starCount; j++) {
+      var theta = Math.random() * Math.PI * 2;
+      var phi = Math.acos(2 * Math.random() - 1);
+      var rr = 3 * Math.cos(phi);
+      starPos[j*3]   = 3.3 * Math.sin(phi) * Math.cos(theta);
+      starPos[j*3+1] = 3.3 * Math.cos(phi);
+      starPos[j*3+2] = 3.3 * Math.sin(phi) * Math.sin(theta);
+    }
+    starsGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+    var starsMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.12 });
+    var stars = new THREE.Points(starsGeo, starsMat);
+    ctx.scene.add(stars);
+
+    ctx.camera.position.set(0, 8, 16);
+
+    function animate(t){
+      sphere.rotation.y = t * 0.0002;
+      for (var i = 0; i < ringMeshes.length; i++) {
+        ringMeshes[i].rotation.z += ringMeshes[i].userData.speed;
+      }
+      stars.rotation.y = -t * 0.0001;
+      ctx.controls.update();
+      ctx.renderer.render(ctx.scene, ctx.camera);
+      requestAnimationFrame(animate);
+    }
+    requestAnimationFrame(animate);
+  })();
+
+  /* ============ ④ 波动粒子场 ============ */
+  (function(){
+    var ctx = cyr_makeScene('cyr_chart4');
+    var W = 40, D = 40, SEP = 0.8;
+    var positions = [];
+
+    for (var x = -W/2; x <= W/2; x += SEP) {
+      for (var z = -D/2; z <= D/2; z += SEP) {
+        positions.push(x, 0, z);
+      }
+    }
+
+    var geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+
+    var mat = new THREE.PointsMaterial({
+      size: 0.22, color: 0x22d3ee,
+      transparent: true, opacity: 0.9,
+      blending: THREE.AdditiveBlending, depthWrite: false
+    });
+    var plane = new THREE.Points(geo, mat);
+    ctx.scene.add(plane);
+
+    // 地面参考
+    var refPlane = new THREE.Mesh(
+      new THREE.PlaneGeometry(W, D),
+      new THREE.MeshBasicMaterial({ color: 0x1e293b, transparent: true, opacity: 0.4, side: THREE.DoubleSide })
+    );
+    refPlane.rotation.x = -Math.PI / 2;
+    ctx.scene.add(refPlane);
+
+    ctx.camera.position.set(0, 18, 22);
+
+    var count = positions.length / 3;
+    function animate(t){
+      var time = t * 0.0015;
+      var arr = plane.geometry.attributes.position.array;
+      for (var i = 0; i < count; i++) {
+        var x = arr[i*3];
+        var z = arr[i*3+2];
+        var y = Math.sin(x * 0.3 + time) * 1.2 + Math.cos(z * 0.25 + time * 0.7) * 1.0;
+        arr[i*3+1] = y;
+      }
+      plane.geometry.attributes.position.needsUpdate = true;
+
+      // 根据 y 值渐变色
+      var colors = new Float32Array(count * 3);
+      for (var j = 0; j < count; j++) {
+        var yv = arr[j*3+1];
+        var c = Math.max(0, Math.min(1, (yv + 3) / 6));
+        colors[j*3]   = c * 0.8 + (1 - c) * 0.1;
+        colors[j*3+1] = c * 0.2 + (1 - c) * 0.8;
+        colors[j*3+2] = c * 0.9 + (1 - c) * 0.9;
+      }
+      plane.geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+      plane.material.vertexColors = true;
+
+      ctx.controls.update();
+      ctx.renderer.render(ctx.scene, ctx.camera);
+      requestAnimationFrame(animate);
+    }
+    requestAnimationFrame(animate);
+  })();
+
+})();
+</script>
+</body>
+</html>

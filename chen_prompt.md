@@ -239,3 +239,21 @@
 - 提示词：实现18-4.html，其中包括echarts的两个图:https://echarts.apache.org/examples/zh/editor.html?c=bar-race-country和https://echarts.apache.org/examples/zh/editor.html?c=bar-polar-real-estate，cdn文件下载到cdn目录下。
 
 ---
+
+## 2026-11-05-16-07
+
+- 模型：Doubao
+- 提示词：为这个app的功能想一个名字，比如"xx网页"。（按项目报告已填选题名称"大连天气网页"确定并同步到页面）
+
+---
+
+## 2026-11-05-16-22 / 模型：Doubao / 提示词：1不用，2要。
+---
+
+
+## 2026-11-05-16-31
+
+- 模型：Trae
+- 提示词：实现18-6.html，实现基于mermaid的智能客服系统的流程图和er图，cdn文件下载到cdn目录下。实现18-7.html，实现基于three.js的四个图表，cdn文件下载到cdn目录下。实现18-8.html，实现基于three.js或echarts的数据大屏，大屏要求:三列，中间那列的上面是某种地理信息的图，cdn文件下载到cdn目录下。
+
+---

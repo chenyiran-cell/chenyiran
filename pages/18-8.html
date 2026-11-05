@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>18-8 智能客服数据大屏</title>
+<script src="../cdn/echarts.min.js"></script>
+<script src="../cdn/three.min.js"></script>
+<script src="../cdn/OrbitControls.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; }
+  body {
+    font-family: "Microsoft YaHei", sans-serif;
+    background: #020617;
+    color: #e2e8f0;
+    /* 科技感网格背景 */
+    background-image:
+      linear-gradient(rgba(34, 211, 238, 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(34, 211, 238, 0.06) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+  .cyr_back-home {
+    position: fixed; top: 10px; left: 12px; z-index: 99;
+    color: #81d4fa; text-decoration: none; font-size: 0.82rem; font-weight: bold;
+  }
+  .cyr_dash {
+    width: 100vw; height: 100vh;
+    display: flex; flex-direction: column; padding: 10px; gap: 10px;
+  }
+  /* 顶部标题栏 */
+  .cyr_topbar {
+    height: 56px; flex-shrink: 0;
+    background: linear-gradient(90deg, rgba(8,145,178,0.15), rgba(124,58,237,0.15), rgba(236,72,153,0.15));
+    border: 1px solid rgba(34,211,238,0.25);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: space-between; padding: 0 20px;
+    position: relative; overflow: hidden;
+  }
+  .cyr_topbar::before {
+    content: ''; position: absolute; inset: 0;
+    background: repeating-linear-gradient(90deg, transparent 0, transparent 50px, rgba(34,211,238,0.08) 50px, rgba(34,211,238,0.08) 100px);
+  }
+  .cyr_topbar h1 {
+    font-size: 1.5rem;
+    background: linear-gradient(90deg, #22d3ee, #a78bfa, #f472b6);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    position: relative;
+  }
+  .cyr_time { color: #22d3ee; font-family: Consolas, monospace; font-size: 0.9rem; position: relative; }
+
+  /* 三列主体 */
+  .cyr_body {
+    flex: 1; display: flex; gap: 10px; min-height: 0;
+  }
+  .cyr_col {
+    display: flex; flex-direction: column; gap: 10px; min-height: 0;
+  }
+  .cyr_col-left, .cyr_col-right { width: 28%; }
+  .cyr_col-mid { flex: 1; }
+
+  .cyr_panel {
+    background: linear-gradient(180deg, rgba(15,23,42,0.85), rgba(15,23,42,0.6));
+    border: 1px solid rgba(34,211,238,0.2);
+    border-radius: 10px;
+    padding: 10px 12px;
+    position: relative; overflow: hidden;
+  }
+  .cyr_panel::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, #22d3ee, transparent);
+  }
+  .cyr_panel-title {
+    font-size: 0.85rem; color: #22d3ee; font-weight: bold;
+    margin-bottom: 8px; padding-bottom: 4px;
+    border-bottom: 1px dashed rgba(34,211,238,0.2);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .cyr_panel-title small { color: #64748b; font-weight: normal; font-size: 0.72rem; }
+
+  .cyr_stat-row {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;
+  }
+  .cyr_stat {
+    background: rgba(34,211,238,0.08);
+    border: 1px solid rgba(34,211,238,0.2);
+    border-radius: 6px; padding: 8px 10px;
+  }
+  .cyr_stat-label { font-size: 0.72rem; color: #64748b; }
+  .cyr_stat-val {
+    font-size: 1.25rem; font-weight: bold;
+    background: linear-gradient(90deg, #22d3ee, #a78bfa);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    font-family: Consolas, monospace;
+  }
+  .cyr_stat-val.cyr_warm { background: linear-gradient(90deg, #fbbf24, #f472b6); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+
+  .cyr_chart { width: 100%; }
+
+  .cyr_rank-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 4px 0; font-size: 0.78rem;
+    border-bottom: 1px solid rgba(148,163,184,0.1);
+  }
+  .cyr_rank-item:last-child { border-bottom: none; }
+  .cyr_rank-num {
+    width: 22px; height: 22px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 0.72rem; font-weight: bold;
+    background: rgba(148,163,184,0.15); color: #94a3b8;
+  }
+  .cyr_rank-num.top1 { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #0f172a; }
+  .cyr_rank-num.top2 { background: linear-gradient(135deg, #cbd5e1, #94a3b8); color: #0f172a; }
+  .cyr_rank-num.top3 { background: linear-gradient(135deg, #fb923c, #ea580c); color: #0f172a; }
+  .cyr_rank-bar {
+    flex: 1; margin: 0 8px; height: 6px;
+    background: rgba(148,163,184,0.1); border-radius: 3px; overflow: hidden;
+  }
+  .cyr_rank-bar-inner {
+    height: 100%; border-radius: 3px;
+    background: linear-gradient(90deg, #22d3ee, #a78bfa);
+  }
+
+  .cyr_log { font-family: Consolas, monospace; font-size: 0.72rem; max-height: 120px; overflow-y: auto; }
+  .cyr_log div { padding: 2px 0; border-bottom: 1px dashed rgba(148,163,184,0.1); }
+  .cyr_log .cyr_ts { color: #64748b; margin-right: 6px; }
+  .cyr_log .cyr_ok { color: #22d3ee; }
+  .cyr_log .cyr_warn { color: #fbbf24; }
+  .cyr_log .cyr_err { color: #f472b6; }
+
+  .cyr_alarm-item {
+    padding: 6px 10px; font-size: 0.76rem;
+    border-left: 3px solid #22d3ee;
+    background: rgba(34,211,238,0.08);
+    margin-bottom: 4px; border-radius: 0 4px 4px 0;
+  }
+  .cyr_alarm-item.cyr_w { border-color: #fbbf24; background: rgba(251,191,36,0.1); }
+  .cyr_alarm-item.cyr_e { border-color: #f472b6; background: rgba(244,114,182,0.1); }
+  .cyr_alarm-item span { color: #64748b; font-size: 0.68rem; margin-right: 8px; }
+
+  /* 占满容器 */
+  .cyr_fill { flex: 1; min-height: 0; }
+  .cyr_half { flex: 1; min-height: 0; }
+
+  /* 滚动条 */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(34,211,238,0.3); border-radius: 2px; }
+</style>
+</head>
+<body>
+<!-- 姓名：陈依然，日期：2026-11-05，功能：Three.js + ECharts 智能客服数据大屏 -->
+<a href="index.html" class="cyr_back-home">← 返回首页</a>
+
+<div class="cyr_dash">
+  <!-- 顶部栏 -->
+  <div class="cyr_topbar">
+    <h1>🧠 智能客服系统运营数据大屏</h1>
+    <div class="cyr_time" id="cyr_time">--:--:--</div>
+  </div>
+
+  <!-- 三列主体 -->
+  <div class="cyr_body">
+
+    <!-- ============ 左列 ============ -->
+    <div class="cyr_col cyr_col-left">
+      <!-- 实时指标 -->
+      <div class="cyr_panel">
+        <div class="cyr_panel-title">📈 实时运营指标 <small>Real-time</small></div>
+        <div class="cyr_stat-row">
+          <div class="cyr_stat"><div class="cyr_stat-label">今日会话</div><div class="cyr_stat-val" id="cyr_sessions">12,436</div></div>
+          <div class="cyr_stat"><div class="cyr_stat-label">平均响应</div><div class="cyr_stat-val">0.85s</div></div>
+          <div class="cyr_stat"><div class="cyr_stat-label">解决率</div><div class="cyr_stat-val cyr_warm">94.2%</div></div>
+          <div class="cyr_stat"><div class="cyr_stat-label">满意度</div><div class="cyr_stat-val">4.68/5</div></div>
+        </div>
+      </div>
+
+      <!-- 24h 会话趋势 -->
+      <div class="cyr_panel cyr_half">
+        <div class="cyr_panel-title">📉 24h 会话趋势</div>
+        <div id="cyr_trend" class="cyr_chart" style="height: calc(100% - 28px);"></div>
+      </div>
+
+      <!-- 意图分布 -->
+      <div class="cyr_panel cyr_half">
+        <div class="cyr_panel-title">🎯 意图分布</div>
+        <div id="cyr_pie" class="cyr_chart" style="height: calc(100% - 28px);"></div>
+      </div>
+    </div>
+
+    <!-- ============ 中列 ============ -->
+    <div class="cyr_col cyr_col-mid">
+      <!-- 地理信息（effectScatter 模拟） -->
+      <div class="cyr_panel" style="flex: 1.2;">
+        <div class="cyr_panel-title">🌐 全国客服请求分布（地理信息） <small>Geo Heatmap</small></div>
+        <div id="cyr_geo" class="cyr_chart" style="height: calc(100% - 28px);"></div>
+      </div>
+
+      <!-- Three.js 3D 客服状态 -->
+      <div class="cyr_panel" style="flex: 0.8;">
+        <div class="cyr_panel-title">🧊 3D 客服节点状态</div>
+        <canvas id="cyr_threeDash" style="width:100%; height: calc(100% - 28px); display:block;"></canvas>
+      </div>
+    </div>
+
+    <!-- ============ 右列 ============ -->
+    <div class="cyr_col cyr_col-right">
+      <!-- FAQ 热门 -->
+      <div class="cyr_panel" style="flex: 1;">
+        <div class="cyr_panel-title">🏆 FAQ 热门 TOP10</div>
+        <div id="cyr_rank" style="height: calc(100% - 28px); overflow-y: auto;"></div>
+      </div>
+
+      <!-- 实时日志 -->
+      <div class="cyr_panel" style="flex: 1;">
+        <div class="cyr_panel-title">📜 实时日志 <small>Live Stream</small></div>
+        <div class="cyr_log" id="cyr_log"></div>
+      </div>
+
+      <!-- 告警 -->
+      <div class="cyr_panel" style="flex: 0.7;">
+        <div class="cyr_panel-title">⚠️ 告警中心</div>
+        <div class="cyr_alarm-item cyr_e"><span>14:38:21</span>Redis 连接池接近上限</div>
+        <div class="cyr_alarm-item cyr_w"><span>14:35:12</span>向量库召回耗时 820ms（阈值 500）</div>
+        <div class="cyr_alarm-item"><span>14:30:08</span>Rerank 模型加载完成 v2.3.1</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ============ 时间 ============ */
+(function(){
+  function tick(){
+    var d = new Date();
+    var s = d.getFullYear() + '-' +
+            String(d.getMonth()+1).padStart(2,'0') + '-' +
+            String(d.getDate()).padStart(2,'0') + '  ' +
+            String(d.getHours()).padStart(2,'0') + ':' +
+            String(d.getMinutes()).padStart(2,'0') + ':' +
+            String(d.getSeconds()).padStart(2,'0');
+    document.getElementById('cyr_time').textContent = s;
+  }
+  tick(); setInterval(tick, 1000);
+})();
+
+/* ============ 左列：趋势图 ============ */
+(function(){
+  var trend = echarts.init(document.getElementById('cyr_trend'));
+  var hours = [];
+  for (var h = 0; h < 24; h++) hours.push(h + ':00');
+  var base = [30,22,18,15,12,14,28,62,96,128,156,172,168,158,142,148,162,188,196,172,124,82,58,40];
+  var data1 = base.map(function(v){ return v + Math.round((Math.random()-0.5)*10); });
+  var data2 = base.map(function(v){ return Math.round(v*0.7) + Math.round((Math.random()-0.5)*8); });
+
+  trend.setOption({
+    tooltip: { trigger: 'axis', backgroundColor: 'rgba(15,23,42,0.9)', borderColor: '#22d3ee', textStyle: { color: '#e2e8f0' } },
+    legend: { textStyle: { color: '#94a3b8', fontSize: 11 }, top: 0, data: ['AI 会话', '人工会话'] },
+    grid: { top: 28, bottom: 20, left: 36, right: 12 },
+    xAxis: { type: 'category', data: hours, axisLabel: { color: '#64748b', fontSize: 10, interval: 3 }, axisLine: { lineStyle: { color: '#334155' } } },
+    yAxis: { type: 'value', axisLabel: { color: '#64748b', fontSize: 10 }, splitLine: { lineStyle: { color: 'rgba(51,65,85,0.3)' } } },
+    series: [
+      { name: 'AI 会话', type: 'line', smooth: true, data: data1,
+        lineStyle: { color: '#22d3ee', width: 2 }, symbol: 'circle', symbolSize: 4, itemStyle: { color: '#22d3ee' },
+        areaStyle: { color: new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0, color:'rgba(34,211,238,0.4)'},{offset:1, color:'rgba(34,211,238,0)'}]) }
+      },
+      { name: '人工会话', type: 'line', smooth: true, data: data2,
+        lineStyle: { color: '#f472b6', width: 2 }, symbol: 'circle', symbolSize: 4, itemStyle: { color: '#f472b6' },
+        areaStyle: { color: new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0, color:'rgba(244,114,182,0.3)'},{offset:1, color:'rgba(244,114,182,0)'}]) }
+      }
+    ]
+  });
+
+  setInterval(function(){
+    trend.setOption({
+      series: [{ data: base.map(function(v){ return v + Math.round((Math.random()-0.5)*15); }) },
+               { data: base.map(function(v){ return Math.round(v*0.7) + Math.round((Math.random()-0.5)*10); }) }]
+    });
+  }, 3000);
+  window.addEventListener('resize', function(){ trend.resize(); });
+})();
+
+/* ============ 左列：意图饼图 ============ */
+(function(){
+  var pie = echarts.init(document.getElementById('cyr_pie'));
+  pie.setOption({
+    tooltip: { trigger: 'item', backgroundColor: 'rgba(15,23,42,0.9)', borderColor: '#22d3ee', textStyle: { color: '#e2e8f0' } },
+    legend: { orient: 'vertical', right: 0, top: 'middle', textStyle: { color: '#94a3b8', fontSize: 11 } },
+    series: [{
+      type: 'pie', radius: ['40%','70%'], center: ['35%','50%'],
+      avoidLabelOverlap: true,
+      itemStyle: { borderRadius: 4, borderColor: '#0f172a', borderWidth: 2 },
+      label: { show: false },
+      labelLine: { show: false },
+      data: [
+        { name: 'FAQ 查询', value: 42, itemStyle: { color: '#22d3ee' } },
+        { name: '业务办理', value: 28, itemStyle: { color: '#a78bfa' } },
+        { name: '转人工', value: 15, itemStyle: { color: '#f472b6' } },
+        { name: '闲聊', value: 9, itemStyle: { color: '#fbbf24' } },
+        { name: '投诉建议', value: 6, itemStyle: { color: '#10b981' } }
+      ]
+    }]
+  });
+  window.addEventListener('resize', function(){ pie.resize(); });
+})();
+
+/* ============ 中列：地理散点图 ============ */
+(function(){
+  var geo = echarts.init(document.getElementById('cyr_geo'));
+  // 模拟中国主要城市经纬度（简化版）
+  var cities = [
+    { name: '北京',  lon: 116.4, lat: 39.9, v: 1820 },
+    { name: '上海',  lon: 121.5, lat: 31.2, v: 2140 },
+    { name: '深圳',  lon: 114.1, lat: 22.6, v: 1680 },
+    { name: '广州',  lon: 113.3, lat: 23.1, v: 1420 },
+    { name: '杭州',  lon: 120.2, lat: 30.3, v: 1260 },
+    { name: '成都',  lon: 104.1, lat: 30.7, v: 980 },
+    { name: '武汉',  lon: 114.3, lat: 30.6, v: 880 },
+    { name: '西安',  lon: 108.9, lat: 34.3, v: 720 },
+    { name: '南京',  lon: 118.8, lat: 32.0, v: 680 },
+    { name: '重庆',  lon: 106.5, lat: 29.6, v: 640 },
+    { name: '天津',  lon: 117.2, lat: 39.1, v: 560 },
+    { name: '苏州',  lon: 120.6, lat: 31.3, v: 520 },
+    { name: '青岛',  lon: 120.4, lat: 36.1, v: 440 },
+    { name: '长沙',  lon: 112.9, lat: 28.2, v: 420 },
+    { name: '郑州',  lon: 113.6, lat: 34.7, v: 380 },
+    { name: '厦门',  lon: 118.1, lat: 24.5, v: 340 },
+    { name: '福州',  lon: 119.3, lat: 26.0, v: 300 },
+    { name: '大连',  lon: 121.6, lat: 38.9, v: 280 },
+    { name: '哈尔滨', lon: 126.6, lat: 45.8, v: 240 },
+    { name: '昆明',  lon: 102.7, lat: 25.0, v: 220 }
+  ];
+
+  var data = cities.map(function(c){ return { name: c.name, value: [c.lon, c.lat, c.v] }; });
+
+  // 不依赖 geo JSON，用极坐标投影模拟中国地图轮廓 —— 改用 effectScatter + 背景散点
+  // 简化：用一个 background 的散点 + cities + 连线
+
+  geo.setOption({
+    backgroundColor: 'transparent',
+    tooltip: { trigger: 'item', backgroundColor: 'rgba(15,23,42,0.9)', borderColor: '#22d3ee', textStyle: { color: '#e2e8f0' },
+      formatter: function(p){ return p.name + '<br/>请求量: ' + p.value[2]; }
+    },
+    geo: {
+      map: 'china',
+      show: false
+    },
+    xAxis: { show: false, min: 70, max: 140, type: 'value' },
+    yAxis: { show: false, min: 18, max: 55, type: 'value' },
+    grid: { left: 0, right: 0, top: 0, bottom: 0 },
+    series: [
+      // 装饰网格点
+      {
+        type: 'scatter',
+        data: (function(){
+          var pts = [];
+          for (var lon = 75; lon <= 135; lon += 2) {
+            for (var lat = 20; lat <= 52; lat += 2) {
+              // 粗略模拟中国轮廓（去掉四角）
+              if ((lon < 80 && lat > 45) || (lon > 130 && lat < 30) || (lon < 95 && lat < 22)) continue;
+              pts.push([lon, lat, Math.random() * 20]);
+            }
+          }
+          return pts;
+        })(),
+        symbolSize: 2,
+        itemStyle: { color: 'rgba(34,211,238,0.08)' },
+        silent: true,
+        z: 1
+      },
+      // 城市 effectScatter
+      {
+        type: 'effectScatter',
+        data: data,
+        symbolSize: function(val){ return Math.max(6, Math.min(30, val[2] / 80)); },
+        showEffectOn: 'render',
+        rippleEffect: { brushType: 'stroke', scale: 3, period: 3 },
+        itemStyle: {
+          color: function(p){
+            var v = p.value[2];
+            if (v > 1500) return '#f472b6';
+            if (v > 1000) return '#a78bfa';
+            return '#22d3ee';
+          },
+          shadowBlur: 10,
+          shadowColor: 'rgba(34,211,238,0.8)'
+        },
+        label: { show: true, formatter: '{b}', position: 'right', color: '#94a3b8', fontSize: 10 },
+        z: 10
+      },
+      // Top 3 城市间连线（信息流）
+      {
+        type: 'lines',
+        coordinateSystem: 'cartesian2d',
+        data: [
+          { coords: [[121.5, 31.2], [116.4, 39.9]] },
+          { coords: [[116.4, 39.9], [114.1, 22.6]] },
+          { coords: [[121.5, 31.2], [114.1, 22.6]] }
+        ],
+        polyline: false,
+        effect: { show: true, period: 4, trailLength: 0.2, symbol: 'arrow', symbolSize: 8, color: '#fbbf24' },
+        lineStyle: { color: '#a78bfa', width: 1.5, opacity: 0.5, curveness: 0.2 },
+        z: 5
+      }
+    ]
+  });
+
+  window.addEventListener('resize', function(){ geo.resize(); });
+})();
+
+/* ============ 右列：FAQ 排名 ============ */
+(function(){
+  var faqs = [
+    { q: '如何退款？',              v: 18234 },
+    { q: '忘记密码怎么办',          v: 15421 },
+    { q: '发货时间查询',            v: 12908 },
+    { q: '会员积分规则',            v: 9876 },
+    { q: '支持哪些支付方式',        v: 8210 },
+    { q: '配送范围查询',            v: 6543 },
+    { q: '怎么修改收货地址',        v: 5421 },
+    { q: '开发票流程',              v: 4321 },
+    { q: '退换货政策',              v: 3654 },
+    { q: '优惠券使用方法',          v: 2987 }
+  ];
+  var max = faqs[0].v;
+  var html = '';
+  for (var i = 0; i < faqs.length; i++) {
+    var cls = i === 0 ? 'top1' : (i === 1 ? 'top2' : (i === 2 ? 'top3' : ''));
+    var w = Math.round(faqs[i].v / max * 100);
+    html += '<div class="cyr_rank-item">' +
+            '<span class="cyr_rank-num ' + cls + '">' + (i+1) + '</span>' +
+            '<span style="flex:1;color:#e2e8f0;font-size:0.76rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + faqs[i].q + '</span>' +
+            '<span style="color:#fbbf24;font-family:Consolas,monospace;font-size:0.72rem;margin-right:8px;">' + faqs[i].v.toLocaleString() + '</span>' +
+            '<div class="cyr_rank-bar"><div class="cyr_rank-bar-inner" style="width:' + w + '%;"></div></div>' +
+            '</div>';
+  }
+  document.getElementById('cyr_rank').innerHTML = html;
+})();
+
+/* ============ 右列：实时日志 ============ */
+(function(){
+  var msgs = [
+    { c: 'cyr_ok',   t: '会话开始 session=a1b2c3 用户查询退货流程' },
+    { c: 'cyr_ok',   t: 'Embedding 耗时 12ms · 向量召回 34ms' },
+    { c: 'cyr_warn', t: 'Rerank 耗时偏高 680ms · 目标 300ms' },
+    { c: 'cyr_ok',   t: 'LLM 生成 82 tokens · 耗时 420ms' },
+    { c: 'cyr_err',  t: '用户反馈 👎 · Bad Case #4821 · 已回流知识库' },
+    { c: 'cyr_ok',   t: '转人工坐席 #203 · 原因：需要身份核验' },
+    { c: 'cyr_ok',   t: 'FAQ 命中率 94.2% · Top 问题：退款政策' },
+    { c: 'cyr_warn', t: 'GPU 利用率 87% · 建议扩容推理节点' },
+    { c: 'cyr_ok',   t: '知识库增量更新 · 新增 128 条文档' },
+    { c: 'cyr_ok',   t: '安全审查通过 · PII 脱敏正常' },
+    { c: 'cyr_err',  t: '向量库连接抖动 · 自动重连成功' },
+    { c: 'cyr_ok',   t: '意图识别准确率 96.3% · 实时监控正常' }
+  ];
+
+  var box = document.getElementById('cyr_log');
+  var idx = 0;
+
+  function addLog(){
+    var now = new Date();
+    var ts = String(now.getHours()).padStart(2,'0') + ':' +
+             String(now.getMinutes()).padStart(2,'0') + ':' +
+             String(now.getSeconds()).padStart(2,'0');
+    var m = msgs[idx % msgs.length];
+    var div = document.createElement('div');
+    div.className = m.c;
+    div.innerHTML = '<span class="cyr_ts">' + ts + '</span>' + m.t;
+    box.appendChild(div);
+    if (box.children.length > 60) box.removeChild(box.firstChild);
+    box.scrollTop = box.scrollHeight;
+    idx++;
+  }
+
+  // 初始刷几条
+  for (var i = 0; i < 4; i++) addLog();
+  setInterval(addLog, 2200);
+})();
+
+/* ============ 中列：Three.js 客服节点 3D ============ */
+(function(){
+  var canvas = document.getElementById('cyr_threeDash');
+  var w = canvas.clientWidth, h = canvas.clientHeight;
+
+  var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.setSize(w, h, false);
+
+  var scene = new THREE.Scene();
+  var camera = new THREE.PerspectiveCamera(50, w / h, 0.1, 1000);
+  camera.position.set(0, 4, 14);
+
+  var controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true; controls.autoRotate = true; controls.autoRotateSpeed = 1.2;
+
+  scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+  var d = new THREE.DirectionalLight(0xffffff, 0.8); d.position.set(8, 12, 8); scene.add(d);
+
+  // 中央核心节点
+  var core = new THREE.Mesh(
+    new THREE.SphereGeometry(0.8, 32, 32),
+    new THREE.MeshPhongMaterial({ color: 0x22d3ee, emissive: 0x0891b2, emissiveIntensity: 0.6 })
+  );
+  scene.add(core);
+
+  // 周围子节点
+  var nodeColors = [0xa78bfa, 0xf472b6, 0xfbbf24, 0x10b981, 0x60a5fa, 0xfb923c, 0xe879f9, 0x34d399];
+  var nodes = [];
+  for (var i = 0; i < 8; i++) {
+    var angle = (i / 8) * Math.PI * 2;
+    var r = 4.5;
+    var pos = new THREE.Vector3(Math.cos(angle) * r, Math.sin(angle) * 0.6, Math.sin(angle) * r);
+
+    var mesh = new THREE.Mesh(
+      new THREE.BoxGeometry(0.8, 0.8, 0.8),
+      new THREE.MeshPhongMaterial({ color: nodeColors[i], emissive: nodeColors[i], emissiveIntensity: 0.4 })
+    );
+    mesh.position.copy(pos);
+    mesh.userData = { baseY: pos.y, phase: i * 0.8 };
+    scene.add(mesh);
+    nodes.push(mesh);
+
+    // 连线
+    var lineGeo = new THREE.BufferGeometry().setFromPoints([core.position, pos]);
+    var lineMat = new THREE.LineBasicMaterial({ color: nodeColors[i], transparent: true, opacity: 0.5 });
+    scene.add(new THREE.Line(lineGeo, lineMat));
+  }
+
+  // 外层装饰点
+  var decoGeo = new THREE.BufferGeometry();
+  var decoPos = new Float32Array(200 * 3);
+  for (var j = 0; j < 200; j++) {
+    var t = Math.random() * Math.PI * 2;
+    var ph = Math.acos(2 * Math.random() - 1);
+    var rr = 6 + Math.random() * 0.5;
+    decoPos[j*3]   = rr * Math.sin(ph) * Math.cos(t);
+    decoPos[j*3+1] = rr * Math.cos(ph) * 0.6;
+    decoPos[j*3+2] = rr * Math.sin(ph) * Math.sin(t);
+  }
+  decoGeo.setAttribute('position', new THREE.BufferAttribute(decoPos, 3));
+  var deco = new THREE.Points(decoGeo, new THREE.PointsMaterial({ color: 0x22d3ee, size: 0.06, transparent: true, opacity: 0.6 }));
+  scene.add(deco);
+
+  function onResize(){
+    w = canvas.clientWidth; h = canvas.clientHeight;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h; camera.updateProjectionMatrix();
+  }
+  window.addEventListener('resize', onResize);
+
+  function animate(t){
+    var time = t * 0.002;
+    core.rotation.y = time;
+    core.scale.setScalar(1 + Math.sin(time * 3) * 0.08);
+
+    for (var i = 0; i < nodes.length; i++) {
+      nodes[i].position.y = nodes[i].userData.baseY + Math.sin(time * 2 + nodes[i].userData.phase) * 0.4;
+      nodes[i].rotation.x = time + i;
+      nodes[i].rotation.y = time * 1.5;
+    }
+    deco.rotation.y = time * 0.3;
+    controls.update();
+    renderer.render(scene, camera);
+    requestAnimationFrame(animate);
+  }
+  requestAnimationFrame(animate);
+})();
+</script>
+</body>
+</html>

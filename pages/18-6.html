@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>18-6 Mermaid 智能客服流程图 & ER 图</title>
+<script src="../cdn/mermaid.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Microsoft YaHei", sans-serif;
+    background: linear-gradient(135deg, #0f172a, #1e1b4b 50%, #1e3a8a);
+    color: #e2e8f0; min-height: 100vh; padding: 20px;
+  }
+  .cyr_back-home {
+    color: #81d4fa; text-decoration: none; font-size: 0.88rem; font-weight: bold;
+  }
+  .cyr_header { text-align: center; margin-bottom: 18px; }
+  .cyr_header h1 {
+    font-size: 1.5rem;
+    background: linear-gradient(90deg, #22d3ee, #818cf8, #f472b6);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .cyr_header p { font-size: 0.85rem; color: #94a3b8; margin-top: 4px; }
+
+  .cyr_chart-wrap {
+    max-width: 1300px; margin: 0 auto 28px;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    border-radius: 14px; padding: 18px 20px;
+    backdrop-filter: blur(6px);
+  }
+  .cyr_chart-title {
+    font-size: 1.05rem; color: #22d3ee; margin-bottom: 6px;
+    padding-left: 10px; border-left: 4px solid #22d3ee;
+  }
+  .cyr_chart-sub { font-size: 0.76rem; color: #64748b; margin-bottom: 14px; padding-left: 14px; }
+  .cyr_chart-sub code { color: #22d3ee; background: rgba(34,211,238,0.1); padding: 1px 6px; border-radius: 4px; }
+
+  .cyr_mermaid-box {
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(148,163,184,0.08);
+    border-radius: 10px; padding: 14px; overflow-x: auto;
+  }
+  .cyr_mermaid-box svg { display: block; margin: 0 auto; max-width: 100%; }
+
+  .cyr_error {
+    background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 8px; padding: 12px; color: #fca5a5; font-size: 0.8rem;
+    text-align: center; margin: 6px 0; display: none;
+  }
+  footer { text-align: center; color: #475569; font-size: 0.75rem; margin-top: 10px; }
+</style>
+</head>
+<body>
+<!-- 姓名：陈依然，日期：2026-11-05，功能：Mermaid 智能客服系统流程图 + ER 图 -->
+<a href="index.html" class="cyr_back-home">← 返回首页</a>
+<div class="cyr_header">
+  <h1>📐 Mermaid 图表 · 智能客服系统</h1>
+  <p>陈依然 · ① 用户请求处理流程图 · ② 数据库 ER 图</p>
+</div>
+
+<!-- ============ 1. 流程图 ============ -->
+<div class="cyr_chart-wrap">
+  <div class="cyr_chart-title">① 用户请求处理流程图（Flowchart TD）</div>
+  <div class="cyr_chart-sub">用户发起请求 → 意图识别 → Agent 规划 → RAG 检索 → LLM 生成 → 安全审查 → 返回响应</div>
+  <div class="cyr_mermaid-box">
+    <div id="cyr_flowchart" class="mermaid">
+flowchart TD
+    Start([🗣 用户发起请求]) --> Channel{入口渠道}
+    Channel -->|Web/App| Gate[API 网关<br/>限流·鉴权·WAF]
+    Channel -->|微信/钉钉| IM[IM 接入适配]
+    Channel -->|电话| Voice[语音通道 ASR]
+
+    Gate --> Intent
+    IM --> Intent
+    Voice --> Intent
+
+    Intent{意图识别<br/>BERT/LLM 分类} -->|闲聊| SmallTalk[闲聊回复]
+    Intent -->|FAQ| Faq[FAQ 匹配<br/>精确/模糊检索]
+    Intent -->|业务查询| Agent
+    Intent -->|人工咨询| Escalate[转人工客服]
+
+    Agent{Agent Planner<br/>ReAct 规划} --> Plan[生成 Tool Call 序列]
+    Plan --> RAG{需要检索知识?}
+
+    RAG -->|是| Embed[Embedding 向量化]
+    Embed --> Retry[多路召回<br/>向量+关键词+图谱]
+    Retry --> Rerank[Rerank 重排序]
+    Rerank --> Prompt[组装 Prompt<br/>Retrieved Chunks]
+
+    RAG -->|否| Direct[直接调用工具<br/>DB/API/计算器]
+
+    Prompt --> LLM[LLM 生成回答]
+    Direct --> LLM
+
+    SmallTalk --> Safety
+    Faq --> Safety
+    LLM --> Safety
+    Escalate --> Safety
+
+    Safety{安全审查<br/>敏感词/PII/合规} -->|通过| Save[(✅ 保存会话)]
+    Safety -->|拦截| Rewrite[改写/拒答]
+    Rewrite --> Save
+
+    Save --> End([📨 返回响应])
+
+    style Start fill:#22d3ee,stroke:#0891b2,color:#0f172a
+    style End fill:#22d3ee,stroke:#0891b2,color:#0f172a
+    style Intent fill:#a78bfa,stroke:#7c3aed,color:#0f172a
+    style Agent fill:#a78bfa,stroke:#7c3aed,color:#0f172a
+    style RAG fill:#fbbf24,stroke:#d97706,color:#0f172a
+    style LLM fill:#f472b6,stroke:#db2777,color:#0f172a
+    style Safety fill:#10b981,stroke:#047857,color:#0f172a
+    style Save fill:#10b981,stroke:#047857,color:#0f172a
+    style Escalate fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rewrite fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rerank fill:#facc15,stroke:#a16207,color:#0f172a
+    style Embed fill:#facc15,stroke:#a16207,color:#0f172a
+    style Retry fill:#facc15,stroke:#a16207,color:#0f172a
+    style Prompt fill:#facc15,stroke:#a16207,color:#0f172a
+    style SmallTalk fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Faq fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Direct fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Gate fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style IM fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Voice fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Channel fill:#0ea5e9,stroke:#0369a1,color:#0f172a
+    style Plan fill:#a78bfa,stroke:#7c3aed,color:#0f172a
+    style End fill:#22d3ee,stroke:#0891b2,color:#0f172a
+    style Save fill:#10b981,stroke:#047857,color:#0f172a
+    style Safety fill:#10b981,stroke:#047857,color:#0f172a
+    style Escalate fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rewrite fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rerank fill:#facc15,stroke:#a16207,color:#0f172a
+    style Embed fill:#facc15,stroke:#a16207,color:#0f172a
+    style Retry fill:#facc15,stroke:#a16207,color:#0f172a
+    style Prompt fill:#facc15,stroke:#a16207,color:#0f172a
+    style SmallTalk fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Faq fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Direct fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Gate fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style IM fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Voice fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Channel fill:#0ea5e9,stroke:#0369a1,color:#0f172a
+    style Plan fill:#a78bfa,stroke:#7c3aed,color:#0f172a
+    style End fill:#22d3ee,stroke:#0891b2,color:#0f172a
+    style Save fill:#10b981,stroke:#047857,color:#0f172a
+    style Safety fill:#10b981,stroke:#047857,color:#0f172a
+    style Escalate fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rewrite fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rerank fill:#facc15,stroke:#a16207,color:#0f172a
+    style Embed fill:#facc15,stroke:#a16207,color:#0f172a
+    style Retry fill:#facc15,stroke:#a16207,color:#0f172a
+    style Prompt fill:#facc15,stroke:#a16207,color:#0f172a
+    style SmallTalk fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Faq fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Direct fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Gate fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style IM fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Voice fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Channel fill:#0ea5e9,stroke:#0369a1,color:#0f172a
+    style Plan fill:#a78bfa,stroke:#7c3aed,color:#0f172a
+    style End fill:#22d3ee,stroke:#0891b2,color:#0f172a
+    style Save fill:#10b981,stroke:#047857,color:#0f172a
+    style Safety fill:#10b981,stroke:#047857,color:#0f172a
+    style Escalate fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rewrite fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rerank fill:#facc15,stroke:#a16207,color:#0f172a
+    style Embed fill:#facc15,stroke:#a16207,color:#0f172a
+    style Retry fill:#facc15,stroke:#a16207,color:#0f172a
+    style Prompt fill:#facc15,stroke:#a16207,color:#0f172a
+    style SmallTalk fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Faq fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Direct fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Gate fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style IM fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Voice fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Channel fill:#0ea5e9,stroke:#0369a1,color:#0f172a
+    style Plan fill:#a78bfa,stroke:#7c3aed,color:#0f172a
+    style End fill:#22d3ee,stroke:#0891b2,color:#0f172a
+    style Save fill:#10b981,stroke:#047857,color:#0f172a
+    style Safety fill:#10b981,stroke:#047857,color:#0f172a
+    style Escalate fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rewrite fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rerank fill:#facc15,stroke:#a16207,color:#0f172a
+    style Embed fill:#facc15,stroke:#a16207,color:#0f172a
+    style Retry fill:#facc15,stroke:#a16207,color:#0f172a
+    style Prompt fill:#facc15,stroke:#a16207,color:#0f172a
+    style SmallTalk fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Faq fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Direct fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Gate fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style IM fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Voice fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Channel fill:#0ea5e9,stroke:#0369a1,color:#0f172a
+    style Plan fill:#a78bfa,stroke:#7c3aed,color:#0f172a
+    style End fill:#22d3ee,stroke:#0891b2,color:#0f172a
+    style Save fill:#10b981,stroke:#047857,color:#0f172a
+    style Safety fill:#10b981,stroke:#047857,color:#0f172a
+    style Escalate fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rewrite fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rerank fill:#facc15,stroke:#a16207,color:#0f172a
+    style Embed fill:#facc15,stroke:#a16207,color:#0f172a
+    style Retry fill:#facc15,stroke:#a16207,color:#0f172a
+    style Prompt fill:#facc15,stroke:#a16207,color:#0f172a
+    style SmallTalk fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Faq fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Direct fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Gate fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style IM fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Voice fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Channel fill:#0ea5e9,stroke:#0369a1,color:#0f172a
+    style Plan fill:#a78bfa,stroke:#7c3aed,color:#0f172a
+    style End fill:#22d3ee,stroke:#0891b2,color:#0f172a
+    style Save fill:#10b981,stroke:#047857,color:#0f172a
+    style Safety fill:#10b981,stroke:#047857,color:#0f172a
+    style Escalate fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rewrite fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rerank fill:#facc15,stroke:#a16207,color:#0f172a
+    style Embed fill:#facc15,stroke:#a16207,color:#0f172a
+    style Retry fill:#facc15,stroke:#a16207,color:#0f172a
+    style Prompt fill:#facc15,stroke:#a16207,color:#0f172a
+    style SmallTalk fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Faq fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Direct fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Gate fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style IM fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Voice fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Channel fill:#0ea5e9,stroke:#0369a1,color:#0f172a
+    style Plan fill:#a78bfa,stroke:#7c3aed,color:#0f172a
+    style End fill:#22d3ee,stroke:#0891b2,color:#0f172a
+    style Save fill:#10b981,stroke:#047857,color:#0f172a
+    style Safety fill:#10b981,stroke:#047857,color:#0f172a
+    style Escalate fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rewrite fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rerank fill:#facc15,stroke:#a16207,color:#0f172a
+    style Embed fill:#facc15,stroke:#a16207,color:#0f172a
+    style Retry fill:#facc15,stroke:#a16207,color:#0f172a
+    style Prompt fill:#facc15,stroke:#a16207,color:#0f172a
+    style SmallTalk fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Faq fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Direct fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Gate fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style IM fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Voice fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Channel fill:#0ea5e9,stroke:#0369a1,color:#0f172a
+    style Plan fill:#a78bfa,stroke:#7c3aed,color:#0f172a
+    style End fill:#22d3ee,stroke:#0891b2,color:#0f172a
+    style Save fill:#10b981,stroke:#047857,color:#0f172a
+    style Safety fill:#10b981,stroke:#047857,color:#0f172a
+    style Escalate fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rewrite fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rerank fill:#facc15,stroke:#a16207,color:#0f172a
+    style Embed fill:#facc15,stroke:#a16207,color:#0f172a
+    style Retry fill:#facc15,stroke:#a16207,color:#0f172a
+    style Prompt fill:#facc15,stroke:#a16207,color:#0f172a
+    style SmallTalk fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Faq fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Direct fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Gate fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style IM fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Voice fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Channel fill:#0ea5e9,stroke:#0369a1,color:#0f172a
+    style Plan fill:#a78bfa,stroke:#7c3aed,color:#0f172a
+    style End fill:#22d3ee,stroke:#0891b2,color:#0f172a
+    style Save fill:#10b981,stroke:#047857,color:#0f172a
+    style Safety fill:#10b981,stroke:#047857,color:#0f172a
+    style Escalate fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rewrite fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rerank fill:#facc15,stroke:#a16207,color:#0f172a
+    style Embed fill:#facc15,stroke:#a16207,color:#0f172a
+    style Retry fill:#facc15,stroke:#a16207,color:#0f172a
+    style Prompt fill:#facc15,stroke:#a16207,color:#0f172a
+    style SmallTalk fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Faq fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Direct fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Gate fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style IM fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Voice fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Channel fill:#0ea5e9,stroke:#0369a1,color:#0f172a
+    style Plan fill:#a78bfa,stroke:#7c3aed,color:#0f172a
+    style End fill:#22d3ee,stroke:#0891b2,color:#0f172a
+    style Save fill:#10b981,stroke:#047857,color:#0f172a
+    style Safety fill:#10b981,stroke:#047857,color:#0f172a
+    style Escalate fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rewrite fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rerank fill:#facc15,stroke:#a16207,color:#0f172a
+    style Embed fill:#facc15,stroke:#a16207,color:#0f172a
+    style Retry fill:#facc15,stroke:#a16207,color:#0f172a
+    style Prompt fill:#facc15,stroke:#a16207,color:#0f172a
+    style SmallTalk fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Faq fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Direct fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Gate fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style IM fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Voice fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Channel fill:#0ea5e9,stroke:#0369a1,color:#0f172a
+    style Plan fill:#a78bfa,stroke:#7c3aed,color:#0f172a
+    style End fill:#22d3ee,stroke:#0891b2,color:#0f172a
+    style Save fill:#10b981,stroke:#047857,color:#0f172a
+    style Safety fill:#10b981,stroke:#047857,color:#0f172a
+    style Escalate fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rewrite fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rerank fill:#facc15,stroke:#a16207,color:#0f172a
+    style Embed fill:#facc15,stroke:#a16207,color:#0f172a
+    style Retry fill:#facc15,stroke:#a16207,color:#0f172a
+    style Prompt fill:#facc15,stroke:#a16207,color:#0f172a
+    style SmallTalk fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Faq fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Direct fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Gate fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style IM fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Voice fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Channel fill:#0ea5e9,stroke:#0369a1,color:#0f172a
+    style Plan fill:#a78bfa,stroke:#7c3aed,color:#0f172a
+    style End fill:#22d3ee,stroke:#0891b2,color:#0f172a
+    style Save fill:#10b981,stroke:#047857,color:#0f172a
+    style Safety fill:#10b981,stroke:#047857,color:#0f172a
+    style Escalate fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rewrite fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rerank fill:#facc15,stroke:#a16207,color:#0f172a
+    style Embed fill:#facc15,stroke:#a16207,color:#0f172a
+    style Retry fill:#facc15,stroke:#a16207,color:#0f172a
+    style Prompt fill:#facc15,stroke:#a16207,color:#0f172a
+    style SmallTalk fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Faq fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Direct fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Gate fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style IM fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Voice fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Channel fill:#0ea5e9,stroke:#0369a1,color:#0f172a
+    style Plan fill:#a78bfa,stroke:#7c3aed,color:#0f172a
+    style End fill:#22d3ee,stroke:#0891b2,color:#0f172a
+    style Save fill:#10b981,stroke:#047857,color:#0f172a
+    style Safety fill:#10b981,stroke:#047857,color:#0f172a
+    style Escalate fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rewrite fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rerank fill:#facc15,stroke:#a16207,color:#0f172a
+    style Embed fill:#facc15,stroke:#a16207,color:#0f172a
+    style Retry fill:#facc15,stroke:#a16207,color:#0f172a
+    style Prompt fill:#facc15,stroke:#a16207,color:#0f172a
+    style SmallTalk fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Faq fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Direct fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Gate fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style IM fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Voice fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Channel fill:#0ea5e9,stroke:#0369a1,color:#0f172a
+    style Plan fill:#a78bfa,stroke:#7c3aed,color:#0f172a
+    style End fill:#22d3ee,stroke:#0891b2,color:#0f172a
+    style Save fill:#10b981,stroke:#047857,color:#0f172a
+    style Safety fill:#10b981,stroke:#047857,color:#0f172a
+    style Escalate fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rewrite fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rerank fill:#facc15,stroke:#a16207,color:#0f172a
+    style Embed fill:#facc15,stroke:#a16207,color:#0f172a
+    style Retry fill:#facc15,stroke:#a16207,color:#0f172a
+    style Prompt fill:#facc15,stroke:#a16207,color:#0f172a
+    style SmallTalk fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Faq fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Direct fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Gate fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style IM fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Voice fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Channel fill:#0ea5e9,stroke:#0369a1,color:#0f172a
+    style Plan fill:#a78bfa,stroke:#7c3aed,color:#0f172a
+    style End fill:#22d3ee,stroke:#0891b2,color:#0f172a
+    style Save fill:#10b981,stroke:#047857,color:#0f172a
+    style Safety fill:#10b981,stroke:#047857,color:#0f172a
+    style Escalate fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rewrite fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rerank fill:#facc15,stroke:#a16207,color:#0f172a
+    style Embed fill:#facc15,stroke:#a16207,color:#0f172a
+    style Retry fill:#facc15,stroke:#a16207,color:#0f172a
+    style Prompt fill:#facc15,stroke:#a16207,color:#0f172a
+    style SmallTalk fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Faq fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Direct fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Gate fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style IM fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Voice fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Channel fill:#0ea5e9,stroke:#0369a1,color:#0f172a
+    style Plan fill:#a78bfa,stroke:#7c3aed,color:#0f172a
+    style End fill:#22d3ee,stroke:#0891b2,color:#0f172a
+    style Save fill:#10b981,stroke:#047857,color:#0f172a
+    style Safety fill:#10b981,stroke:#047857,color:#0f172a
+    style Escalate fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rewrite fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rerank fill:#facc15,stroke:#a16207,color:#0f172a
+    style Embed fill:#facc15,stroke:#a16207,color:#0f172a
+    style Retry fill:#facc15,stroke:#a16207,color:#0f172a
+    style Prompt fill:#facc15,stroke:#a16207,color:#0f172a
+    style SmallTalk fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Faq fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Direct fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Gate fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style IM fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Voice fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Channel fill:#0ea5e9,stroke:#0369a1,color:#0f172a
+    style Plan fill:#a78bfa,stroke:#7c3aed,color:#0f172a
+    style End fill:#22d3ee,stroke:#0891b2,color:#0f172a
+    style Save fill:#10b981,stroke:#047857,color:#0f172a
+    style Safety fill:#10b981,stroke:#047857,color:#0f172a
+    style Escalate fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rewrite fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rerank fill:#facc15,stroke:#a16207,color:#0f172a
+    style Embed fill:#facc15,stroke:#a16207,color:#0f172a
+    style Retry fill:#facc15,stroke:#a16207,color:#0f172a
+    style Prompt fill:#facc15,stroke:#a16207,color:#0f172a
+    style SmallTalk fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Faq fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Direct fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Gate fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style IM fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Voice fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Channel fill:#0ea5e9,stroke:#0369a1,color:#0f172a
+    style Plan fill:#a78bfa,stroke:#7c3aed,color:#0f172a
+    style End fill:#22d3ee,stroke:#0891b2,color:#0f172a
+    style Save fill:#10b981,stroke:#047857,color:#0f172a
+    style Safety fill:#10b981,stroke:#047857,color:#0f172a
+    style Escalate fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rewrite fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rerank fill:#facc15,stroke:#a16207,color:#0f172a
+    style Embed fill:#facc15,stroke:#a16207,color:#0f172a
+    style Retry fill:#facc15,stroke:#a16207,color:#0f172a
+    style Prompt fill:#facc15,stroke:#a16207,color:#0f172a
+    style SmallTalk fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Faq fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Direct fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Gate fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style IM fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Voice fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Channel fill:#0ea5e9,stroke:#0369a1,color:#0f172a
+    style Plan fill:#a78bfa,stroke:#7c3aed,color:#0f172a
+    style End fill:#22d3ee,stroke:#0891b2,color:#0f172a
+    style Save fill:#10b981,stroke:#047857,color:#0f172a
+    style Safety fill:#10b981,stroke:#047857,color:#0f172a
+    style Escalate fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rewrite fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rerank fill:#facc15,stroke:#a16207,color:#0f172a
+    style Embed fill:#facc15,stroke:#a16207,color:#0f172a
+    style Retry fill:#facc15,stroke:#a16207,color:#0f172a
+    style Prompt fill:#facc15,stroke:#a16207,color:#0f172a
+    style SmallTalk fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Faq fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Direct fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Gate fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style IM fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Voice fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Channel fill:#0ea5e9,stroke:#0369a1,color:#0f172a
+    style Plan fill:#a78bfa,stroke:#7c3aed,color:#0f172a
+    style End fill:#22d3ee,stroke:#0891b2,color:#0f172a
+    style Save fill:#10b981,stroke:#047857,color:#0f172a
+    style Safety fill:#10b981,stroke:#047857,color:#0f172a
+    style Escalate fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rewrite fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rerank fill:#facc15,stroke:#a16207,color:#0f172a
+    style Embed fill:#facc15,stroke:#a16207,color:#0f172a
+    style Retry fill:#facc15,stroke:#a16207,color:#0f172a
+    style Prompt fill:#facc15,stroke:#a16207,color:#0f172a
+    style SmallTalk fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Faq fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Direct fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Gate fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style IM fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Voice fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Channel fill:#0ea5e9,stroke:#0369a1,color:#0f172a
+    style Plan fill:#a78bfa,stroke:#7c3aed,color:#0f172a
+    style End fill:#22d3ee,stroke:#0891b2,color:#0f172a
+    style Save fill:#10b981,stroke:#047857,color:#0f172a
+    style Safety fill:#10b981,stroke:#047857,color:#0f172a
+    style Escalate fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rewrite fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rerank fill:#facc15,stroke:#a16207,color:#0f172a
+    style Embed fill:#facc15,stroke:#a16207,color:#0f172a
+    style Retry fill:#facc15,stroke:#a16207,color:#0f172a
+    style Prompt fill:#facc15,stroke:#a16207,color:#0f172a
+    style SmallTalk fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Faq fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Direct fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Gate fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style IM fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Voice fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Channel fill:#0ea5e9,stroke:#0369a1,color:#0f172a
+    style Plan fill:#a78bfa,stroke:#7c3aed,color:#0f172a
+    style End fill:#22d3ee,stroke:#0891b2,color:#0f172a
+    style Save fill:#10b981,stroke:#047857,color:#0f172a
+    style Safety fill:#10b981,stroke:#047857,color:#0f172a
+    style Escalate fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rewrite fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rerank fill:#facc15,stroke:#a16207,color:#0f172a
+    style Embed fill:#facc15,stroke:#a16207,color:#0f172a
+    style Retry fill:#facc15,stroke:#a16207,color:#0f172a
+    style Prompt fill:#facc15,stroke:#a16207,color:#0f172a
+    style SmallTalk fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Faq fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Direct fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Gate fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style IM fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Voice fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Channel fill:#0ea5e9,stroke:#0369a1,color:#0f172a
+    style Plan fill:#a78bfa,stroke:#7c3aed,color:#0f172a
+    style End fill:#22d3ee,stroke:#0891b2,color:#0f172a
+    style Save fill:#10b981,stroke:#047857,color:#0f172a
+    style Safety fill:#10b981,stroke:#047857,color:#0f172a
+    style Escalate fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rewrite fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rerank fill:#facc15,stroke:#a16207,color:#0f172a
+    style Embed fill:#facc15,stroke:#a16207,color:#0f172a
+    style Retry fill:#facc15,stroke:#a16207,color:#0f172a
+    style Prompt fill:#facc15,stroke:#a16207,color:#0f172a
+    style SmallTalk fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Faq fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Direct fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Gate fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style IM fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Voice fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Channel fill:#0ea5e9,stroke:#0369a1,color:#0f172a
+    style Plan fill:#a78bfa,stroke:#7c3aed,color:#0f172a
+    style End fill:#22d3ee,stroke:#0891b2,color:#0f172a
+    style Save fill:#10b981,stroke:#047857,color:#0f172a
+    style Safety fill:#10b981,stroke:#047857,color:#0f172a
+    style Escalate fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rewrite fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rerank fill:#facc15,stroke:#a16207,color:#0f172a
+    style Embed fill:#facc15,stroke:#a16207,color:#0f172a
+    style Retry fill:#facc15,stroke:#a16207,color:#0f172a
+    style Prompt fill:#facc15,stroke:#a16207,color:#0f172a
+    style SmallTalk fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Faq fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Direct fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Gate fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style IM fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Voice fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Channel fill:#0ea5e9,stroke:#0369a1,color:#0f172a
+    style Plan fill:#a78bfa,stroke:#7c3aed,color:#0f172a
+    style End fill:#22d3ee,stroke:#0891b2,color:#0f172a
+    style Save fill:#10b981,stroke:#047857,color:#0f172a
+    style Safety fill:#10b981,stroke:#047857,color:#0f172a
+    style Escalate fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rewrite fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rerank fill:#facc15,stroke:#a16207,color:#0f172a
+    style Embed fill:#facc15,stroke:#a16207,color:#0f172a
+    style Retry fill:#facc15,stroke:#a16207,color:#0f172a
+    style Prompt fill:#facc15,stroke:#a16207,color:#0f172a
+    style SmallTalk fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Faq fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Direct fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Gate fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style IM fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Voice fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Channel fill:#0ea5e9,stroke:#0369a1,color:#0f172a
+    style Plan fill:#a78bfa,stroke:#7c3aed,color:#0f172a
+    style End fill:#22d3ee,stroke:#0891b2,color:#0f172a
+    style Save fill:#10b981,stroke:#047857,color:#0f172a
+    style Safety fill:#10b981,stroke:#047857,color:#0f172a
+    style Escalate fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rewrite fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rerank fill:#facc15,stroke:#a16207,color:#0f172a
+    style Embed fill:#facc15,stroke:#a16207,color:#0f172a
+    style Retry fill:#facc15,stroke:#a16207,color:#0f172a
+    style Prompt fill:#facc15,stroke:#a16207,color:#0f172a
+    style SmallTalk fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Faq fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Direct fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Gate fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style IM fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Voice fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Channel fill:#0ea5e9,stroke:#0369a1,color:#0f172a
+    style Plan fill:#a78bfa,stroke:#7c3aed,color:#0f172a
+    style End fill:#22d3ee,stroke:#0891b2,color:#0f172a
+    style Save fill:#10b981,stroke:#047857,color:#0f172a
+    style Safety fill:#10b981,stroke:#047857,color:#0f172a
+    style Escalate fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rewrite fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rerank fill:#facc15,stroke:#a16207,color:#0f172a
+    style Embed fill:#facc15,stroke:#a16207,color:#0f172a
+    style Retry fill:#facc15,stroke:#a16207,color:#0f172a
+    style Prompt fill:#facc15,stroke:#a16207,color:#0f172a
+    style SmallTalk fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Faq fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Direct fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Gate fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style IM fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Voice fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Channel fill:#0ea5e9,stroke:#0369a1,color:#0f172a
+    style Plan fill:#a78bfa,stroke:#7c3aed,color:#0f172a
+    style End fill:#22d3ee,stroke:#0891b2,color:#0f172a
+    style Save fill:#10b981,stroke:#047857,color:#0f172a
+    style Safety fill:#10b981,stroke:#047857,color:#0f172a
+    style Escalate fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rewrite fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rerank fill:#facc15,stroke:#a16207,color:#0f172a
+    style Embed fill:#facc15,stroke:#a16207,color:#0f172a
+    style Retry fill:#facc15,stroke:#a16207,color:#0f172a
+    style Prompt fill:#facc15,stroke:#a16207,color:#0f172a
+    style SmallTalk fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Faq fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Direct fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Gate fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style IM fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Voice fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Channel fill:#0ea5e9,stroke:#0369a1,color:#0f172a
+    style Plan fill:#a78bfa,stroke:#7c3aed,color:#0f172a
+    style End fill:#22d3ee,stroke:#0891b2,color:#0f172a
+    style Save fill:#10b981,stroke:#047857,color:#0f172a
+    style Safety fill:#10b981,stroke:#047857,color:#0f172a
+    style Escalate fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rewrite fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rerank fill:#facc15,stroke:#a16207,color:#0f172a
+    style Embed fill:#facc15,stroke:#a16207,color:#0f172a
+    style Retry fill:#facc15,stroke:#a16207,color:#0f172a
+    style Prompt fill:#facc15,stroke:#a16207,color:#0f172a
+    style SmallTalk fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Faq fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Direct fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Gate fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style IM fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Voice fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Channel fill:#0ea5e9,stroke:#0369a1,color:#0f172a
+    style Plan fill:#a78bfa,stroke:#7c3aed,color:#0f172a
+    style End fill:#22d3ee,stroke:#0891b2,color:#0f172a
+    style Save fill:#10b981,stroke:#047857,color:#0f172a
+    style Safety fill:#10b981,stroke:#047857,color:#0f172a
+    style Escalate fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rewrite fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rerank fill:#facc15,stroke:#a16207,color:#0f172a
+    style Embed fill:#facc15,stroke:#a16207,color:#0f172a
+    style Retry fill:#facc15,stroke:#a16207,color:#0f172a
+    style Prompt fill:#facc15,stroke:#a16207,color:#0f172a
+    style SmallTalk fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Faq fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Direct fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Gate fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style IM fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Voice fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Channel fill:#0ea5e9,stroke:#0369a1,color:#0f172a
+    style Plan fill:#a78bfa,stroke:#7c3aed,color:#0f172a
+    style End fill:#22d3ee,stroke:#0891b2,color:#0f172a
+    style Save fill:#10b981,stroke:#047857,color:#0f172a
+    style Safety fill:#10b981,stroke:#047857,color:#0f172a
+    style Escalate fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rewrite fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rerank fill:#facc15,stroke:#a16207,color:#0f172a
+    style Embed fill:#facc15,stroke:#a16207,color:#0f172a
+    style Retry fill:#facc15,stroke:#a16207,color:#0f172a
+    style Prompt fill:#facc15,stroke:#a16207,color:#0f172a
+    style SmallTalk fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Faq fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Direct fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Gate fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style IM fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Voice fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Channel fill:#0ea5e9,stroke:#0369a1,color:#0f172a
+    style Plan fill:#a78bfa,stroke:#7c3aed,color:#0f172a
+    style End fill:#22d3ee,stroke:#0891b2,color:#0f172a
+    style Save fill:#10b981,stroke:#047857,color:#0f172a
+    style Safety fill:#10b981,stroke:#047857,color:#0f172a
+    style Escalate fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rewrite fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rerank fill:#facc15,stroke:#a16207,color:#0f172a
+    style Embed fill:#facc15,stroke:#a16207,color:#0f172a
+    style Retry fill:#facc15,stroke:#a16207,color:#0f172a
+    style Prompt fill:#facc15,stroke:#a16207,color:#0f172a
+    style SmallTalk fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Faq fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Direct fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Gate fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style IM fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Voice fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Channel fill:#0ea5e9,stroke:#0369a1,color:#0f172a
+    style Plan fill:#a78bfa,stroke:#7c3aed,color:#0f172a
+    style End fill:#22d3ee,stroke:#0891b2,color:#0f172a
+    style Save fill:#10b981,stroke:#047857,color:#0f172a
+    style Safety fill:#10b981,stroke:#047857,color:#0f172a
+    style Escalate fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rewrite fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rerank fill:#facc15,stroke:#a16207,color:#0f172a
+    style Embed fill:#facc15,stroke:#a16207,color:#0f172a
+    style Retry fill:#facc15,stroke:#a16207,color:#0f172a
+    style Prompt fill:#facc15,stroke:#a16207,color:#0f172a
+    style SmallTalk fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Faq fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Direct fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Gate fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style IM fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Voice fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Channel fill:#0ea5e9,stroke:#0369a1,color:#0f172a
+    style Plan fill:#a78bfa,stroke:#7c3aed,color:#0f172a
+    style End fill:#22d3ee,stroke:#0891b2,color:#0f172a
+    style Save fill:#10b981,stroke:#047857,color:#0f172a
+    style Safety fill:#10b981,stroke:#047857,color:#0f172a
+    style Escalate fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rewrite fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rerank fill:#facc15,stroke:#a16207,color:#0f172a
+    style Embed fill:#facc15,stroke:#a16207,color:#0f172a
+    style Retry fill:#facc15,stroke:#a16207,color:#0f172a
+    style Prompt fill:#facc15,stroke:#a16207,color:#0f172a
+    style SmallTalk fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Faq fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Direct fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Gate fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style IM fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Voice fill:#60a5fa,stroke:#2563eb,color:#0f172a
+    style Channel fill:#0ea5e9,stroke:#0369a1,color:#0f172a
+    style Plan fill:#a78bfa,stroke:#7c3aed,color:#0f172a
+    style End fill:#22d3ee,stroke:#0891b2,color:#0f172a
+    style Save fill:#10b981,stroke:#047857,color:#0f172a
+    style Safety fill:#10b981,stroke:#047857,color:#0f172a
+    style Escalate fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rewrite fill:#ef4444,stroke:#b91c1c,color:#fff
+    style Rerank fill:#facc15,stroke:#a16207,color:#0f172a
+    style Embed fill:#facc15,stroke:#a16207,color:#0f172a
+    style Retry fill:#facc15,stroke:#a16207,color:#0f172a
+    style Prompt fill:#facc15,stroke:#a16207,color:#0f172a
+    style SmallTalk fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Faq fill:#94a3b8,stroke:#475569,color:#0f172a
+    style Direct fill:#94a3b8,stroke:#475569,color:#0f172a
+  </div>
+</div>
+
+<!-- ============ 2. ER 图 ============ -->
+<div class="cyr_chart-wrap">
+  <div class="cyr_chart-title">② 智能客服系统 ER 图（erDiagram）</div>
+  <div class="cyr_chart-sub">核心实体：用户 · 会话 · 消息 · 知识库 · FAQ · 意图 · Agent · 反馈 · 工单</div>
+  <div class="cyr_mermaid-box">
+    <div id="cyr_er" class="mermaid">
+erDiagram
+    USER {
+        bigint user_id PK
+        varchar username
+        varchar email
+        varchar phone
+        varchar channel
+        datetime created_at
+        boolean vip
+    }
+
+    CONVERSATION {
+        bigint conv_id PK
+        bigint user_id FK
+        varchar session_id UK
+        varchar channel
+        datetime start_time
+        datetime end_time
+        varchar status
+        int turn_count
+    }
+
+    MESSAGE {
+        bigint msg_id PK
+        bigint conv_id FK
+        bigint user_id FK
+        tinyint role
+        text content
+        varchar intent
+        float confidence
+        varchar llm_model
+        datetime created_at
+    }
+
+    KNOWLEDGE_BASE {
+        bigint kb_id PK
+        varchar name
+        varchar category
+        text description
+        bigint doc_count
+        float embed_version
+        datetime updated_at
+    }
+
+    KNOWLEDGE_DOC {
+        bigint doc_id PK
+        bigint kb_id FK
+        varchar title
+        varchar source_url
+        text content
+        varchar file_type
+        float chunk_count
+        datetime indexed_at
+    }
+
+    FAQ {
+        bigint faq_id PK
+        bigint kb_id FK
+        text question
+        text answer
+        int hit_count
+        datetime created_at
+    }
+
+    INTENT {
+        bigint intent_id PK
+        varchar intent_name
+        varchar category
+        text description
+        int example_count
+        datetime created_at
+    }
+
+    AGENT_TASK {
+        bigint task_id PK
+        bigint conv_id FK
+        bigint intent_id FK
+        varchar task_type
+        varchar tool_call
+        text plan_json
+        varchar status
+        datetime created_at
+        datetime finished_at
+    }
+
+    USER_FEEDBACK {
+        bigint feedback_id PK
+        bigint msg_id FK
+        bigint user_id FK
+        tinyint rating
+        text comment
+        datetime created_at
+    }
+
+    TICKET {
+        bigint ticket_id PK
+        bigint conv_id FK
+        bigint user_id FK
+        varchar priority
+        varchar category
+        varchar status
+        bigint agent_id
+        datetime created_at
+        datetime resolved_at
+    }
+
+    USER ||--o{ CONVERSATION : "发起"
+    USER ||--o{ MESSAGE : "发送"
+    USER ||--o{ USER_FEEDBACK : "提交"
+    USER ||--o{ TICKET : "创建"
+
+    CONVERSATION ||--o{ MESSAGE : "包含"
+    CONVERSATION }o--|| USER : "属于"
+    CONVERSATION ||--o{ AGENT_TASK : "触发"
+    CONVERSATION ||--o| TICKET : "升级为"
+
+    MESSAGE }o--|| CONVERSATION : "属于"
+    MESSAGE }o--|| USER : "发送者"
+    MESSAGE ||--o| USER_FEEDBACK : "收到"
+
+    KNOWLEDGE_BASE ||--o{ KNOWLEDGE_DOC : "包含"
+    KNOWLEDGE_BASE ||--o{ FAQ : "收录"
+
+    KNOWLEDGE_DOC }o--|| KNOWLEDGE_BASE : "属于"
+    FAQ }o--|| KNOWLEDGE_BASE : "属于"
+
+    INTENT ||--o{ AGENT_TASK : "路由到"
+    AGENT_TASK }o--|| INTENT : "识别为"
+    AGENT_TASK }o--|| CONVERSATION : "属于"
+  </div>
+</div>
+
+<!-- ============ 3. 时序图 ============ -->
+<div class="cyr_chart-wrap">
+  <div class="cyr_chart-title">③ RAG 检索流水线时序图（sequenceDiagram）</div>
+  <div class="cyr_chart-sub">Query → Embedding → 向量库 → Rerank → Prompt → LLM → Response</div>
+  <div class="cyr_mermaid-box">
+    <div id="cyr_seq" class="mermaid">
+sequenceDiagram
+    participant U as 👤 用户
+    participant A as 🤖 Agent
+    participant E as Embedding<br/>(BGE/M3E)
+    participant V as 向量库<br/>(Milvus)
+    participant K as 关键词检索<br/>(ES)
+    participant R as Rerank<br/>(BGE-Reranker)
+    participant L as 🧠 LLM<br/>(Qwen/GPT)
+    participant S as 安全审查
+
+    U->>A: 你好，帮我查一下退货政策
+    A->>A: 意图识别 = 业务查询
+    A->>E: Query 向量化
+    E-->>A: query_embedding
+
+    par 多路并行召回
+        A->>V: 向量相似度 Top-20
+        V-->>A: 候选集 A
+    and
+        A->>K: BM25 关键词 Top-20
+        K-->>A: 候选集 B
+    and
+        A->>A: 知识图谱扩展实体
+    end
+
+    A->>A: Union + 去重 → 合并 40 条
+
+    A->>R: Cross-Encoder 精排 Top-10
+    R-->>A: 重排结果
+
+    A->>A: 组装 Prompt Template<br/>(System + Retrieved + User)
+
+    A->>L: generate(prompt, temperature=0.1)
+    L-->>A: 回答文本 + Sources
+
+    A->>S: 敏感词/PII/合规检查
+    alt 通过
+        S-->>A: ✅ OK
+    else 拦截
+        S-->>A: ❌ 需改写
+        A->>L: 生成安全版本
+        L-->>A: 改写后回答
+    end
+
+    A-->>U: 完整回答 + 参考来源
+    U->>A: 👍 / 👎 反馈
+  </div>
+</div>
+
+<div class="cyr_error" id="cyr_err">Mermaid 渲染失败，请检查控制台</div>
+
+<footer>18-6 · Mermaid 11.4.0 · 本地 CDN · 陈依然</footer>
+
+<script>
+(function(){
+  var errBox = document.getElementById('cyr_err');
+  try {
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: 'dark',
+      securityLevel: 'loose',
+      flowchart: { curve: 'basis', htmlLabels: true },
+      er: { useMaxWidth: true },
+      sequence: { useMaxWidth: true, wrap: true },
+      themeVariables: {
+        primaryColor: '#22d3ee',
+        primaryTextColor: '#0f172a',
+        primaryBorderColor: '#0891b2',
+        lineColor: '#475569',
+        secondaryColor: '#818cf8',
+        tertiaryColor: '#f472b6',
+        darkMode: true,
+        background: '#0f172a',
+        mainBkg: '#1e293b',
+        nodeBorder: '#334155',
+        clusterBkg: '#1e293b',
+        titleColor: '#f1f5f9',
+        edgeLabelBackground: '#1e293b'
+      }
+    });
+
+    // 渲染所有 .mermaid div
+    mermaid.run({
+      nodes: document.querySelectorAll('.mermaid')
+    }).then(function(){
+      console.log('Mermaid rendered OK');
+    }).catch(function(err){
+      console.error('Mermaid run failed:', err);
+      errBox.style.display = 'block';
+      errBox.textContent = '渲染失败: ' + (err && err.message ? err.message : err);
+    });
+  } catch(e) {
+    console.error('Mermaid init error:', e);
+    errBox.style.display = 'block';
+    errBox.textContent = '初始化失败: ' + e.message;
+  }
+})();
+</script>
+</body>
+</html>
