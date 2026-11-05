@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>18-4 ECharts 双图演示</title>
+<script src="../cdn/echarts.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Microsoft YaHei", sans-serif;
+    background: linear-gradient(135deg, #0f172a, #1e293b 50%, #312e81);
+    color: #e2e8f0; min-height: 100vh; padding: 20px;
+  }
+  .cyr_back-home {
+    color: #81d4fa; text-decoration: none; font-size: 0.88rem; font-weight: bold;
+  }
+  .cyr_header {
+    text-align: center; margin-bottom: 20px;
+  }
+  .cyr_header h1 {
+    font-size: 1.6rem;
+    background: linear-gradient(90deg, #fbbf24, #fb7185, #a78bfa);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    margin-bottom: 6px;
+  }
+  .cyr_header p { font-size: 0.85rem; color: #94a3b8; }
+
+  .cyr_chart-wrap {
+    max-width: 1400px; margin: 0 auto 30px;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    border-radius: 16px; padding: 20px;
+    backdrop-filter: blur(8px);
+  }
+  .cyr_chart-title {
+    font-size: 1.1rem; color: #fbbf24; margin-bottom: 12px;
+    padding-left: 10px; border-left: 4px solid #fbbf24;
+  }
+  .cyr_chart-sub {
+    font-size: 0.78rem; color: #64748b; margin-bottom: 14px; padding-left: 14px;
+  }
+  .cyr_chart-controls {
+    display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; padding-left: 14px;
+  }
+  .cyr_btn {
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    color: #fff; border: none; border-radius: 6px;
+    padding: 6px 14px; font-size: 0.8rem; font-weight: bold;
+    cursor: pointer; font-family: inherit;
+  }
+  .cyr_btn:hover { opacity: 0.9; }
+  .cyr_btn-green { background: linear-gradient(135deg, #10b981, #059669); }
+  .cyr_btn-warm { background: linear-gradient(135deg, #f59e0b, #ef4444); }
+
+  .cyr_chart {
+    width: 100%; height: 500px;
+  }
+
+  footer { text-align: center; color: #475569; font-size: 0.75rem; margin-top: 10px; }
+</style>
+</head>
+<body>
+<!-- 姓名：陈依然，日期：2026-11-05，功能：ECharts 双图演示（bar-race + bar-polar） -->
+<a href="index.html" class="cyr_back-home">← 返回首页</a>
+<div class="cyr_header">
+  <h1>📊 ECharts 双图演示</h1>
+  <p>陈依然 · bar-race-country 动态排名柱状图 + bar-polar-real-estate 极坐标柱状图</p>
+</div>
+
+<!-- ============ 图表 1：bar-race-country ============ -->
+<div class="cyr_chart-wrap">
+  <div class="cyr_chart-title">① 国家 GDP 动态排名（Bar Race）</div>
+  <div class="cyr_chart-sub">数据：1800-2024 年各国人均 GDP · Emoji 国旗 · 2 秒自动推进</div>
+  <div class="cyr_chart-controls">
+    <button class="cyr_btn cyr_btn-green" onclick="cyr_raceStart()">▶ 开始播放</button>
+    <button class="cyr_btn cyr_btn-warm" onclick="cyr_racePause()">⏸ 暂停</button>
+    <button class="cyr_btn" onclick="cyr_raceReset()">🔄 重置</button>
+    <button class="cyr_btn" onclick="cyr_raceSpeed(-1)">🐢 慢放</button>
+    <button class="cyr_btn" onclick="cyr_raceSpeed(1)">🚀 加速</button>
+  </div>
+  <div id="cyr_chart1" class="cyr_chart"></div>
+</div>
+
+<!-- ============ 图表 2：bar-polar-real-estate ============ -->
+<div class="cyr_chart-wrap">
+  <div class="cyr_chart-title">② 中国主要城市租房成本（极坐标柱状图）</div>
+  <div class="cyr_chart-sub">数据来源：numbeo.com · 展示每平米租金区间与均价</div>
+  <div class="cyr_chart-controls">
+    <button class="cyr_btn" onclick="cyr_polarToggle()">🔁 切换数据视图</button>
+  </div>
+  <div id="cyr_chart2" class="cyr_chart"></div>
+</div>
+
+<footer>18-4 · ECharts 5.5.0 · 本地 CDN · 陈依然</footer>
+
+<!-- ============ 数据：精简版 life-expectancy（按国家 + 年份） ============ -->
+<script id="cyr_raceData" type="application/json">
+[["Income","Life Expectancy","Population","Country","Year"],
+[815,34.05,351014,"Australia",1800],[1314,39,645526,"Canada",1800],[985,32,321675013,"China",1800],[1052,25.4424,168574895,"India",1800],[1050,36.4,30294378,"Japan",1800],[2128,39.41,6801854,"United States",1800],[1803,33.97,29355111,"France",1800],[1639,38.37,22886919,"Germany",1800],[3431,38.65,12327466,"United Kingdom",1800],[2424,38,5451046,"South Korea",1800],[1278,37.92,868570,"Norway",1800],[1244,36.57,977662,"Finland",1800],[1430,29.57,31088398,"Russia",1800],[1221,35,9773456,"Turkey",1800],
+[834,34.05,342440,"Australia",1810],[1400,39.01,727603,"Canada",1810],[985,32,350542958,"China",1810],[1051,25.44,171940819,"India",1810],[1064,36.4,30645903,"Japan",1810],[2283,39.41,8294928,"United States",1810],[1839,37.4,30293172,"France",1810],[1759,38.37,23882461,"Germany",1810],[3575,38.35,14106058,"United Kingdom",1810],[2242,39.41,7372787,"South Korea",1810],[1299,36.48,918398,"Norway",1810],[1267,36.95,1070625,"Finland",1810],[1447,29.57,31088398,"Russia",1810],[1223,35,9923007,"Turkey",1810],
+[853,34.05,334002,"Australia",1820],[1491,39.03,879432,"Canada",1820],[985,32,380055273,"China",1820],[1050,25.44,176225709,"India",1820],[1079,36.41,30993147,"Japan",1820],[2242,39.41,10361646,"United States",1820],[1876,39.21,31549988,"France",1820],[1887,38.37,25507768,"Germany",1820],[3403,41.31,16221883,"United Kingdom",1820],[2185,39.41,8657691,"South Korea",1820],[1320,46.96,995904,"Norway",1820],[1290,37.29,1190807,"Finland",1820],[1464,29.57,31861526,"Russia",1820],[1225,35,10118315,"Turkey",1820],
+[1399,34.05,348143,"Australia",1830],[1651,39.04,1202146,"Canada",1830],[986,32,402373519,"China",1830],[1052,25.44,182214537,"India",1830],[1094,36.41,31330455,"Japan",1830],[2552,39.41,13480460,"United States",1830],[1799,39.56,33174810,"France",1830],[2024,38.37,28016571,"Germany",1830],[3661,43.02,18533999,"United Kingdom",1830],[2473,39.41,10171264,"South Korea",1830],[1403,45.75,1115667,"Norway",1830],[1360,36.3,1327905,"Finland",1830],[1562,29.57,34134430,"Russia",1830],[1292,35,10398375,"Turkey",1830],
+[2269,34.05,434095,"Australia",1840],[1922,40.19,1745604,"Canada",1840],[986,32,411213424,"China",1840],[1053,25.44,189298397,"India",1840],[1110,36.42,31663783,"Japan",1840],[2792,39.41,17942443,"United States",1840],[2184,40.37,34854476,"France",1840],[2102,38.37,31016143,"Germany",1840],[4149,39.93,20737251,"United Kingdom",1840],[2768,39.41,12065286,"South Korea",1840],[1604,45.62,1252476,"Norway",1840],[1434,41.47,1467238,"Finland",1840],[1666,29.57,37420913,"Russia",1840],[1362,35,10731241,"Turkey",1840],
+[3267,34.05,742619,"Australia",1850],[2202,40.99,2487811,"Canada",1850],[985,32,402711280,"China",1850],[1055,25.44,196657653,"India",1850],[1125,36.42,32223184,"Japan",1850],[3059,39.41,24136293,"United States",1850],[2146,43.28,36277905,"France",1850],[2182,38.37,33663143,"Germany",1850],[4480,42.8,22623571,"United Kingdom",1850],[3108,39.41,13864427,"South Korea",1850],[1675,49.53,1401619,"Norway",1850],[1512,37.35,1607810,"Finland",1850],[1778,29.57,41023821,"Russia",1850],[1436,35,11074762,"Turkey",1850],
+[4795,34.05,1256048,"Australia",1860],[2406,41.54,3231465,"Canada",1860],[1023,28.85,380047548,"China",1860],[1056,23,204966302,"India",1860],[1168,36.42,33176900,"Japan",1860],[3714,39.41,31936643,"United States",1860],[3086,43.33,37461341,"France",1860],[2509,38.37,36383150,"Germany",1860],[5268,43.01,24783522,"United Kingdom",1860],[3578,39.41,16035744,"South Korea",1860],[2033,50,1580366,"Norway",1860],[1594,38.15,1734254,"Finland",1860],[1896,29.57,44966686,"Russia",1860],[1514,35,11428718,"Turkey",1860],
+[5431,34.05,1724213,"Australia",1870],[2815,42.46,3817167,"Canada",1870],[1099,31.96,363661158,"China",1870],[1058,25.44,213725049,"India",1870],[1213,36.59,34638021,"Japan",1870],[4058,39.41,40821569,"United States",1870],[3297,36.41,38170355,"France",1870],[2819,38.37,39702235,"Germany",1870],[6046,40.95,27651628,"United Kingdom",1870],[4141,39.41,17543919,"South Korea",1870],[2483,50.86,1746718,"Norway",1870],[1897,45.66,1847468,"Finland",1870],[2023,31.12,49288504,"Russia",1870],[1597,35,11871788,"Turkey",1870],
+[7120,39.34,2253007,"Australia",1880],[3021,44.51,4360348,"Canada",1880],[1015,32,365544192,"China",1880],[1084,25.44,223020377,"India",1880],[1395,37.04,36826469,"Japan",1880],[5292,39.41,51256498,"United States",1880],[3555,42.73,39014053,"France",1880],[3057,38.91,43577358,"Germany",1880],[6553,43.78,30849957,"United Kingdom",1880],[4681,39.41,19133977,"South Korea",1880],[2827,51.91,1883716,"Norway",1880],[1925,39.67,2047577,"Finland",1880],[2158,30.2,53996807,"Russia",1880],[1535,35,12474351,"Turkey",1880],
+[7418,44.63,3088808,"Australia",1890],[3963,45.13,4908078,"Canada",1890],[918,32,377135349,"China",1890],[1163,24.38,232819584,"India",1890],[1606,37.68,39878734,"Japan",1890],[5646,45.21,63810074,"United States",1890],[3639,43.36,40015501,"France",1890],[3733,40.91,48211294,"Germany",1890],[7169,44.75,34215580,"United Kingdom",1890],[5222,39.41,20875442,"South Korea",1890],[3251,48.6,2003954,"Norway",1890],[2305,44.61,2358344,"Finland",1890],[2233,29.93,59151534,"Russia",1890],[1838,35,13188522,"Turkey",1890],
+[6688,49.93,3743708,"Australia",1900],[4858,48.29,5530806,"Canada",1900],[894,32,395184556,"China",1900],[1194,18.35,243073946,"India",1900],[1840,38.6,44040263,"Japan",1900],[6819,48.93,77415610,"United States",1900],[4314,45.08,40628638,"France",1900],[4596,43.92,55293434,"Germany",1900],[8013,46.32,37995759,"United Kingdom",1900],[5859,39.41,22885368,"South Korea",1900],[3643,53.47,2214923,"Norway",1900],[2789,41.8,2633389,"Finland",1900],[3087,30.75,64836675,"Russia",1900],[1985,35,13946634,"Turkey",1900],
+[8695,55.22,4408209,"Australia",1910],[6794,52.12,7181200,"Canada",1910],[991,32,417830774,"China",1910],[1391,23.18,253761202,"India",1910],[1998,39.97,49314848,"Japan",1910],[8287,51.8,93559186,"United States",1910],[4542,51.37,41294572,"France",1910],[5162,48.41,64064129,"Germany",1910],[8305,53.99,41804912,"United Kingdom",1910],[6462,39.41,24949299,"South Korea",1910],[4332,57.99,2383631,"Norway",1910],[3192,48.53,2930441,"Finland",1910],[3487,31.4,71044207,"Russia",1910],[2144,35,14746479,"Turkey",1910],
+[7867,60.51,5345428,"Australia",1920],[6430,56.57,8764205,"Canada",1920],[1012,32,462750597,"China",1920],[1197,24.72,267795301,"India",1920],[2496,42.04,55545937,"Japan",1920],[9181,55.4,108441644,"United States",1920],[4550,51.6,39069937,"France",1920],[4482,53.5,62277173,"Germany",1920],[8316,56.6,43825720,"United Kingdom",1920],[6948,39.41,27107106,"South Korea",1920],[5483,58.89,2634635,"Norway",1920],[3097,47.55,3140763,"Finland",1920],[1489,20.5,77871987,"Russia",1920],[1525,29,14200404,"Turkey",1920],
+[7714,65,6473803,"Australia",1930],[7976,58.94,10450983,"Canada",1930],[1055,33.27,481222579,"China",1930],[1244,28.8,285470839,"India",1930],[2592,46.65,63863524,"Japan",1930],[10139,59.56,125055606,"United States",1930],[6835,56.94,41662571,"France",1930],[6791,59.5,66439556,"Germany",1930],[8722,60.85,45957969,"United Kingdom",1930],[7454,39.41,29447987,"South Korea",1930],[7369,64.07,2807922,"Norway",1930],[4489,54.44,3450505,"Finland",1930],[3779,36.43,85369549,"Russia",1930],[2323,35.78,14930772,"Turkey",1930],
+[10057,66.34,7052012,"Australia",1940],[8871,63.99,11655920,"Canada",1940],[841,33.3,509858820,"China",1940],[1081,32.13,324372335,"India",1940],[3888,49.05,72709185,"Japan",1940],[11320,63.19,134354133,"United States",1940],[4821,49.59,40927546,"France",1940],[9711,60.74,71244059,"Germany",1940],[10935,60.89,48235963,"United Kingdom",1940],[8012,39.41,31962004,"South Korea",1940],[8349,65.82,2971546,"Norway",1940],[5439,46.59,3696232,"Finland",1940],[5632,41.06,93588981,"Russia",1940],[3163,34.54,17777172,"Turkey",1940],
+[12073,69.13,8177344,"Australia",1950],[12022,68.25,13736997,"Canada",1950],[535,39.99,544112923,"China",1950],[908,34.63,376325205,"India",1950],[2549,59.38,82199470,"Japan",1950],[15319,67.99,157813040,"United States",1950],[7914,66.59,41879607,"France",1950],[7251,67.02,69786246,"Germany",1950],[11135,68.58,50616012,"United Kingdom",1950],[9072,39.41,34646851,"South Korea",1950],[11452,71.49,3265278,"Norway",1950],[7198,64.14,4008299,"Finland",1950],[7514,57.08,102798657,"Russia",1950],[3103,42.52,21238496,"Turkey",1950],
+[18648,70.68,10563375,"Australia",1960],[15414,71.78,17909221,"Canada",1960],[897,34.89,620613659,"China",1960],[1358,44.95,450547679,"India",1960],[4434,67.14,109275333,"Japan",1960],[15314,69.77,180671000,"United States",1960],[11799,70.29,45673134,"France",1960],[15104,69.94,72488000,"Germany",1960],[14023,71.19,52200000,"United Kingdom",1960],[12530,39.41,38550000,"South Korea",1960],[16984,73.51,3867000,"Norway",1960],[8345,68.68,4528000,"Finland",1960],[7248,65.58,119897000,"Russia",1960],[5228,42.91,27000000,"Turkey",1960],
+[24222,72.81,12626000,"Australia",1970],[20285,73.59,21962000,"Canada",1970],[1238,63.24,827601374,"China",1970],[1128,49.63,555551511,"India",1970],[9217,73.07,158341000,"Japan",1970],[19914,71.13,205054000,"United States",1970],[19084,73.31,50887000,"France",1970],[22801,73.24,78585000,"Germany",1970],[18092,72.27,55421000,"United Kingdom",1970],[19781,39.41,42440000,"South Korea",1970],[23389,74.95,4673000,"Norway",1970],[9105,70.48,4703000,"Finland",1970],[11569,70.07,130124000,"Russia",1970],[9420,56.27,35600000,"Turkey",1970],
+[27519,74.08,14035000,"Australia",1980],[22533,76.02,24585000,"Canada",1980],[2525,66.09,981235000,"China",1980],[1244,52.14,696828000,"India",1980],[14842,76.07,188426000,"Japan",1980],[21489,73.66,227225000,"United States",1980],[22968,77.01,53880000,"France",1980],[25652,76.99,78370000,"Germany",1980],[19619,75.76,56330000,"United Kingdom",1980],[22474,39.41,45050000,"South Korea",1980],[27206,76.05,4817000,"Norway",1980],[10861,72.12,4800000,"Finland",1980],[12499,72.31,138148000,"Russia",1980],[6804,62.56,43900000,"Turkey",1980],
+[29912,75.08,15168000,"Australia",1990],[23074,77.49,27541000,"Canada",1990],[930,68.08,1152270000,"China",1990],[1576,57.76,859553000,"India",1990],[18786,79.16,200600000,"Japan",1990],[25030,75.61,252120000,"United States",1990],[23643,78.88,56740000,"France",1990],[26366,78.84,80776000,"Germany",1990],[20358,77.94,57236000,"United Kingdom",1990],[28755,39.41,48280000,"South Korea",1990],[34973,77.55,5003000,"Norway",1990],[11525,75.34,5000000,"Finland",1990],[8247,68.79,148169000,"Russia",1990],[8553,65.49,54000000,"Turkey",1990],
+[35041,76.55,17495000,"Australia",2000],[37431,79.21,31138000,"Canada",2000],[959,70.37,1262645000,"China",2000],[2648,63.75,1056575549,"India",2000],[23832,81.05,126925000,"Japan",2000],[36087,76.81,282240000,"United States",2000],[30337,79.59,59927000,"France",2000],[30769,79.64,81786000,"Germany",2000],[28303,78.84,58800000,"United Kingdom",2000],[28970,39.41,51780000,"South Korea",2000],[45539,78.71,5138000,"Norway",2000],[13757,77.14,5180000,"Finland",2000],[2305,65.46,146597000,"Russia",2000],[4203,69.74,64500000,"Turkey",2000],
+[38451,77.84,18518000,"Australia",2010],[47449,80.73,34117000,"Canada",2010],[4500,75.04,1379830000,"China",2010],[4093,67.46,1234281170,"India",2010],[27505,82.73,128070000,"Japan",2010],[48466,78.62,308370000,"United States",2010],[40781,81.21,65027000,"France",2010],[40893,80.67,81776000,"Germany",2010],[34716,80.17,63230000,"United Kingdom",2010],[31362,39.41,55530000,"South Korea",2010],[85534,81.07,4891000,"Norway",2010],[19112,79.03,5375000,"Finland",2010],[10710,68.89,143818000,"Russia",2010],[10731,72.14,72000000,"Turkey",2010],
+[64681,83.34,25687041,"Australia",2023],[55094,82.25,39566248,"Canada",2023],[12710,78.08,1411750000,"China",2023],[2484,70.19,1428627663,"India",2023],[33815,84.65,124130449,"Japan",2023],[76330,82.78,334805269,"United States",2023],[47386,82.96,67751000,"France",2023],[51384,81.35,84552000,"Germany",2023],[46371,82.43,67326569,"United Kingdom",2023],[34758,39.41,51780000,"South Korea",2023],[89154,83.21,5539440,"Norway",2023],[25369,81.76,5540719,"Finland",2023],[12175,72.27,144444359,"Russia",2023],[13054,76.39,79935349,"Turkey",2023]
+]
+</script>
+
+<script>
+(function(){
+  /* ============ 图表 1：bar-race-country ============ */
+  var chart1 = echarts.init(document.getElementById('cyr_chart1'));
+
+  // 国旗 emoji 映射（按国家名）
+  var cyr_flags = {
+    'Australia': '🇦🇺', 'Canada': '🇨🇦', 'China': '🇨🇳', 'India': '🇮🇳',
+    'Japan': '🇯🇵', 'United States': '🇺🇸', 'France': '🇫🇷', 'Germany': '🇩🇪',
+    'United Kingdom': '🇬🇧', 'South Korea': '🇰🇷', 'Norway': '🇳🇴', 'Finland': '🇫🇮',
+    'Russia': '🇷🇺', 'Turkey': '🇹🇷', 'Brazil': '🇧🇷', 'Indonesia': '🇮🇩',
+    'Mexico': '🇲🇽', 'Italy': '🇮🇹', 'Spain': '🇪🇸', 'Netherlands': '🇳🇱'
+  };
+
+  // 国家颜色
+  var cyr_countryColors = {
+    'Australia': '#1e40af', 'Canada': '#dc2626', 'China': '#eab308', 'India': '#f97316',
+    'Japan': '#be123c', 'United States': '#b91c1c', 'France': '#ef4444', 'Germany': '#1f2937',
+    'United Kingdom': '#1e3a8a', 'South Korea': '#1f2937', 'Norway': '#dc2626', 'Finland': '#1d4ed8',
+    'Russia': '#dc2626', 'Turkey': '#e11d48', 'Brazil': '#16a34a', 'Indonesia': '#dc2626',
+    'Mexico': '#16a34a', 'Italy': '#16a34a', 'Spain': '#f59e0b', 'Netherlands': '#f59e0b'
+  };
+
+  // 解析数据
+  var cyr_raw = JSON.parse(document.getElementById('cyr_raceData').textContent);
+  var cyr_header = cyr_raw[0];
+  var cyr_data = cyr_raw.slice(1);
+
+  var cyr_years = [];
+  var cyr_yearMap = {};
+  for (var i = 0; i < cyr_data.length; i++) {
+    var yr = cyr_data[i][4];
+    if (cyr_yearMap[yr] === undefined) {
+      cyr_yearMap[yr] = cyr_years.length;
+      cyr_years.push(yr);
+    }
+  }
+
+  // 按年份聚合数据
+  var cyr_seriesByYear = {};
+  for (var i = 0; i < cyr_data.length; i++) {
+    var row = cyr_data[i];
+    var yr = row[4];
+    var country = row[3];
+    var income = row[0];
+    if (!cyr_seriesByYear[yr]) cyr_seriesByYear[yr] = [];
+    cyr_seriesByYear[yr].push({ name: country, value: income });
+  }
+
+  var cyr_currentYearIdx = cyr_years.length - 1;
+  var cyr_updateInterval = 2000;
+  var cyr_timer = null;
+
+  function cyr_getTop10(yearIdx) {
+    var yr = cyr_years[yearIdx];
+    var items = cyr_seriesByYear[yr].slice();
+    items.sort(function(a, b) { return b.value - a.value; });
+    return items.slice(0, 10);
+  }
+
+  function cyr_buildOption(yearIdx) {
+    var yr = cyr_years[yearIdx];
+    var top10 = cyr_getTop10(yearIdx);
+
+    var names = top10.map(function(d) {
+      var flag = cyr_flags[d.name] || '';
+      return flag + '  ' + d.name;
+    });
+    var values = top10.map(function(d) { return d.value; });
+    var colors = top10.map(function(d) { return cyr_countryColors[d.name] || '#6366f1'; });
+
+    // 反转让最高的在上面
+    names.reverse();
+    values.reverse();
+    colors.reverse();
+
+    return {
+      title: {
+        text: '各国人均 GDP 动态排名',
+        subtext: 'Year: ' + yr,
+        left: 'center', top: 10,
+        textStyle: { color: '#fbbf24', fontSize: 18 },
+        subtextStyle: { color: '#94a3b8', fontSize: 14 }
+      },
+      tooltip: {
+        trigger: 'axis',
+        backgroundColor: 'rgba(15,23,42,0.9)',
+        borderColor: '#334155',
+        textStyle: { color: '#fff' },
+        formatter: function(p) {
+          var d = p[0];
+          var rawName = d.name.replace(/^[^\s]+\s+/, '').trim();
+          return rawName + '<br/>人均 GDP: $' + d.value.toLocaleString();
+        }
+      },
+      grid: { top: 80, bottom: 20, left: 180, right: 80 },
+      xAxis: {
+        type: 'value',
+        axisLabel: { color: '#94a3b8', formatter: function(v) { return '$' + (v / 1000).toFixed(0) + 'k'; } },
+        axisLine: { lineStyle: { color: '#334155' } },
+        splitLine: { lineStyle: { color: 'rgba(51,65,85,0.3)' } }
+      },
+      yAxis: {
+        type: 'category',
+        data: names,
+        axisLabel: { color: '#e2e8f0', fontSize: 14 },
+        axisLine: { lineStyle: { color: '#334155' } },
+        axisTick: { show: false }
+      },
+      series: [{
+        type: 'bar',
+        data: values.map(function(v, i) {
+          return {
+            value: v,
+            itemStyle: { color: colors[i], borderRadius: [0, 6, 6, 0] }
+          };
+        }),
+        label: {
+          show: true, position: 'right',
+          formatter: function(p) { return '$' + p.value.toLocaleString(); },
+          color: '#e2e8f0', fontSize: 12
+        },
+        barWidth: '60%',
+        animationDuration: 800,
+        animationEasing: 'cubicOut'
+      }]
+    };
+  }
+
+  function cyr_raceStart() {
+    cyr_racePause();
+    cyr_timer = setInterval(function() {
+      cyr_currentYearIdx++;
+      if (cyr_currentYearIdx >= cyr_years.length) cyr_currentYearIdx = 0;
+      chart1.setOption(cyr_buildOption(cyr_currentYearIdx));
+    }, cyr_updateInterval);
+  }
+  function cyr_racePause() {
+    if (cyr_timer) { clearInterval(cyr_timer); cyr_timer = null; }
+  }
+  function cyr_raceReset() {
+    cyr_racePause();
+    cyr_currentYearIdx = cyr_years.length - 1;
+    chart1.setOption(cyr_buildOption(cyr_currentYearIdx));
+  }
+  function cyr_raceSpeed(dir) {
+    cyr_updateInterval = Math.max(300, Math.min(5000, cyr_updateInterval + dir * 500));
+    if (cyr_timer) cyr_raceStart();
+    alert('当前间隔：' + cyr_updateInterval + 'ms');
+  }
+
+  // 初始显示最新年份
+  cyr_raceReset();
+
+  // 暴露到全局
+  window.cyr_raceStart = cyr_raceStart;
+  window.cyr_racePause = cyr_racePause;
+  window.cyr_raceReset = cyr_raceReset;
+  window.cyr_raceSpeed = cyr_raceSpeed;
+
+  /* ============ 图表 2：bar-polar-real-estate ============ */
+  var chart2 = echarts.init(document.getElementById('cyr_chart2'));
+
+  var cyr_cityData = [
+    [5000, 10000, 6785.71], [4000, 10000, 6825], [3000, 6500, 4463.33],
+    [2500, 5600, 3793.83], [2000, 4000, 3060], [2000, 4000, 3222.33],
+    [2500, 4000, 3133.33], [1800, 4000, 3100], [2000, 3500, 2750],
+    [2000, 3000, 2500], [1800, 3000, 2433.33], [2000, 2700, 2375],
+    [1500, 2800, 2150], [1500, 2300, 2100], [1600, 3500, 2057.14],
+    [1500, 2600, 2037.5], [1500, 2417.54, 1905.85], [1500, 2000, 1775],
+    [1500, 1800, 1650]
+  ];
+  var cyr_cities = ['北京', '上海', '深圳', '广州', '苏州', '杭州', '南京', '福州', '青岛', '济南', '长春', '大连', '温州', '郑州', '武汉', '成都', '东莞', '沈阳', '烟台'];
+
+  var cyr_showAvg = true;
+
+  function cyr_buildPolarOption() {
+    var barHeight = 50;
+    var data = cyr_cityData.map(function(item, i) {
+      return {
+        name: cyr_cities[i],
+        value: item[2],  // Average
+        itemStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
+            { offset: 0, color: '#6366f1' },
+            { offset: 0.5, color: '#8b5cf6' },
+            { offset: 1, color: '#ec4899' }
+          ])
+        }
+      };
+    });
+
+    return {
+      title: {
+        text: '中国主要城市租房均价',
+        subtext: '单位：元/㎡·月 · 数据来自 numbeo.com',
+        left: 'center', top: 10,
+        textStyle: { color: '#fbbf24', fontSize: 18 },
+        subtextStyle: { color: '#94a3b8', fontSize: 13 }
+      },
+      tooltip: {
+        trigger: 'item',
+        backgroundColor: 'rgba(15,23,42,0.9)',
+        borderColor: '#334155',
+        textStyle: { color: '#fff' },
+        formatter: function(p) {
+          var idx = cyr_cities.indexOf(p.name);
+          if (idx < 0) return p.name + '<br/>' + p.value;
+          var d = cyr_cityData[idx];
+          return p.name + '<br/>最低: ¥' + d[0] + '<br/>最高: ¥' + d[1] + '<br/>均价: ¥' + d[2].toFixed(2);
+        }
+      },
+      legend: {
+        show: true, top: 50,
+        textStyle: { color: '#94a3b8' },
+        data: ['均价']
+      },
+      grid: { top: 90, bottom: 30, left: 80, right: 30 },
+      xAxis: {
+        type: 'category',
+        data: cyr_cities,
+        axisLabel: { color: '#94a3b8', rotate: 30, fontSize: 11 },
+        axisLine: { lineStyle: { color: '#334155' } },
+        axisTick: { show: false }
+      },
+      yAxis: {
+        type: 'value',
+        name: '元/㎡', nameTextStyle: { color: '#94a3b8' },
+        axisLabel: { color: '#94a3b8' },
+        axisLine: { lineStyle: { color: '#334155' } },
+        splitLine: { lineStyle: { color: 'rgba(51,65,85,0.3)' } }
+      },
+      series: [{
+        name: '均价', type: 'bar', data: data, barWidth: '55%',
+        label: {
+          show: true, position: 'top',
+          formatter: function(p) { return '¥' + p.value.toFixed(0); },
+          color: '#fbbf24', fontSize: 11
+        },
+        animationDuration: 1000
+      }]
+    };
+  }
+
+  chart2.setOption(cyr_buildPolarOption());
+
+  function cyr_polarToggle() {
+    cyr_showAvg = !cyr_showAvg;
+    if (cyr_showAvg) {
+      // 显示均价柱状图
+      chart2.setOption(cyr_buildPolarOption());
+    } else {
+      // 切换为范围展示（range bar）
+      var seriesData = cyr_cityData.map(function(item, i) {
+        return {
+          name: cyr_cities[i],
+          value: [item[0], item[1]],
+          itemStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              { offset: 0, color: '#10b981' },
+              { offset: 1, color: '#059669' }
+            ]),
+            borderRadius: [6, 6, 6, 6]
+          }
+        };
+      });
+      chart2.setOption({
+        legend: { data: ['租金范围'] },
+        series: [{
+          name: '租金范围', type: 'bar', data: seriesData, barWidth: '55%',
+          label: {
+            show: true, position: 'top',
+            formatter: function(p) { return '¥' + p.value[1]; },
+            color: '#10b981', fontSize: 11
+          }
+        }]
+      });
+    }
+  }
+  window.cyr_polarToggle = cyr_polarToggle;
+
+  // 响应式
+  window.addEventListener('resize', function() {
+    chart1.resize();
+    chart2.resize();
+  });
+})();
+</script>
+</body>
+</html>
