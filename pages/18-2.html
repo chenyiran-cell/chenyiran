@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>18-2 Canvas 电商系统架构图</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Microsoft YaHei", sans-serif;
+    background: linear-gradient(135deg, #f0f4ff 0%, #faf5ff 100%);
+    color: #1e293b; min-height: 100vh;
+    padding: 16px;
+  }
+  .cyr_back-home {
+    color: #2563eb; text-decoration: none; font-size: 0.88rem; font-weight: bold;
+  }
+  .cyr_header {
+    max-width: 1200px; margin: 0 auto 12px; text-align: center;
+  }
+  .cyr_header h1 {
+    font-size: 1.5rem; color: #1e3a8a; margin-bottom: 4px;
+  }
+  .cyr_header p {
+    font-size: 0.82rem; color: #64748b;
+  }
+  .cyr_canvas-wrap {
+    max-width: 1200px; margin: 0 auto;
+    background: #fff; border: 1px solid #e2e8f0; border-radius: 14px;
+    padding: 14px; box-shadow: 0 4px 20px rgba(30,58,138,0.08);
+    overflow-x: auto;
+  }
+  canvas#cyr_arch {
+    display: block; width: 1100px; height: 820px; margin: 0 auto;
+  }
+  .cyr_legend {
+    max-width: 1200px; margin: 10px auto 0;
+    display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;
+    font-size: 0.75rem; color: #475569;
+  }
+  .cyr_legend span { display: inline-flex; align-items: center; gap: 4px; }
+  .cyr_legend i {
+    display: inline-block; width: 14px; height: 14px; border-radius: 3px;
+  }
+</style>
+</head>
+<body>
+<!-- 姓名：陈依然，日期：2026-11-05，功能：Canvas 绘制电商系统架构图 -->
+<div style="max-width:1200px;margin:0 auto 8px;"><a href="index.html" class="cyr_back-home">← 返回首页</a></div>
+<div class="cyr_header">
+  <h1>🛒 电商系统全站架构图</h1>
+  <p>陈依然 · Canvas 绘制 · 分层架构：接入层 → 网关层 → 业务服务层 → 数据层 → 基础设施层</p>
+</div>
+<div class="cyr_canvas-wrap">
+  <canvas id="cyr_arch" width="2200" height="1640"></canvas>
+</div>
+<div class="cyr_legend">
+  <span><i style="background:#dbeafe;border:1px solid #3b82f6"></i>接入层</span>
+  <span><i style="background:#e0e7ff;border:1px solid #6366f1"></i>网关层</span>
+  <span><i style="background:#fce7f3;border:1px solid #ec4899"></i>业务服务层</span>
+  <span><i style="background:#dcfce7;border:1px solid #22c55e"></i>数据层</span>
+  <span><i style="background:#fef3c7;border:1px solid #f59e0b"></i>基础设施层</span>
+</div>
+
+<script>
+(function(){
+  var canvas = document.getElementById('cyr_arch');
+  var ctx = canvas.getContext('2d');
+  var W = canvas.width, H = canvas.height;
+
+  /* ============ 颜色定义 ============ */
+  var COLORS = {
+    bgRow:    ['#eff6ff', '#eef2ff', '#fdf2f8', '#f0fdf4', '#fffbeb'],
+    border:   ['#3b82f6', '#6366f1', '#ec4899', '#22c55e', '#f59e0b'],
+    title:    ['#1e40af', '#3730a3', '#9d174d', '#15803d', '#b45309'],
+    box:      '#ffffff',
+    text:     '#1e293b',
+    sub:      '#64748b',
+    arrow:    '#64748b',
+    arrowFill:'#94a3b8'
+  };
+
+  /* ============ 辅助函数 ============ */
+  function cyr_Box(x, y, w, h, opts) {
+    opts = opts || {};
+    ctx.fillStyle = opts.fill || COLORS.box;
+    ctx.strokeStyle = opts.border || '#3b82f6';
+    ctx.lineWidth = opts.lw || 2;
+    var r = opts.radius || 8;
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // 顶部彩色横条
+    if (opts.header) {
+      ctx.fillStyle = opts.border || '#3b82f6';
+      ctx.fillRect(x + 1, y + 1, w - 2, 5);
+    }
+
+    // 标题
+    if (opts.title) {
+      ctx.fillStyle = opts.titleColor || opts.border || '#3b82f6';
+      ctx.font = 'bold 22px "Microsoft YaHei", sans-serif';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      ctx.fillText(opts.title, x + 14, y + 14);
+    }
+
+    // 副标题/说明
+    if (opts.desc) {
+      ctx.fillStyle = COLORS.sub;
+      ctx.font = '15px "Microsoft YaHei", sans-serif';
+      ctx.fillText(opts.desc, x + 14, y + 44);
+    }
+  }
+
+  function cyr_Text(text, x, y, opts) {
+    opts = opts || {};
+    ctx.fillStyle = opts.color || COLORS.text;
+    ctx.font = (opts.bold ? 'bold ' : '') + (opts.size || 20) + 'px "Microsoft YaHei", sans-serif';
+    ctx.textAlign = opts.align || 'left';
+    ctx.textBaseline = opts.baseline || 'top';
+    ctx.fillText(text, x, y);
+  }
+
+  function cyr_Arrow(x1, y1, x2, y2, label) {
+    ctx.strokeStyle = COLORS.arrow;
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 4]);
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // 箭头
+    var ang = Math.atan2(y2 - y1, x2 - x1);
+    var ah = 10;
+    ctx.fillStyle = COLORS.arrowFill;
+    ctx.beginPath();
+    ctx.moveTo(x2, y2);
+    ctx.lineTo(x2 - ah * Math.cos(ang - 0.4), y2 - ah * Math.sin(ang - 0.4));
+    ctx.lineTo(x2 - ah * Math.cos(ang + 0.4), y2 - ah * Math.sin(ang + 0.4));
+    ctx.closePath();
+    ctx.fill();
+
+    if (label) {
+      cyr_Text(label, (x1 + x2) / 2 + 8, (y1 + y2) / 2 - 6, { size: 14, color: '#475569' });
+    }
+  }
+
+  function cyr_RowHeader(y, text, idx) {
+    var x = 80, w = 300, h = 50;
+    // 背景色块
+    ctx.fillStyle = COLORS.bgRow[idx];
+    ctx.fillRect(0, y - 30, W, 460);
+
+    cyr_Box(x, y, w, h, {
+      fill: COLORS.bgRow[idx],
+      border: COLORS.border[idx],
+      title: text,
+      titleColor: COLORS.title[idx],
+      header: false,
+      radius: 10
+    });
+  }
+
+  /* ============ 绘制主体 ============ */
+
+  // 背景总体色（白）
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, W, H);
+
+  // ============ 第 1 行：接入层 ============
+  var row1Y = 120;
+  cyr_RowHeader(row1Y, '① 接入层（Client Layer）', 0);
+
+  var boxW = 360, boxH = 120, gap = 30;
+  var startX = 420;
+
+  cyr_Box(startX, row1Y + 80, boxW, boxH, {
+    fill: '#ffffff', border: COLORS.border[0], header: true,
+    title: 'PC Web 商城', desc: '浏览器访问 · SSR / CSR 渲染'
+  });
+  cyr_Text('Chrome / Edge', startX + 14, row1Y + 80 + boxH - 30, { size: 15, color: '#64748b' });
+
+  cyr_Box(startX + boxW + gap, row1Y + 80, boxW, boxH, {
+    fill: '#ffffff', border: COLORS.border[0], header: true,
+    title: '移动端 H5', desc: '响应式 · 微信内浏览器'
+  });
+  cyr_Text('iOS / Android', startX + boxW + gap + 14, row1Y + 80 + boxH - 30, { size: 15, color: '#64748b' });
+
+  cyr_Box(startX + (boxW + gap) * 2, row1Y + 80, boxW, boxH, {
+    fill: '#ffffff', border: COLORS.border[0], header: true,
+    title: 'App（原生 / 混合）', desc: 'iOS App Store · Android 应用市场'
+  });
+  cyr_Text('Swift / Kotlin', startX + (boxW + gap) * 2 + 14, row1Y + 80 + boxH - 30, { size: 15, color: '#64748b' });
+
+  cyr_Box(startX + (boxW + gap) * 3, row1Y + 80, boxW, boxH, {
+    fill: '#ffffff', border: COLORS.border[0], header: true,
+    title: '小程序', desc: '微信 · 支付宝 · 抖音'
+  });
+
+  // 箭头：接入层 → 网关层
+  cyr_Text('HTTPS / WebSocket', W / 2, row1Y + 240, { size: 16, color: '#334155', bold: true, align: 'center' });
+
+  // ============ 第 2 行：网关层 ============
+  var row2Y = 300;
+  cyr_RowHeader(row2Y, '② 网关层（Gateway Layer）', 1);
+
+  cyr_Box(startX + 180, row2Y + 60, 360, 130, {
+    fill: '#ffffff', border: COLORS.border[1], header: true,
+    title: 'CDN 静态资源加速', desc: '图片 / JS / CSS 就近分发 · 回源策略'
+  });
+  cyr_Text('Cloudflare / 阿里云 CDN', startX + 180 + 14, row2Y + 60 + 130 - 30, { size: 15, color: '#64748b' });
+
+  cyr_Box(startX + 180 + 360 + gap, row2Y + 60, 360, 130, {
+    fill: '#ffffff', border: COLORS.border[1], header: true,
+    title: 'Nginx / API Gateway', desc: '反向代理 · 负载均衡 · 路由转发'
+  });
+  cyr_Text('限流 / 熔断 / 鉴权', startX + 180 + 360 + gap + 14, row2Y + 60 + 130 - 30, { size: 15, color: '#64748b' });
+
+  cyr_Box(startX + 180 + (360 + gap) * 2, row2Y + 60, 360, 130, {
+    fill: '#ffffff', border: COLORS.border[1], header: true,
+    title: '服务注册中心', desc: 'Nacos / Consul · 服务发现'
+  });
+
+  // ============ 第 3 行：业务服务层 ============
+  var row3Y = 500;
+  cyr_RowHeader(row3Y, '③ 业务服务层（Business Service Layer）', 2);
+
+  var svcStartX = 420;
+  var svcBoxW = 320, svcBoxH = 110, svcGap = 20;
+
+  var services = [
+    { title: '用户服务 User',      desc: '注册 / 登录 / 权限' },
+    { title: '商品服务 Product',   desc: 'SPU / SKU / 类目' },
+    { title: '购物车 Cart',        desc: '添加 / 删减 / 合并' },
+    { title: '订单服务 Order',     desc: '下单 / 支付 / 售后' },
+    { title: '支付服务 Pay',       desc: '微信 / 支付宝 / 银行卡' },
+    { title: '库存服务 Stock',     desc: '分布式库存 / 扣减' },
+    { title: '物流服务 Delivery',  desc: '快递 / 发货 / 轨迹' },
+    { title: '评论服务 Comment',   desc: '评价 / 图片 / 打分' }
+  ];
+
+  for (var i = 0; i < services.length; i++) {
+    var col = i % 4;
+    var row = Math.floor(i / 4);
+    var bx = svcStartX + col * (svcBoxW + svcGap);
+    var by = row3Y + 70 + row * (svcBoxH + svcGap);
+    cyr_Box(bx, by, svcBoxW, svcBoxH, {
+      fill: '#ffffff', border: COLORS.border[2], header: true,
+      title: services[i].title, desc: services[i].desc
+    });
+  }
+
+  // ============ 第 4 行：数据层 ============
+  var row4Y = 760;
+  cyr_RowHeader(row4Y, '④ 数据层（Data Layer）', 3);
+
+  var dataBoxes = [
+    { x: 450,  title: 'MySQL 主库',     desc: '订单 / 商品核心数据 · 写' },
+    { x: 820,  title: 'MySQL 从库集群', desc: '读写分离 · 多节点只读' },
+    { x: 1190, title: 'Redis 缓存',     desc: '热点数据 / 分布式锁 · Cluster' },
+    { x: 1560, title: 'Elasticsearch',  desc: '商品搜索 / 全文检索' },
+    { x: 450,  y: row4Y + 180, title: 'MongoDB', desc: '评论 / 日志 / 非结构化' },
+    { x: 820,  y: row4Y + 180, title: 'Kafka 消息队列', desc: '异步削峰 · 事件驱动' },
+    { x: 1190, y: row4Y + 180, title: '对象存储 OSS',  desc: '商品图片 / 用户头像' },
+    { x: 1560, y: row4Y + 180, title: '数据仓库 Hive', desc: '离线分析 / BI 报表' }
+  ];
+
+  for (var j = 0; j < dataBoxes.length; j++) {
+    var d = dataBoxes[j];
+    cyr_Box(d.x, d.y || row4Y + 60, 310, d.y ? 110 : 120, {
+      fill: '#ffffff', border: COLORS.border[3], header: true,
+      title: d.title, desc: d.desc
+    });
+  }
+
+  // ============ 第 5 行：基础设施层 ============
+  var row5Y = 1130;
+  cyr_RowHeader(row5Y, '⑤ 基础设施层（Infrastructure Layer）', 4);
+
+  var infra = [
+    { title: 'Docker 容器化',   desc: '镜像 · 容器编排' },
+    { title: 'Kubernetes 集群', desc: '调度 / 扩缩容 / 自愈' },
+    { title: '监控告警',        desc: 'Prometheus + Grafana' },
+    { title: '日志系统',        desc: 'ELK / Loki · 链路追踪' },
+    { title: 'CI / CD',         desc: 'GitLab CI / Jenkins' },
+    { title: '云服务器',        desc: '阿里云 ECS · 负载均衡 SLB' }
+  ];
+
+  var infraY = row5Y + 80;
+  var infraW = 290;
+  for (var k = 0; k < infra.length; k++) {
+    var ix = 450 + k * (infraW + 25);
+    cyr_Box(ix, infraY, infraW, 120, {
+      fill: '#ffffff', border: COLORS.border[4], header: true,
+      title: infra[k].title, desc: infra[k].desc
+    });
+  }
+
+  // ============ 层间连接箭头 ============
+  var midY12 = row1Y + 80 + boxH + 30;
+  var midY23 = row2Y + 60 + 130 + 30;
+  var midY34 = row3Y + 70 + svcBoxH * 2 + svcGap + 30;
+  var midY45 = row4Y + 300 + 30;
+
+  // 绘制竖直箭头（居中）
+  function cyr_VArrows(x, y1, y2, label1, label2) {
+    ctx.strokeStyle = '#94a3b8';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 4]);
+    ctx.beginPath();
+    ctx.moveTo(x, y1);
+    ctx.lineTo(x, y2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // 上箭头
+    var ang1 = Math.atan2(y1 - y2, 0);
+    ctx.fillStyle = '#94a3b8';
+    ctx.beginPath();
+    ctx.moveTo(x, y1);
+    ctx.lineTo(x - 7 * Math.cos(ang1 - 0.4), y1 - 7 * Math.sin(ang1 - 0.4));
+    ctx.lineTo(x - 7 * Math.cos(ang1 + 0.4), y1 - 7 * Math.sin(ang1 + 0.4));
+    ctx.closePath();
+    ctx.fill();
+
+    // 下箭头
+    ctx.beginPath();
+    ctx.moveTo(x, y2);
+    ctx.lineTo(x + 7 * Math.cos(ang1 - 0.4), y2 + 7 * Math.sin(ang1 - 0.4));
+    ctx.lineTo(x + 7 * Math.cos(ang1 + 0.4), y2 + 7 * Math.sin(ang1 + 0.4));
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  var cx1 = startX + boxW * 2 + gap * 1.5;  // 中间
+  cyr_VArrows(cx1, midY12, midY12 + 20);
+  cyr_VArrows(cx1, midY23, midY23 + 20);
+  cyr_VArrows(cx1, midY34, midY34 + 20);
+  cyr_VArrows(cx1, midY45, midY45 + 20);
+
+  // 层间 label
+  cyr_Text('HTTP 网关转发', W / 2, midY12 + 40, { size: 15, color: '#475569', bold: true, align: 'center' });
+  cyr_Text('RPC / HTTP 内部调用', W / 2, midY23 + 40, { size: 15, color: '#475569', bold: true, align: 'center' });
+  cyr_Text('SQL / Cache / MQ', W / 2, midY34 + 40, { size: 15, color: '#475569', bold: true, align: 'center' });
+  cyr_Text('K8s / 宿主机', W / 2, midY45 + 40, { size: 15, color: '#475569', bold: true, align: 'center' });
+
+  // 标题
+  cyr_Text('电商系统全站架构图（Canvas 绘制）', W / 2, 50, { size: 36, color: '#1e3a8a', bold: true, align: 'center' });
+  cyr_Text('陈依然 · 2026-11-05', W / 2, 92, { size: 18, color: '#64748b', align: 'center' });
+
+  // 响应式：绘制缩放到容器
+  function cyr_fit() {
+    var wrap = document.querySelector('.cyr_canvas-wrap');
+    var w = wrap.clientWidth - 28;
+    canvas.style.width = w + 'px';
+    canvas.style.height = (w * H / W) + 'px';
+  }
+  cyr_fit();
+  window.addEventListener('resize', cyr_fit);
+})();
+</script>
+</body>
+</html>

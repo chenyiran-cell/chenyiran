@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>18-1 Canvas 粒子文字动画</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Microsoft YaHei", sans-serif;
+    background: radial-gradient(ellipse at center, #0f172a 0%, #020617 100%);
+    color: #e2e8f0; min-height: 100vh; overflow: hidden;
+  }
+  .cyr_back-home {
+    position: fixed; top: 14px; left: 16px;
+    color: #81d4fa; text-decoration: none; font-size: 0.88rem; font-weight: bold;
+    z-index: 10;
+  }
+  .cyr_wrap {
+    position: relative; width: 100vw; height: 100vh;
+  }
+  canvas#cyr_canvas {
+    display: block; width: 100%; height: 100%;
+    cursor: crosshair;
+  }
+  .cyr_controls {
+    position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;
+    z-index: 10; padding: 10px 16px;
+    background: rgba(15, 23, 42, 0.75);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 12px; backdrop-filter: blur(6px);
+  }
+  .cyr_btn {
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    color: #fff; border: none; border-radius: 8px;
+    padding: 8px 16px; font-size: 0.85rem; font-weight: bold;
+    cursor: pointer; font-family: inherit; transition: transform 0.15s;
+  }
+  .cyr_btn:hover { transform: translateY(-1px); }
+  .cyr_btn-alt { background: linear-gradient(135deg, #10b981, #06b6d4); }
+  .cyr_btn-warm { background: linear-gradient(135deg, #f59e0b, #ef4444); }
+  .cyr_input {
+    background: rgba(255,255,255,0.08); border: 1px solid rgba(148,163,184,0.3);
+    color: #fff; padding: 8px 12px; border-radius: 8px; font-size: 0.85rem;
+    font-family: inherit; width: 180px;
+  }
+  .cyr_hint {
+    position: fixed; top: 14px; right: 16px;
+    font-size: 0.75rem; color: #94a3b8; text-align: right; z-index: 10;
+    line-height: 1.6;
+  }
+  .cyr_title {
+    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    font-size: 120px; font-weight: 900; color: transparent;
+    -webkit-text-stroke: 1px rgba(255,255,255,0.06);
+    pointer-events: none; z-index: 1;
+    font-family: "Microsoft YaHei", sans-serif;
+    letter-spacing: 12px;
+  }
+</style>
+</head>
+<body>
+<!-- 姓名：陈依然，日期：2026-11-05，功能：Canvas 粒子动画展示文字陈依然 -->
+<a href="index.html" class="cyr_back-home">← 返回首页</a>
+<div class="cyr_hint">
+  🖱 鼠标移动可扰动粒子<br>
+  💥 点击爆发 · 按钮切换文字
+</div>
+<div class="cyr_wrap">
+  <canvas id="cyr_canvas"></canvas>
+  <div class="cyr_title" id="cyr_titleGhost">陈依然</div>
+</div>
+<div class="cyr_controls">
+  <input type="text" class="cyr_input" id="cyr_textInput" value="陈依然" maxlength="8">
+  <button class="cyr_btn" onclick="cyr_setText()">🎨 渲染文字</button>
+  <button class="cyr_btn cyr_btn-alt" onclick="cyr_mode=0">✨ 聚拢模式</button>
+  <button class="cyr_btn cyr_btn-warm" onclick="cyr_mode=1">🔥 爆发模式</button>
+  <button class="cyr_btn" onclick="cyr_reset()">🔄 重置</button>
+</div>
+
+<script>
+(function(){
+  var canvas = document.getElementById('cyr_canvas');
+  var ctx = canvas.getContext('2d');
+  var W, H;
+  var particles = [];
+  var mouseX = -9999, mouseY = -9999;
+  var cyr_mode = 0;  // 0 聚拢  1 爆发
+
+  function cyr_resize() {
+    W = canvas.width = window.innerWidth * devicePixelRatio;
+    H = canvas.height = window.innerHeight * devicePixelRatio;
+    canvas.style.width = window.innerWidth + 'px';
+    canvas.style.height = window.innerHeight + 'px';
+  }
+  cyr_resize();
+  window.addEventListener('resize', function() { cyr_resize(); cyr_setText(true); });
+
+  /* ============ 捕获文字像素 ============ */
+  function cyr_sampleTextPixels(text) {
+    var off = document.createElement('canvas');
+    var octx = off.getContext('2d');
+    var fontSize = Math.min(W * 0.18, 220 * devicePixelRatio);
+    off.width = W;
+    off.height = H;
+
+    octx.fillStyle = '#fff';
+    octx.font = '900 ' + fontSize + 'px "Microsoft YaHei", "PingFang SC", sans-serif';
+    octx.textAlign = 'center';
+    octx.textBaseline = 'middle';
+    octx.fillText(text, W / 2, H / 2);
+
+    var imgData = octx.getImageData(0, 0, W, H).data;
+    var dots = [];
+    var step = Math.max(3, Math.floor(6 / devicePixelRatio));
+
+    for (var y = 0; y < H; y += step) {
+      for (var x = 0; x < W; x += step) {
+        var i = (y * W + x) * 4;
+        if (imgData[i] > 128) {
+          dots.push({ x: x, y: y });
+        }
+      }
+    }
+    return dots;
+  }
+
+  /* ============ 粒子 ============ */
+  function cyr_Particle(tx, ty) {
+    this.tx = tx; this.ty = ty;
+    this.x = Math.random() * W;
+    this.y = Math.random() * H;
+    this.vx = (Math.random() - 0.5) * 2;
+    this.vy = (Math.random() - 0.5) * 2;
+    this.size = (Math.random() * 2 + 1) * devicePixelRatio;
+    this.hue = Math.floor(Math.random() * 60) + 200;  // 蓝紫色系
+  }
+
+  cyr_Particle.prototype.update = function() {
+    // 目标力
+    var dx = this.tx - this.x;
+    var dy = this.ty - this.y;
+    var dist = Math.sqrt(dx * dx + dy * dy);
+
+    if (cyr_mode === 0) {
+      // 聚拢：向目标加速
+      var force = 0.02;
+      this.vx += dx * force;
+      this.vy += dy * force;
+    } else {
+      // 爆发：反方向加速
+      var force = -0.003;
+      this.vx += dx * force;
+      this.vy += dy * force;
+      // 边界反弹
+      if (this.x < 0) this.vx = Math.abs(this.vx);
+      if (this.x > W) this.vx = -Math.abs(this.vx);
+      if (this.y < 0) this.vy = Math.abs(this.vy);
+      if (this.y > H) this.vy = -Math.abs(this.vy);
+    }
+
+    // 鼠标扰动
+    var mdx = this.x - mouseX;
+    var mdy = this.y - mouseY;
+    var mdist = Math.sqrt(mdx * mdx + mdy * mdy);
+    var mR = 150 * devicePixelRatio;
+    if (mdist < mR && mdist > 0) {
+      var push = (mR - mdist) / mR * 3;
+      this.vx += (mdx / mdist) * push;
+      this.vy += (mdy / mdist) * push;
+    }
+
+    // 阻尼
+    this.vx *= 0.94;
+    this.vy *= 0.94;
+
+    this.x += this.vx;
+    this.y += this.vy;
+  };
+
+  cyr_Particle.prototype.draw = function() {
+    // 目标接近时亮
+    var dx = this.tx - this.x, dy = this.ty - this.y;
+    var d = Math.sqrt(dx * dx + dy * dy);
+    var alpha = Math.max(0.3, 1 - d / 200);
+
+    ctx.beginPath();
+    ctx.fillStyle = 'hsla(' + this.hue + ', 90%, 65%, ' + alpha + ')';
+    ctx.shadowColor = 'hsla(' + this.hue + ', 90%, 70%, 0.8)';
+    ctx.shadowBlur = 8;
+    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+    ctx.fill();
+  };
+
+  /* ============ 动画循环 ============ */
+  function cyr_animate() {
+    // 半透明擦除 → 拖尾效果
+    ctx.fillStyle = 'rgba(2, 6, 23, 0.18)';
+    ctx.fillRect(0, 0, W, H);
+    ctx.shadowBlur = 0;
+
+    for (var i = 0; i < particles.length; i++) {
+      particles[i].update();
+      particles[i].draw();
+    }
+
+    requestAnimationFrame(cyr_animate);
+  }
+
+  /* ============ 渲染文字 ============ */
+  function cyr_setText(silent) {
+    var text = document.getElementById('cyr_textInput').value.trim() || '陈依然';
+    var dots = cyr_sampleTextPixels(text);
+    particles = [];
+    var maxP = 4000;
+    var step = Math.max(1, Math.ceil(dots.length / maxP));
+    for (var i = 0; i < dots.length; i += step) {
+      particles.push(new cyr_Particle(dots[i].x, dots[i].y));
+    }
+    document.getElementById('cyr_titleGhost').textContent = text;
+    if (!silent) {
+      cyr_mode = 0;
+    }
+  }
+
+  function cyr_reset() {
+    cyr_mode = 0;
+    cyr_setText();
+  }
+
+  /* ============ 交互 ============ */
+  canvas.addEventListener('mousemove', function(e) {
+    mouseX = e.clientX * devicePixelRatio;
+    mouseY = e.clientY * devicePixelRatio;
+  });
+  canvas.addEventListener('mouseleave', function() {
+    mouseX = -9999; mouseY = -9999;
+  });
+  canvas.addEventListener('click', function(e) {
+    // 爆发：点击点周围粒子向外爆
+    var cx = e.clientX * devicePixelRatio;
+    var cy = e.clientY * devicePixelRatio;
+    for (var i = 0; i < particles.length; i++) {
+      var dx = particles[i].x - cx;
+      var dy = particles[i].y - cy;
+      var d = Math.sqrt(dx * dx + dy * dy);
+      if (d < 200 * devicePixelRatio && d > 0) {
+        var force = (1 - d / (200 * devicePixelRatio)) * 20;
+        particles[i].vx += (dx / d) * force;
+        particles[i].vy += (dy / d) * force;
+      }
+    }
+  });
+  document.getElementById('cyr_textInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') cyr_setText();
+  });
+
+  // 启动
+  cyr_setText();
+  cyr_animate();
+})();
+</script>
+</body>
+</html>
